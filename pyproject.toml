@@ -1,0 +1,8 @@
+[project]
+name = "opencode-pipeline"
+version = "0.1.0"
+description = "opencode multi-agent dev pipeline as config-as-code (framework self-checks)"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

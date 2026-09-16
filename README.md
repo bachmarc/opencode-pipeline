@@ -1,6 +1,6 @@
 # opencode Pipeline
 
-Multi-agent development pipeline for folder projects: **Requirements → Design → Stories → Dev (Flash) → QA Gate**. Everything kept as flat, portable opencode config (config-as-code).
+Multi-agent development pipeline for folder projects: **Requirements → Design → Stories → Dev (cheap model) → QA Gate**. Everything kept as flat, portable opencode config (config-as-code).
 
 > **Heads-up:** This repository intentionally contains **no `opencode.jsonc`** (provider endpoints, model selection) and **no `cron.db`** (local state). Both stay **local** per machine and are gitignored here.
 
@@ -14,6 +14,7 @@ Multi-agent development pipeline for folder projects: **Requirements → Design 
 |---|---|---|
 | `agent/` | `architect`, `developer`, `qa-manager` | The three pipeline roles as opencode agents |
 | `skills/dev-workflow/` | `SKILL.md` | The complete, reusable development workflow |
+| `templates/` | `AGENTS.md` | Skeleton for the per-project `AGENTS.md` (project knowledge injected into every session) |
 | `scripts/` | `qa_compress.sh` | Deterministic pytest compression for the QA gate |
 | `command/` | `qa_summary`, `qa-check`, `status`, `new-project`, `requirements`, `decompose`, `implement` | Invokable commands that orchestrate the flow |
 
@@ -26,15 +27,15 @@ The goal is a **lean, cheap, autonomously running multi-agent system** — no ne
 ### 1. Separation of functions: Architect thinks, Developer writes, QA checks
 
 - **architect** (strong) — talks Requirements/Design/Stories out in dialogue. Pure reasoning.
-- **developer** (cheap Flash) — implements **exactly one story** isolated per branch. Many in parallel.
-- **qa-manager** (Flash) — **deterministic judge**, not a thinker. Strong model only as **fallback** via `architect` for unclear error/design causes.
+- **developer** (cheap bulk model) — implements **exactly one story** isolated per branch. Many in parallel.
+- **qa-manager** (cheap model) — **deterministic judge**, not a thinker. Strong model only as **fallback** via `architect` for unclear error/design causes.
 
 ### 2. The three efficiency levers (core of the "why")
 
 1. **Streamline & offload QA** — cost dampener
    - pytest logs are **deterministically compressed** (`qa_compress.sh`, ≤200 tokens instead of 20 000 log spam). **Evaluating pytest does not need a big model.**
    - QA output is **strictly JSON-only** (`status | reason | failed_tests`), no monologues, no style chit-chat.
-   - Flash model for the QA judge; the expensive model only for unclear causes.
+   - Cheap model for the QA judge; the expensive model only for unclear causes.
 
 2. **Break the cascade** — against context bloat
    - `BLOCKED_Design` → **stays autonomous**: QA delegates root-cause analysis to `architect` with a lean diagnosis (2 sentences + compressed test list, **no log spam**).
@@ -90,9 +91,12 @@ Create `~/.config/opencode/opencode.jsonc` (e.g.):
   "model": "provider/model",            // primary/dialogue model
   "small_model": "provider/model",      // lean model (titles, summaries)
   "agent": {                            // model per agent (architect/developer/qa-manager)
-    "architect":   { "model": "provider/strong" },
-    "developer":   { "model": "provider/flash"   },
-    "qa-manager":  { "model": "provider/flash"   }
+    "architect": {
+      "model": "provider/strong",
+      "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
+    },
+    "developer":   { "model": "provider/cheap"   },
+    "qa-manager":  { "model": "provider/cheap"   }
   },
   "skills": { "paths": ["~/.config/opencode/skills"] }
 }
@@ -117,6 +121,61 @@ The three role files (`agent/architect.md`, `developer.md`, `qa-manager.md`) no 
 3. Restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
 4. If a mapping entry is missing, opencode does not fail: an agent without an assigned model falls back to the global `model` as default.
 
+### Enforcing the Phase-0 checkpoint technically (not just via prompt)
+
+The rule "no dev/QA without explicit user-go" lives in the prompts — but an LLM follows instructions probabilistically and can "overhear" them. The fix: opencode's `permission.task` system. When the architect tries to spawn a developer or qa-manager, a **UI approval dialog pops up for you** — every time. Your "allow" click **is** the user-go, technically enforced. The architect cannot silently start the machine.
+
+```jsonc
+"agent": {
+  "architect": {
+    "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
+  }
+}
+```
+
+- The prompt rules stay as behavioral training, but the hard guarantee comes from the permission system.
+- Internal QA loops (QA → developer on FAIL fixes) are intentionally **not** gated — that autonomy should remain, since the wave was already started by you.
+- This block belongs in the local `opencode.jsonc` (it's config, not a role), so it travels with the model assignment on every machine.
+
+---
+
+## Deployment (dev repo → live config)
+
+Stories are developed and merged to `main` in the dev repo (after the QA gate). Deployment means: pull in the **live clone** (`~/.config/opencode`) and restart opencode.
+
+**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
+
+**Procedure** (only after a QA-PASS merge to `main`):
+
+```bash
+git -C ~/.config/opencode pull origin main
+```
+
+Then **restart opencode** — the config is loaded once at startup, there is no hot-reload. Running sessions keep using the old config until they are restarted.
+
+**What a pull does not touch:** `opencode.jsonc` and `cron.db` are gitignored, so a pull never overwrites them. New agent-/command-/skill-/template files appear automatically after pull + restart.
+
+**New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `permission.task` block), **every machine** must add them to its local file once — see § "How model assignment works" above for the per-machine procedure.
+
+**Rollback:** check out a known-good version in the live clone and restart opencode:
+
+```bash
+git -C ~/.config/opencode checkout <tag-or-hash>
+```
+
+**No deploy script — by design (D2):** deployment stays deliberately manual (staged rollout; the framework steers the running agent). Optional convenience later, manual is the default.
+
+---
+
+## Per-project AGENTS.md (project knowledge, per repo)
+
+Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agent/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
+
+- **Agent definition (global, this repo):** who the agent is, prompt, behavior — identical on every machine.
+- **Project AGENTS.md (per repo, in the project):** what the project is and which rules its code must follow — versioned with the code, correct on every checkout.
+
+**Template:** `templates/AGENTS.md` provides the skeleton. Constant sections (workflow, git conventions, languages, prohibitions) are the binding interface between framework and project and stay untouched; project-specific placeholders (`name`, stack, core rules, references) are filled in dialogue. The architect must use the template — no improvising from zero.
+
 ---
 
 ## Workflow in 60 seconds
@@ -134,7 +193,7 @@ The three role files (`agent/architect.md`, `developer.md`, `qa-manager.md`) no 
 | | architect | developer | qa-manager |
 |---|---|---|---|
 | **Role** | Requirements-/Design-/Story partner, dialogue | Cheap story implementer | Deterministic gatekeeper |
-| **Model** | strong | cheap Flash | Flash (+ strong fallback via architect) |
+| **Model** | strong | cheap bulk | cheap (+ strong fallback via architect) |
 | **Model source** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` |
 | **Mode** | `all` (dialogue) | `subagent` | `all` |
 | **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) |

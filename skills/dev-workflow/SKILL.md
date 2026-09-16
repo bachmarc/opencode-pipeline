@@ -63,7 +63,7 @@ Siehe `intesis_modbus` als Referenz für Architektur-Trennung.
 
 ### Phase 1 — Requirements & Design (Architect, starkes Reasoning — Dokumente IM DIALOG erstellen)
 
-**Agent: `architect` — Modell `ollama-docker/glm-5.3:cloud` — `mode: all` (direkter Dialogpartner, Dokumente entstehen IM DIALOG)**
+**Agent: `architect` — starkes Modell, lokal konfiguriert via `opencode.jsonc` → `agent.architect.model` — `mode: all` (direkter Dialogpartner, Dokumente entstehen IM DIALOG)**
 
 **Prinzip: Dokumente sind Source of Truth gegen Chat-Drift, aber entstehen IM DIALOG mit dir — nicht autonom im Hintergrund.** (Lessons aus MetaGPT/TraceDev: strukturierte Dokumente verhindern Cascading Hallucinations; RTIA/Coordinated Agent Team: Human Checkpoints)
 
@@ -82,7 +82,8 @@ Ablauf (iterativ, immer mit User-Rückkopplung):
    - Datenmodell, API-Skizze, Deployment (Docker/SQLite/etc.)
    - **Im Dialog vorstellen**, du reviewst, erst nach Freigabe schreiben.
 4. **Offene Fragen** sofort im Dialog zurückspielen wenn aussichtslos — nicht raten, nicht in Datei raten.
-5. **AGENTS.md** (Repo-Leitplanken) ebenfalls als Dialog-Vorschlag, dann schreiben.
+5. **AGENTS.md** (Repo-Leitplanken) ebenfalls als Dialog-Vorschlag, dann schreiben:
+   - **Vorlage nutzen (Pflicht):** Kopiere das Skelett aus `~/.config/opencode/templates/AGENTS.md` — konstante Abschnitte (Workflow, Git-Konvention, Sprachen, Verbote) unverändert lassen, projekt-spezifische Platzhalter (`<...>`) im Dialog ausfüllen (Name, Stack, Kernregeln, Referenzen). Kein Improvisieren von Null.
 
 Regel: Kein `docs/requirements.md` / `docs/design.md` ohne vorherige Dialog-Freigabe. Dokumente frieren den Dialog ein — Chat darf danach nicht mehr driften.
 
@@ -112,7 +113,7 @@ Pflichtfelder (QA rejectet Stories ohne diese):
 - `Testkriterien` müssen Fake-basiert sein (`tests/fakes/`, `Fake*`).
 
 Regeln:
-- Stories sind so geschnitten dass **billige Cloud-Flash-Modelle** (`glm-5.3-flash` 120M/$60, `deepseek-v4-flash` 91M/$60, alternativ lokal `qwen3-coder:30b` nur 1×) sie isoliert **parallel** implementieren können (Pro: 3 concurrent, Max: 10 concurrent)
+- Stories sind so geschnitten dass **günstige Massenmodelle** (lokal konfiguriert via `agent.developer.model`) sie isoliert **parallel** implementieren können — dein billigstes Modell für repetitive Schreibarbeit. Teures/starkes Modell nur als Fallback für Design/Reasoning (lokal via `agent.architect.model`).
 - Jede Story hat eigene Testkriterien → Tests werden ZUERST geschrieben
 - Keine unangefragten Features außerhalb der Developer Targets
 - Stories erst nach deiner Dialog-Freigabe schreiben — kein autonomes Dekomponieren im Hintergrund
@@ -128,9 +129,9 @@ Muster aus `intesis_modbus/tests/`:
 - `tests/fakes/` oder `tests/raum_simulation.py` — Fake-Implementierungen
 - `TickSample` / `TickHistory` Pattern für zeitbasierte Logik
 
-### Phase 4 — Implementierung (Developer, Cloud-Flash billig + parallel, per Branch)
+### Phase 4 — Implementierung (Developer, günstiges Massenmodell + parallel, per Branch)
 
-**Agent: `developer` — Modell `ollama-docker/glm-5.3-flash:cloud` (120M/$60) oder `deepseek-v4-flash:cloud` (91M/$60) — repetive Schreibarbeit, mehrere Developer parallel (Pro 3 / Max 10). Lokal-Fallback `qwen3-coder:30b` nur 1× wegen GPU.**
+**Agent: `developer` — günstiges Massenmodell, lokal konfiguriert via `opencode.jsonc` → `agent.developer.model` — repetive Schreibarbeit, mehrere Developer parallel (so viele, wie dein Budget/Setup erlaubt). Starkes Modell nur als Fallback via architect, nicht für Massen-Implementierung.**
 
 ```
 git checkout -b feature/<story-id>-<slug>
@@ -153,15 +154,15 @@ Regeln:
 - Kein Überschreiben von fremden Branches.
 - Commit-Body MUSS `symbols|breaks|affects|tests` enthalten — QA nutzt das für gezieltes Requeue (CodeTeam-Lesson).
 
-### Phase 5 — QA-Gate (zentraler Qualitätsmanager — deterministischer Richter auf Flash)
+### Phase 5 — QA-Gate (zentraler Qualitätsmanager — deterministischer Richter auf dem günstigen Modell)
 
-**Agent: `qa-manager` — Modell `ollama-docker/glm-5.3-flash:cloud` (billig). Starkes Modell (`glm-5.3`) nur als Fallback via `architect` bei unklarer Fehler-/Design-Ursache.**
+**Agent: `qa-manager` — günstiges Modell, lokal konfiguriert via `opencode.jsonc` → `agent.qa-manager.model`. Starkes Modell (via `architect`) nur als Fallback bei unklarer Fehler-/Design-Ursache.**
 
 **Log-Kompression ist deterministisch — kein LLM nötig:** Vor dem QA-Call läuft ein
 Wrapper-Skript (`~/.config/opencode/scripts/qa_compress.sh` bzw. Command
 `~/.config/opencode/command/qa_summary.md`), das `pytest --tb=short` ausführt und nur
 Exit-Code + Fehler-/Testnamen + Assertion extrahiert (≤200 Tokens statt Log-Spam).
-Das pytest-Auswerten ist reine Determinisik — der Flash-Judge nimmt nur die komprimierte Liste.
+Das pytest-Auswerten ist reine Determinisik — der günstige Judge nimmt nur die komprimierte Liste.
 
 **Output strikt JSON-only (keine Monologe, keine Stil-Bewertung, keine Wiederkäuung):**
 ```json
@@ -179,7 +180,7 @@ Prüft auf dem Feature-Branch:
 **Ergebnis/Status (Autonomie-Konzept — Prozess läuft ohne User, bis Intention relevant):**
 - **PASS** → Merge nach `main`/`dev` (squash oder merge, je nach Repo) — nur nach deiner Freigabe
 - **FAIL** → Zurück zum Developer mit konkretem Fix-Auftrag (gleicher Branch, Loop). Max. 3 FAIL-Loops, dann BLOCKED.
-- **BLOCKED_Design** (Design-Lücke / Architektur trägt nicht: Test un-simulierbar, Story falsch geschnitten, Core/Adapter-Trennung undesignfiziert) → **bleibt AUTONOM, starker Modell-Fallback.** QA delegiert die Ursachenanalyse an `architect` (`glm-5.3`, das starke Modell nur hier) mit schlanker Diagnose (2-Sätze + komprimierte Testliste, **kein Log-Spam**). Architect revidiert Design minimal-invasiv + Traceability, dann neue Dev-Runde. Nur wenn der Fix wieder scheitert (Autonomie-Budget) → an User.
+- **BLOCKED_Design** (Design-Lücke / Architektur trägt nicht: Test un-simulierbar, Story falsch geschnitten, Core/Adapter-Trennung undesignfiziert) → **bleibt AUTONOM, starker Modell-Fallback.** QA delegiert die Ursachenanalyse an `architect` (das lokal konfigurierte starke Modell, nur hier) mit schlanker Diagnose (2-Sätze + komprimierte Testliste, **kein Log-Spam**). Architect revidiert Design minimal-invasiv + Traceability, dann neue Dev-Runde. Nur wenn der Fix wieder scheitert (Autonomie-Budget) → an User.
 - **BLOCKED_Requirements** (Fachlichkeit fehlt / Intention-Änderung nötig / nach Autonomie-Budget) → **Eskalation an dich** (präzise Rückfrage, kein Raten). Erst nach deiner Antwort weiter.
 
 **Autonomie-Budget (grenzendose Schleifen verhindern):** Max. 3 Developer-FAIL-Loops je
@@ -207,7 +208,7 @@ Schutz:
 ## Checkliste für neues Projekt
 
 - [ ] Folder + `git init` + `.gitignore`
-- [ ] `AGENTS.md` (aus Phase 1)
+- [ ] `AGENTS.md` (aus Phase 1, **aus Vorlage `~/.config/opencode/templates/AGENTS.md`**)
 - [ ] `docs/requirements.md`, `docs/design.md`
 - [ ] `STORIES.md` + `docs/stories/*.md`
 - [ ] `tests/` + `tests/fakes/` + Fake-Interfaces im Design

@@ -1,6 +1,16 @@
-# machine-local config (provider endpoints, API keys)
+# local state
+node_modules
+package.json
+package-lock.json
+bun.lock
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# machine-specific — local only, never committed
 opencode.json
 opencode.jsonc
-
-# local state
 cron.db
+
+# pipeline worktrees
+.worktrees/
