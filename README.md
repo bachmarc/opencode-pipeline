@@ -4,6 +4,8 @@ Multi-Agenten-Entwicklungs-Pipeline für Folder-Projekte: **Requirements → Des
 
 > **Achtung:** Dieses Repository enthält bewusst **keine `opencode.jsonc`** (Provider-Endpunkte, Modell-Auswahl) und **kein `cron.db`** (lokaler Zustand). Beide bleiben je Rechner **lokal** und sind hier gitignored.
 
+> **Modell-Zuordnung pro Agent:** Die Rollen (`agent/*.md`) tragen **keine** feste `model:`-Zeile mehr. Welches Modell für welchen Zweck läuft, wird **lokal im JSON** unter `agent` konfiguriert (siehe § „Modell-Zuordnung im JSON"). Andere Rechner haben andere Provider/Modellnamen → nur das lokale JSON anpassen, die Rollen-Dateien bleiben unverändert.
+
 ---
 
 ## Was steckt hier drin — und warum
@@ -85,12 +87,35 @@ Erstelle `~/.config/opencode/opencode.jsonc` (z.B.):
 {
   "$schema": "https://opencode.ai",
   "provider": { /* dein Modell-Anbieter, z.B. Ollama via openai-compatible */ },
-  "model": "provider/modell",
+  "model": "provider/modell",            // Primär-/Dialog-Modell
+  "small_model": "provider/modell",      // schlankes Modell (Titel, Zusammenfassungen)
+  "agent": {                            // Modell pro Agent (architect/developer/qa-manager)
+    "architect":   { "model": "provider/stark"    },
+    "developer":   { "model": "provider/flash"    },
+    "qa-manager":  { "model": "provider/flash"    }
+  },
   "skills": { "paths": ["~/.config/opencode/skills"] }
 }
 ```
 
 > **Nicht** hierher committen — steht in `.gitignore`, weil Host/Provider pro Maschine unterschiedlich sind.
+
+### Wie die Modell-Zuordnung funktioniert ("das Vorgehen im JSON")
+
+Die drei Rollen-Dateien (`agent/architect.md`, `developer.md`, `qa-manager.md`) legen **kein Modell mehr fest** (früher fest verdrahtet als `model:`). Stattdessen gilt eine **Trennung: Rolle vs. Rechner**:
+
+- **Rolle (portabel, im Git):** Wer *was* tut — Modus, Temperatur, Prompt, Regeln. In `agent/*.md`.
+- **Rechner (lokal, `.gitignore`d):** *welches Modell* *wofür*. In `~/.config/opencode/opencode.jsonc` unter `agent`.
+
+**Warum:**
+- Andere Rechner haben andere APIs/Provider angebunden und andere Modellnamen. War das Modell in der Rollen-Datei hart kodiert, musste man den Rollen-Kern anfassen.
+- Jetzt genügt eine **einzige lokale Datei** (`opencode.jsonc`) — Provider-Endpunkte, Modellnamen **und** die `agent`-Zuordnung. Beim Clone auf einem neuen Rechner nur diese Datei anlegen/anpassen, die Rollen bleiben identisch.
+
+**Konkretes Vorgehen je Rechner:**
+1. `git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode`
+2. `opencode.jsonc` anlegen (siehe oben) mit deinem Provider + den `agent`-Mapping-Einträgen, die zu deinen verfügbaren Modellen passen.
+3. `opencode` **neu starten** — die Config wird beim Start geladen, Änderungen werden nicht hot-reloadet.
+4. Wenn ein Mapping-Eintrag fehlt, fällt opencode nicht aus: Ein Agent ohne zugewiesenes Modell nutzt das globale `model` als Default.
 
 ---
 
@@ -110,6 +135,7 @@ Erstelle `~/.config/opencode/opencode.jsonc` (z.B.):
 |---|---|---|---|
 | **Rolle** | Requirements-/Design-/Story-Partner, Dialog | Billiger Story-Implementierer | Deterministischer Gatekeeper |
 | **Modell** | `glm-5.3:cloud` | `glm-5.3-flash`/`deepseek-v4-flash` | `glm-5.3-flash` (+ `glm-5.3`-Fallback via architect) |
+| **Modell-Quelle** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` |
 | **Mode** | `all` (Dialog) | `subagent` | `all` |
 | **Output** | Docs / Stories | Branch + Commit | JSON (`PASS/FAIL/BLOCKED_*`) |
 | **Budget** | — | 1 Story = 1 Branch | max. 3 FAIL-Loops, dann Eskalation |
