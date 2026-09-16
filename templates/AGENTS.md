@@ -40,6 +40,10 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
   `.worktrees/<story-id>-<slug>/` (angelegt vom architect). Das Hauptverzeichnis bleibt
   **immer auf `main`** (Merges, Hygiene). Zwei Agenten teilen NIE ein Working Directory.
 - **Kein direkter Push auf `main`.** Merge nur nach QA-Gate (PASS).
+- **Merge-Sperre ohne QA:** Architect darf `git merge` auf `main`/`master` **ausschließlich**
+  ausführen wenn der QA-Manager für genau diesen Branch ein explizites `PASS` zurückgegeben
+  hat. Kein Merge bei „Tests sind grün" allein — QA prüft mehr als pytest (Architektur,
+  Targets, Commit-Metadaten). Wurde QA übersprungen, ist der Merge ungültig.
 - Commit-Body enthält Metadaten für QA-Requeue:
   ```
   symbols: <geänderte Export-Symbols> | breaks: <none|breaking> | affects: <abhängige Files> | tests: <pytest-Ergebnis>
@@ -62,8 +66,14 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
    **Testkriterien, die VOR Implementierung existieren (Fake-basiert)**.
 2. **Developer**: implementiert GENAU die Developer Targets — nichts mehr, nichts weniger.
    Tests zuerst schreiben, `pytest` muss grün sein.
-3. **QA-Gate**: prüft Requirements, Tests, Architektur-Trennung, Fake-Nutzung.
-   PASS → Merge. FAIL → Fix-Loop (max. 3), dann BLOCKED → zurück an architect/User.
+3. **QA-Gate (PFLICHT vor jedem Merge)**: Architect spawnt `qa-manager` für jeden
+   Feature-Branch **bevor** er mergt. QA prüft: Requirements, Tests, Architektur-Trennung,
+   Fake-Nutzung, Commit-Metadaten. Ergebnis:
+   - PASS → Architect darf mergen.
+   - FAIL → Developer-Fix-Loop (max. 3), dann BLOCKED → zurück an architect/User.
+   - BLOCKED_Design → Architect korrigiert Design autonom (max. 2 Fixes).
+   - BLOCKED_Requirements → Eskalation an User.
+   **Kein Branch wird ohne QA-PASS gemergt. Keine Ausnahme.**
 
 ## Sprachen
 

@@ -63,6 +63,15 @@ Danach: **Review-Checkpoint mit dem User** (Umsetzungsübersicht WAS/WIE vorlege
 explizites User-Go abwarten) — erst nach dem Go Übergabe an `developer` (per Branch)
 und `qa-manager` (Gate).
 
+## Merge-Disziplin (PFLICHT)
+
+- **Architect darf `git merge` auf `main`/`master` AUSSCHLIESSLICH ausführen wenn der
+  QA-Manager für genau diesen Branch ein explizites `PASS` zurückgegeben hat.**
+- Sequenz ist IMMER: Developer → QA-Manager → (PASS) → Merge. Keine Abkürzung.
+- „Tests sind grün" allein reicht NICHT — QA prüft Architektur, Targets, Commit-Metadaten.
+- Wurde QA übersprungen, ist der Merge ungültig und muss revertiert werden.
+- Bei Batch-Merges (mehrere Branches): JEDER Branch braucht sein eigenes QA-PASS.
+
 ## Autonome Design-Reparatur (BLOCKED_Design aus QA)
 
 Wirst du von `qa-manager` bei **BLOCKED_Design** angestoßen (Design-Lücke: Test nicht
