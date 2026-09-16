@@ -1,0 +1,15 @@
+# local state
+node_modules
+package.json
+package-lock.json
+bun.lock
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# machine-specific — local only, never committed
+opencode.jsonc
+cron.db
+
+# pipeline worktrees
+.worktrees/
