@@ -1,6 +1,6 @@
 # opencode Pipeline
 
-Multi-agent development pipeline for folder projects: **Requirements → Design → Stories → Dev (Flash) → QA Gate**. Everything kept as flat, portable opencode config (config-as-code).
+Multi-agent development pipeline for folder projects: **Requirements → Design → Stories → Dev (cheap model) → QA Gate**. Everything kept as flat, portable opencode config (config-as-code).
 
 > **Heads-up:** This repository intentionally contains **no `opencode.jsonc`** (provider endpoints, model selection) and **no `cron.db`** (local state). Both stay **local** per machine and are gitignored here.
 
@@ -26,15 +26,15 @@ The goal is a **lean, cheap, autonomously running multi-agent system** — no ne
 ### 1. Separation of functions: Architect thinks, Developer writes, QA checks
 
 - **architect** (strong) — talks Requirements/Design/Stories out in dialogue. Pure reasoning.
-- **developer** (cheap Flash) — implements **exactly one story** isolated per branch. Many in parallel.
-- **qa-manager** (Flash) — **deterministic judge**, not a thinker. Strong model only as **fallback** via `architect` for unclear error/design causes.
+- **developer** (cheap bulk model) — implements **exactly one story** isolated per branch. Many in parallel.
+- **qa-manager** (cheap model) — **deterministic judge**, not a thinker. Strong model only as **fallback** via `architect` for unclear error/design causes.
 
 ### 2. The three efficiency levers (core of the "why")
 
 1. **Streamline & offload QA** — cost dampener
    - pytest logs are **deterministically compressed** (`qa_compress.sh`, ≤200 tokens instead of 20 000 log spam). **Evaluating pytest does not need a big model.**
    - QA output is **strictly JSON-only** (`status | reason | failed_tests`), no monologues, no style chit-chat.
-   - Flash model for the QA judge; the expensive model only for unclear causes.
+   - Cheap model for the QA judge; the expensive model only for unclear causes.
 
 2. **Break the cascade** — against context bloat
    - `BLOCKED_Design` → **stays autonomous**: QA delegates root-cause analysis to `architect` with a lean diagnosis (2 sentences + compressed test list, **no log spam**).
@@ -91,8 +91,8 @@ Create `~/.config/opencode/opencode.jsonc` (e.g.):
   "small_model": "provider/model",      // lean model (titles, summaries)
   "agent": {                            // model per agent (architect/developer/qa-manager)
     "architect":   { "model": "provider/strong" },
-    "developer":   { "model": "provider/flash"   },
-    "qa-manager":  { "model": "provider/flash"   }
+    "developer":   { "model": "provider/cheap"   },
+    "qa-manager":  { "model": "provider/cheap"   }
   },
   "skills": { "paths": ["~/.config/opencode/skills"] }
 }
@@ -134,7 +134,7 @@ The three role files (`agent/architect.md`, `developer.md`, `qa-manager.md`) no 
 | | architect | developer | qa-manager |
 |---|---|---|---|
 | **Role** | Requirements-/Design-/Story partner, dialogue | Cheap story implementer | Deterministic gatekeeper |
-| **Model** | strong | cheap Flash | Flash (+ strong fallback via architect) |
+| **Model** | strong | cheap bulk | cheap (+ strong fallback via architect) |
 | **Model source** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` |
 | **Mode** | `all` (dialogue) | `subagent` | `all` |
 | **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) |
