@@ -14,6 +14,7 @@ Multi-agent development pipeline for folder projects: **Requirements → Design 
 |---|---|---|
 | `agent/` | `architect`, `developer`, `qa-manager` | The three pipeline roles as opencode agents |
 | `skills/dev-workflow/` | `SKILL.md` | The complete, reusable development workflow |
+| `templates/` | `AGENTS.md` | Skeleton for the per-project `AGENTS.md` (project knowledge injected into every session) |
 | `scripts/` | `qa_compress.sh` | Deterministic pytest compression for the QA gate |
 | `command/` | `qa_summary`, `qa-check`, `status`, `new-project`, `requirements`, `decompose`, `implement` | Invokable commands that orchestrate the flow |
 
@@ -135,6 +136,17 @@ The rule "no dev/QA without explicit user-go" lives in the prompts — but an LL
 - The prompt rules stay as behavioral training, but the hard guarantee comes from the permission system.
 - Internal QA loops (QA → developer on FAIL fixes) are intentionally **not** gated — that autonomy should remain, since the wave was already started by you.
 - This block belongs in the local `opencode.jsonc` (it's config, not a role), so it travels with the model assignment on every machine.
+
+---
+
+## Per-project AGENTS.md (project knowledge, per repo)
+
+Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agent/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
+
+- **Agent definition (global, this repo):** who the agent is, prompt, behavior — identical on every machine.
+- **Project AGENTS.md (per repo, in the project):** what the project is and which rules its code must follow — versioned with the code, correct on every checkout.
+
+**Template:** `templates/AGENTS.md` provides the skeleton. Constant sections (workflow, git conventions, languages, prohibitions) are the binding interface between framework and project and stay untouched; project-specific placeholders (`name`, stack, core rules, references) are filled in dialogue. The architect must use the template — no improvising from zero.
 
 ---
 

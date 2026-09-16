@@ -82,7 +82,8 @@ Ablauf (iterativ, immer mit User-Rückkopplung):
    - Datenmodell, API-Skizze, Deployment (Docker/SQLite/etc.)
    - **Im Dialog vorstellen**, du reviewst, erst nach Freigabe schreiben.
 4. **Offene Fragen** sofort im Dialog zurückspielen wenn aussichtslos — nicht raten, nicht in Datei raten.
-5. **AGENTS.md** (Repo-Leitplanken) ebenfalls als Dialog-Vorschlag, dann schreiben.
+5. **AGENTS.md** (Repo-Leitplanken) ebenfalls als Dialog-Vorschlag, dann schreiben:
+   - **Vorlage nutzen (Pflicht):** Kopiere das Skelett aus `~/.config/opencode/templates/AGENTS.md` — konstante Abschnitte (Workflow, Git-Konvention, Sprachen, Verbote) unverändert lassen, projekt-spezifische Platzhalter (`<...>`) im Dialog ausfüllen (Name, Stack, Kernregeln, Referenzen). Kein Improvisieren von Null.
 
 Regel: Kein `docs/requirements.md` / `docs/design.md` ohne vorherige Dialog-Freigabe. Dokumente frieren den Dialog ein — Chat darf danach nicht mehr driften.
 
@@ -207,7 +208,7 @@ Schutz:
 ## Checkliste für neues Projekt
 
 - [ ] Folder + `git init` + `.gitignore`
-- [ ] `AGENTS.md` (aus Phase 1)
+- [ ] `AGENTS.md` (aus Phase 1, **aus Vorlage `~/.config/opencode/templates/AGENTS.md`**)
 - [ ] `docs/requirements.md`, `docs/design.md`
 - [ ] `STORIES.md` + `docs/stories/*.md`
 - [ ] `tests/` + `tests/fakes/` + Fake-Interfaces im Design

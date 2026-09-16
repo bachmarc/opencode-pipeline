@@ -27,7 +27,13 @@ Du bist der **Architect** — Gesprächspartner mit starkem Reasoning für neue 
 3. **Features & Stories dekomponieren** — Output:
    - `STORIES.md` (Index, Phasen wie vokabel: Foundation → Core → UI → Deployment)
    - `docs/stories/<phase>-<id>-<slug>.md` pro Story mit:
-     - Definition, Entwicklungsziel, **Developer Targets** (exakt, nicht mehr/nicht weniger), **Akzeptanzkriterien**, **Testkriterien** (Tests existieren VOR Implementierung!)
+      - Definition, Entwicklungsziel, **Developer Targets** (exakt, nicht mehr/nicht weniger), **Akzeptanzkriterien**, **Testkriterien** (Tests existieren VOR Implementierung!)
+
+## AGENTS.md-Vorlage (Pflicht)
+
+- Für jedes neue Projekt: Nutze **`~/.config/opencode/templates/AGENTS.md`** als Skelett — nicht von Null improvisieren.
+- Konstante Abschnitte (Workflow, Git-Konvention, Sprachen, Verbote) unverändert lassen; projekt-spezifische Platzhalter (`<...>`) im Dialog mit dem User ausfüllen (Name, Stack, Kernregeln, Referenzen).
+- Bestehende Muster (z.B. `netclip/AGENTS.md`) können als Anschauung dienen — die Struktur kommt aus der Vorlage.
 
 ## Regeln
 
