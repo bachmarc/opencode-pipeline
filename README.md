@@ -139,6 +139,32 @@ The rule "no dev/QA without explicit user-go" lives in the prompts — but an LL
 
 ---
 
+## Deployment (dev repo → live config)
+
+Stories are developed and merged to `main` in the dev repo (after the QA gate). Deployment means: pull in the **live clone** (`~/.config/opencode`) and restart opencode.
+
+**Procedure** (only after a QA-PASS merge to `main`):
+
+```bash
+git -C ~/.config/opencode pull origin main
+```
+
+Then **restart opencode** — the config is loaded once at startup, there is no hot-reload. Running sessions keep using the old config until they are restarted.
+
+**What a pull does not touch:** `opencode.jsonc` and `cron.db` are gitignored, so a pull never overwrites them. New agent-/command-/skill-/template files appear automatically after pull + restart.
+
+**New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `permission.task` block), **every machine** must add them to its local file once — see § "How model assignment works" above for the per-machine procedure.
+
+**Rollback:** check out a known-good version in the live clone and restart opencode:
+
+```bash
+git -C ~/.config/opencode checkout <tag-or-hash>
+```
+
+**No deploy script — by design (D2):** deployment stays deliberately manual (staged rollout; the framework steers the running agent). Optional convenience later, manual is the default.
+
+---
+
 ## Per-project AGENTS.md (project knowledge, per repo)
 
 Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agent/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
