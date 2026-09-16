@@ -1,0 +1,6 @@
+# machine-local config (provider endpoints, API keys)
+opencode.json
+opencode.jsonc
+
+# local state
+cron.db
