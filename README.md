@@ -143,6 +143,8 @@ The rule "no dev/QA without explicit user-go" lives in the prompts — but an LL
 
 Stories are developed and merged to `main` in the dev repo (after the QA gate). Deployment means: pull in the **live clone** (`~/.config/opencode`) and restart opencode.
 
+**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
+
 **Procedure** (only after a QA-PASS merge to `main`):
 
 ```bash
