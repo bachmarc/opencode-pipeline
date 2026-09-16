@@ -1,7 +1,6 @@
 ---
 description: Zentraler Qualitäts-Gatekeeper und Status-Router nach dem Plan. Deterministischer Kompakt-Judge auf Flash: wertet die komprimierte pytest-Liste gegen Akzeptanzkriterien aus, gibt JSON zurück. Starkes Modell (architect glm-5.3) nur als Fallback bei unklarer Fehler-/Design-Ursache.
 mode: all
-model: ollama-docker/glm-5.3-flash:cloud
 temperature: 0.1
 ---
 
