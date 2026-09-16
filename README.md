@@ -90,7 +90,10 @@ Create `~/.config/opencode/opencode.jsonc` (e.g.):
   "model": "provider/model",            // primary/dialogue model
   "small_model": "provider/model",      // lean model (titles, summaries)
   "agent": {                            // model per agent (architect/developer/qa-manager)
-    "architect":   { "model": "provider/strong" },
+    "architect": {
+      "model": "provider/strong",
+      "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
+    },
     "developer":   { "model": "provider/cheap"   },
     "qa-manager":  { "model": "provider/cheap"   }
   },
@@ -116,6 +119,22 @@ The three role files (`agent/architect.md`, `developer.md`, `qa-manager.md`) no 
 2. Create `opencode.jsonc` (see above) with your provider + the `agent` mapping entries matching your available models.
 3. Restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
 4. If a mapping entry is missing, opencode does not fail: an agent without an assigned model falls back to the global `model` as default.
+
+### Enforcing the Phase-0 checkpoint technically (not just via prompt)
+
+The rule "no dev/QA without explicit user-go" lives in the prompts — but an LLM follows instructions probabilistically and can "overhear" them. The fix: opencode's `permission.task` system. When the architect tries to spawn a developer or qa-manager, a **UI approval dialog pops up for you** — every time. Your "allow" click **is** the user-go, technically enforced. The architect cannot silently start the machine.
+
+```jsonc
+"agent": {
+  "architect": {
+    "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
+  }
+}
+```
+
+- The prompt rules stay as behavioral training, but the hard guarantee comes from the permission system.
+- Internal QA loops (QA → developer on FAIL fixes) are intentionally **not** gated — that autonomy should remain, since the wave was already started by you.
+- This block belongs in the local `opencode.jsonc` (it's config, not a role), so it travels with the model assignment on every machine.
 
 ---
 
