@@ -1,164 +1,164 @@
-# opencode-Pipeline
+# opencode Pipeline
 
-Multi-Agenten-Entwicklungs-Pipeline für Folder-Projekte: **Requirements → Design → Stories → Dev (Flash) → QA-Gate**. Alles als flache, portable opencode-Config gesichert (Config-as-Code).
+Multi-agent development pipeline for folder projects: **Requirements → Design → Stories → Dev (Flash) → QA Gate**. Everything kept as flat, portable opencode config (config-as-code).
 
-> **Achtung:** Dieses Repository enthält bewusst **keine `opencode.jsonc`** (Provider-Endpunkte, Modell-Auswahl) und **kein `cron.db`** (lokaler Zustand). Beide bleiben je Rechner **lokal** und sind hier gitignored.
+> **Heads-up:** This repository intentionally contains **no `opencode.jsonc`** (provider endpoints, model selection) and **no `cron.db`** (local state). Both stay **local** per machine and are gitignored here.
 
-> **Modell-Zuordnung pro Agent:** Die Rollen (`agent/*.md`) tragen **keine** feste `model:`-Zeile mehr. Welches Modell für welchen Zweck läuft, wird **lokal im JSON** unter `agent` konfiguriert (siehe § „Modell-Zuordnung im JSON"). Andere Rechner haben andere Provider/Modellnamen → nur das lokale JSON anpassen, die Rollen-Dateien bleiben unverändert.
+> **Per-agent model assignment:** The roles (`agent/*.md`) no longer carry a hardcoded `model:` line. Which model runs for which purpose is configured **locally in the JSON** under `agent` (see § "Model assignment in the JSON"). Other machines have different providers/model names → only adjust the local JSON, the role files stay untouched.
 
 ---
 
-## Was steckt hier drin — und warum
+## What's inside — and why
 
-| Ordner | Inhalt | Warum |
+| Folder | Contents | Why |
 |---|---|---|
-| `agent/` | `architect`, `developer`, `qa-manager` | Die drei Rollen der Pipeline als opencode-Agents |
-| `skills/dev-workflow/` | `SKILL.md` | Der vollständige, wiederverwendbare Entwicklungs-Workflow |
-| `scripts/` | `qa_compress.sh` | Deterministische pytest-Kompression für das QA-Gate |
-| `command/` | `qa_summary`, `qa-check`, `status`, `new-project`, `requirements`, `decompose`, `implement` | Aufrufbare Tastenbefehle, die den Ablauf orchestrieren |
+| `agent/` | `architect`, `developer`, `qa-manager` | The three pipeline roles as opencode agents |
+| `skills/dev-workflow/` | `SKILL.md` | The complete, reusable development workflow |
+| `scripts/` | `qa_compress.sh` | Deterministic pytest compression for the QA gate |
+| `command/` | `qa_summary`, `qa-check`, `status`, `new-project`, `requirements`, `decompose`, `implement` | Invokable commands that orchestrate the flow |
 
-Das Ziel ist ein **schlankes, günstiges, autonom laufendes Multi-Agenten-System** — keine verschachtelten LLM-Kaskaden, die Token verbrennen.
-
----
-
-## Welche Design-Entscheidungen stecken dahinter (das "Wieso")
-
-### 1. Funktions-Trennung: Architect denkt, Developer schreibt, QA prüft
-
-- **architect** (`glm-5.3`, stark) — spricht im Dialog Requirements/Design/Stories aus. Reines Reasoning.
-- **developer** (`glm-5.3-flash`/`deepseek-v4-flash`, billig) — implementiert **exakt eine Story** isoliert pro Branch. Viele parallel.
-- **qa-manager** (`glm-5.3-flash`) — **deterministischer Richter**, kein Denker. Starkes Modell (`glm-5.3`) nur als **Fallback** via `architect` bei unklarer Fehler-/Design-Ursache.
-
-### 2. Die drei Effizienz-Hebel (Kern des "Warum")
-
-1. **QA abspecken & entlasten** — Kosten-Dämpfer
-   - pytest-Logs werden **deterministisch** komprimiert (`qa_compress.sh`, ≤200 Tokens statt 20 000 Log-Spam). **Das Auswerten von pytest braucht kein großes Modell.**
-   - QA-Output ist **strikt JSON-only** (`status | reason | failed_tests`), keine Monologe, kein Stil-Geschwätz.
-   - Flash-Modell für den QA-Judge; das teure Modell nur bei unklarer Ursache.
-
-2. **Kaskade brechen** — gegen Kontext-Bloat
-   - `BLOCKED_Design` → **bleibt autonom**: QA delegiert die Ursachenanalyse an `architect` mit schlanker Diagnose (2 Sätze + komprimierte Testliste, **kein Log-Spam**).
-   - `BLOCKED_Requirements` → **Eskalation an User** (nur der User kennt die Intention).
-   - Kein automatischer architect-Dispatcher aus QA heraus. Ergebnisse werden **1:1 durchgereicht**, nichts neu formuliert.
-
-3. **Autonomie mit harten Grenzen**
-   - Der Prozess läuft lange **ohne User-Interaktion** (Dev-Wellen, QA, Design-Reparatur).
-   - **Autonomie-Budget:** max. 3 Developer-FAIL-Loops + max. 1–2 architect-Design-Fixes je Story. Läuft beides ins Leere → **BLOCKED_Requirements an User** (nicht endlos loopen).
-   - **Phase-0-Checkpoint:** vor jedem Dev/QA-Start legt der Architect die Umsetzung vor, **erst explizites User-Go** startet die Maschine — außer bei rein technischen Design-Korrekturen.
-
-### 3. Architektur der Projekte, die diese Pipeline baut (aus dem Workflow)
-
-Das eigentliche Pattern hinter allem ist **Funktion vs. Konnektivität**:
-
-- `src/core/` — reine Logik/Regeln, **null Imports** aus Framework/IO/DB/API. Bekommt alles als Parameter, gibt Dicts/Primitives zurück. Vollständig unit-testbar.
-- `src/adapters/` — **dünne Wrapper** (3–10 Zeilen): lesen/schreiben externe Schnittstellen, delegieren Entscheidungen ans Core.
-- **Fake-Interfaces** sind Pflicht für jede externe Abhängigkeit → Tests laufen ohne echte Systeme.
-
-Daraus folgt: **Tests existieren VOR dem Code**, pro Story gibt es eigene, Fake-basierte Testkriterien.
-
-### 4. Warum Config-as-Code / Git
-
-- Die ganze Pipeline ist nur **flache, lesbare Dateien** (Markdown + ein portables Bash-Skript). Kein Geheimnis, kein Binärformat.
-- Dadurch **verschiebbar auf andere Rechner / andere opencode-Installationen**: klonen, fertig. Exec-Bit von `qa_compress.sh` bleibt via Git erhalten.
-- **Keine Secrets** in der Config → gefahrlos committen.
-- Der einzige maschine-spezifische Teil (`opencode.jsonc`) bleibt bewusst lokal.
+The goal is a **lean, cheap, autonomously running multi-agent system** — no nested LLM cascades that burn tokens.
 
 ---
 
-## Installation auf einem anderen Rechner
+## Design decisions behind it (the "why")
+
+### 1. Separation of functions: Architect thinks, Developer writes, QA checks
+
+- **architect** (strong) — talks Requirements/Design/Stories out in dialogue. Pure reasoning.
+- **developer** (cheap Flash) — implements **exactly one story** isolated per branch. Many in parallel.
+- **qa-manager** (Flash) — **deterministic judge**, not a thinker. Strong model only as **fallback** via `architect` for unclear error/design causes.
+
+### 2. The three efficiency levers (core of the "why")
+
+1. **Streamline & offload QA** — cost dampener
+   - pytest logs are **deterministically compressed** (`qa_compress.sh`, ≤200 tokens instead of 20 000 log spam). **Evaluating pytest does not need a big model.**
+   - QA output is **strictly JSON-only** (`status | reason | failed_tests`), no monologues, no style chit-chat.
+   - Flash model for the QA judge; the expensive model only for unclear causes.
+
+2. **Break the cascade** — against context bloat
+   - `BLOCKED_Design` → **stays autonomous**: QA delegates root-cause analysis to `architect` with a lean diagnosis (2 sentences + compressed test list, **no log spam**).
+   - `BLOCKED_Requirements` → **escalate to the user** (only the user knows the intent).
+   - No automatic architect-dispatch from QA. Results are **passed through 1:1**, nothing reformulated.
+
+3. **Autonomy with hard limits**
+   - The process runs a long time **without user interaction** (dev waves, QA, design repair).
+   - **Autonomy budget:** max. 3 developer FAIL loops + max. 1–2 architect design fixes per story. If both run dry → **BLOCKED_Requirements to user** (no endless looping).
+   - **Phase-0 checkpoint:** before every dev/QA start the architect presents the plan; only **explicit user-go** starts the machine — except for purely technical design corrections.
+
+### 3. Architecture of the projects this pipeline builds (from the workflow)
+
+The actual pattern behind everything is **function vs. connectivity**:
+
+- `src/core/` — pure logic/rules, **zero imports** from framework/IO/DB/API. Gets everything as parameters, returns dicts/primitives. Fully unit-testable.
+- `src/adapters/` — **thin wrappers** (3–10 lines): read/write external interfaces, delegate decisions to core.
+- **Fake interfaces are mandatory** for every external dependency → tests run without real systems.
+
+Therefore: **tests exist BEFORE the code**, each story has its own fake-based test criteria.
+
+### 4. Why config-as-code / Git
+
+- The whole pipeline is only **flat, readable files** (Markdown + a portable bash script). No secrets, no binary format.
+- Thus **transferable to other machines / other opencode installs**: clone, done. The exec bit of `qa_compress.sh` is preserved via Git.
+- **No secrets** in the config → safe to commit.
+- The only machine-specific part (`opencode.jsonc`) stays deliberately local.
+
+---
+
+## Installation on another machine
 
 ```bash
-# 1. Repo an die Stelle klonen, wo opencode seine Config erwartet
-#    (falls ~/.config/opencode bereits existiert: vorher sichern/leeren)
+# 1. Clone the repo to where opencode expects its config
+#    (if ~/.config/opencode already exists: back it up / empty it first)
 git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode
 
-# 2. Pro Rechner LOKAL anlegen (nicht im Repo!): opencode.jsonc
-#    mit Provider-Endpunkt (z.B. Ollama baseURL) + Modell-Auswahl.
-#    Vorlage siehe unter "Lokale Konfiguration".
+# 2. Create LOCKALLY per machine (not in the repo!): opencode.jsonc
+#    with provider endpoint (e.g. Ollama baseURL) + model selection.
+#    Template below under "Local configuration".
 ```
 
-Danach `opencode` neu starten — Agents, Skills, Commands sind aktiv.
+Then restart `opencode` — agents, skills, commands are active.
 
-### Lokale Konfiguration (bleibt je Rechner)
+### Local configuration (stays per machine)
 
-Erstelle `~/.config/opencode/opencode.jsonc` (z.B.):
+Create `~/.config/opencode/opencode.jsonc` (e.g.):
 
 ```jsonc
 {
   "$schema": "https://opencode.ai",
-  "provider": { /* dein Modell-Anbieter, z.B. Ollama via openai-compatible */ },
-  "model": "provider/modell",            // Primär-/Dialog-Modell
-  "small_model": "provider/modell",      // schlankes Modell (Titel, Zusammenfassungen)
-  "agent": {                            // Modell pro Agent (architect/developer/qa-manager)
-    "architect":   { "model": "provider/stark"    },
-    "developer":   { "model": "provider/flash"    },
-    "qa-manager":  { "model": "provider/flash"    }
+  "provider": { /* your model provider, e.g. Ollama via openai-compatible */ },
+  "model": "provider/model",            // primary/dialogue model
+  "small_model": "provider/model",      // lean model (titles, summaries)
+  "agent": {                            // model per agent (architect/developer/qa-manager)
+    "architect":   { "model": "provider/strong" },
+    "developer":   { "model": "provider/flash"   },
+    "qa-manager":  { "model": "provider/flash"   }
   },
   "skills": { "paths": ["~/.config/opencode/skills"] }
 }
 ```
 
-> **Nicht** hierher committen — steht in `.gitignore`, weil Host/Provider pro Maschine unterschiedlich sind.
+> **Do not** commit this here — it's in `.gitignore`, because host/provider differ per machine.
 
-### Wie die Modell-Zuordnung funktioniert ("das Vorgehen im JSON")
+### How model assignment works ("the JSON procedure")
 
-Die drei Rollen-Dateien (`agent/architect.md`, `developer.md`, `qa-manager.md`) legen **kein Modell mehr fest** (früher fest verdrahtet als `model:`). Stattdessen gilt eine **Trennung: Rolle vs. Rechner**:
+The three role files (`agent/architect.md`, `developer.md`, `qa-manager.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
 
-- **Rolle (portabel, im Git):** Wer *was* tut — Modus, Temperatur, Prompt, Regeln. In `agent/*.md`.
-- **Rechner (lokal, `.gitignore`d):** *welches Modell* *wofür*. In `~/.config/opencode/opencode.jsonc` unter `agent`.
+- **Role (portable, in Git):** *who does what* — mode, temperature, prompt, rules. In `agent/*.md`.
+- **Machine (local, gitignored):** *which model* for *what*. In `~/.config/opencode/opencode.jsonc` under `agent`.
 
-**Warum:**
-- Andere Rechner haben andere APIs/Provider angebunden und andere Modellnamen. War das Modell in der Rollen-Datei hart kodiert, musste man den Rollen-Kern anfassen.
-- Jetzt genügt eine **einzige lokale Datei** (`opencode.jsonc`) — Provider-Endpunkte, Modellnamen **und** die `agent`-Zuordnung. Beim Clone auf einem neuen Rechner nur diese Datei anlegen/anpassen, die Rollen bleiben identisch.
+**Why:**
+- Other machines have different APIs/providers wired up and different model names. When the model was hardcoded in the role file, the role core had to be touched.
+- Now a **single local file** (`opencode.jsonc`) suffices — provider endpoints, model names **and** the `agent` assignment. On a clone on a new machine you only create/adjust this file; the roles stay identical.
 
-**Konkretes Vorgehen je Rechner:**
+**Concrete procedure per machine:**
 1. `git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode`
-2. `opencode.jsonc` anlegen (siehe oben) mit deinem Provider + den `agent`-Mapping-Einträgen, die zu deinen verfügbaren Modellen passen.
-3. `opencode` **neu starten** — die Config wird beim Start geladen, Änderungen werden nicht hot-reloadet.
-4. Wenn ein Mapping-Eintrag fehlt, fällt opencode nicht aus: Ein Agent ohne zugewiesenes Modell nutzt das globale `model` als Default.
+2. Create `opencode.jsonc` (see above) with your provider + the `agent` mapping entries matching your available models.
+3. Restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
+4. If a mapping entry is missing, opencode does not fail: an agent without an assigned model falls back to the global `model` as default.
 
 ---
 
-## Workflow in 60 Sekunden
+## Workflow in 60 seconds
 
-1. **Neues Projekt:** `/new-project` → Architect-Interview (Requirements, Design, Stories) im Dialog, **Review-Checkpoint mit User-Go**.
-2. **Implementieren:** `/implement <story-id>` (Developer) — Tests zuerst, isolierter Branch.
-3. **QA-Gate:** `/qa-check <branch>` (QA-Manager) → `qa_compress.sh` komprimiert pytest → JSON-Bewertung.
-4. **Status:** `/status` (QA-Manager, Tabelle Story | Branch | Tests | QA | Fehler).
-5. **Kompakter QA-Testreport:** `/qa_summary`.
+1. **New project:** `/new-project` → Architect interview (Requirements, Design, Stories) in dialogue, **review checkpoint with user-go**.
+2. **Implement:** `/implement <story-id>` (Developer) — tests first, isolated branch.
+3. **QA gate:** `/qa-check <branch>` (QA-Manager) → `qa_compress.sh` compresses pytest → JSON review.
+4. **Status:** `/status` (QA-Manager, table Story | Branch | Tests | QA | Error).
+5. **Compact QA test report:** `/qa_summary`.
 
 ---
 
-## Die drei Agenten im Detail
+## The three agents in detail
 
 | | architect | developer | qa-manager |
 |---|---|---|---|
-| **Rolle** | Requirements-/Design-/Story-Partner, Dialog | Billiger Story-Implementierer | Deterministischer Gatekeeper |
-| **Modell** | `glm-5.3:cloud` | `glm-5.3-flash`/`deepseek-v4-flash` | `glm-5.3-flash` (+ `glm-5.3`-Fallback via architect) |
-| **Modell-Quelle** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` |
-| **Mode** | `all` (Dialog) | `subagent` | `all` |
-| **Output** | Docs / Stories | Branch + Commit | JSON (`PASS/FAIL/BLOCKED_*`) |
-| **Budget** | — | 1 Story = 1 Branch | max. 3 FAIL-Loops, dann Eskalation |
+| **Role** | Requirements-/Design-/Story partner, dialogue | Cheap story implementer | Deterministic gatekeeper |
+| **Model** | strong | cheap Flash | Flash (+ strong fallback via architect) |
+| **Model source** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` |
+| **Mode** | `all` (dialogue) | `subagent` | `all` |
+| **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) |
+| **Budget** | — | 1 story = 1 branch | max. 3 FAIL loops, then escalation |
 
 ---
 
-## Erweitern: neue Testprozesse (`qa_compress.sh` ist modular)
+## Extending: new test processes (`qa_compress.sh` is modular)
 
-`qa_compress.sh` nutzt ein **Checker-Registry-Pattern**. Jeder Testprozess (pytest, ruff, mypy, …) ist eine Funktion, die ihr Kompaktergebnis auf stdout schreibt und den Exit-Code ihres Unterprozesses returned.
+`qa_compress.sh` uses a **checker-registry pattern**. Each test process (pytest, ruff, mypy, …) is a function that writes its compressed result to stdout and returns its subprocess's exit code.
 
 ```bash
-# 1. Neue Checker-Funktion definieren
+# 1. Define a new checker function
 mypy_check() { mypy "$@" >/dev/null 2>&1; return $?; }
 
-# 2. Registrieren (aktivieren)
+# 2. Register (activate) it
 register_check mypy mypy_check
 ```
 
-Aggregation (Gesamt-FAIL, sobald ein Checker non-zero ist) und Exit-Code passieren automatisch. Zukünftige Testprozesse = eine Funktion + eine Registrierungs-Zeile.
+Aggregation (overall FAIL as soon as one checker is non-zero) and exit code happen automatically. Future test processes = one function + one registration line.
 
 ---
 
-## Offene Punkte / Ausblick
+## Open points / outlook
 
-- `qa_compress.sh` ist gegen **pytest 9** verifiziert (PASS: `78 passed`; FAIL: `2 failed, 1 passed`); bei älteren pytest-Versionen ggf. eine Zeile im Summary-Grep prüfen.
-- Optional: Zusammenführung in ein gemeinsames `~/dotfiles`-Repo mit anderen Tools (dann via Symlink statt Direkt-Klon).
+- `qa_compress.sh` is verified against **pytest 9** (PASS: `78 passed`; FAIL: `2 failed, 1 passed`); for older pytest versions check one line in the summary grep if needed.
+- Optional: merge into a shared `~/dotfiles` repo with other tools (then via symlink instead of a direct clone).
