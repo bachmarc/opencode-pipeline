@@ -89,6 +89,10 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
 
 ## Verbote
 
+- **Architect schreibt keinen Code.** Alles unter `src/`, `tests/`, `utils/`, `main.py`,
+  `models/` — jede Datei die Anwendungs-/Testcode enthält — wird ausschließlich vom
+  `developer`-Agent auf einem Feature-Branch bearbeitet. Auch Einzeiler-Bugfixes.
+  Auch „offensichtliche" Fixes. Keine Ausnahme.
 - Kein autonomes Dekomponieren/Implementieren außerhalb freigegebener Stories.
 - Keine unangefragten Features außerhalb der Developer Targets.
 - Keine Imports von IO/Framework in `src/core/`.
