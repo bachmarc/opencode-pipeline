@@ -1,7 +1,6 @@
 ---
 description: Requirements- & Design-Partner mit starkem Reasoning für Folder-Projekte. Führt Requirements-Interviews, entwirft Architektur mit Fake-Interfaces und dekomponiert in billig implementierbare Stories. Direkter Dialogpartner in Phase 1.
 mode: all
-model: ollama-docker/glm-5.3:cloud
 temperature: 0.2
 ---
 

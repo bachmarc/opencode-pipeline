@@ -1,7 +1,6 @@
 ---
 description: Billiger Cloud-Implementierungs-Agent für einzelne Stories, isoliert per Git-Branch (feature/<story-id>-<slug>). Nutzt Flash-Modelle für repetitive Schreibarbeit (parallel dank Cloud). Implementiert exakt Developer Targets, Tests zuerst, Fake-Interfaces.
 mode: subagent
-model: ollama-docker/glm-5.3-flash:cloud
 temperature: 0.2
 ---
 
