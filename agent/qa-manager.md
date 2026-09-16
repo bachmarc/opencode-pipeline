@@ -35,6 +35,8 @@ Prüfe einen `feature/<story-id>-<slug>` Branch **vor** Merge nach `main`/`dev`.
    - `src/core/` hat **null Imports** aus Framework/IO (`appdaemon`, `hass`, `httpx`, `sqlalchemy`, `modbus` etc.) — nur Stdlib + Domain. Wie `intesis_modbus/klimasteuerung.py` (reine `KlimaGeraet` Klasse).
    - `src/adapters/` ist dünner Wrapper (3-10 Zeilen), delegiert an Core. Wie `intesis_modbus/klima_geraet.py` (`KlimaRaum`).
    - Fake-Interfaces vorhanden für jede externe Abhängigkeit (`tests/fakes/`, `FakeModbus`, `Raum`)? Sonst FAIL.
+   - **Fake-Interface-Kompatibilität:** Jeder Fake muss **exakt die gleichen Methoden-Signaturen** haben wie der echte Adapter. Prüfe: Hat der Adapter Methoden die der Fake nicht hat? → FAIL. Kann der echte Orchestrierungs-Code (z.B. Scheduler) mit dem Fake aufgerufen werden ohne Anpassungen? Wenn nein → FAIL.
+   - **Integration-Tests testen echten Code:** Integration-Tests müssen den echten Orchestrierungs-Code aufrufen (z.B. `Scheduler._run_cycle()` mit Fakes), NICHT den Zyklus manuell nachbauen. Manuell nachgebaute Zyklen umgehen Wiring-Bugs (falsche Argument-Typen, fehlende List-Wraps) → FAIL.
 
 4. **Developer Targets eingehalten?**
    - Nicht mehr, nicht weniger implementiert. Unangefragte Features = FAIL (zurückbauen).

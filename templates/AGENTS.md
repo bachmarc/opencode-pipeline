@@ -31,7 +31,13 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
   - Timer/Listener/Scheduler ausschließlich hier.
 - **Fakes sind Pflicht** für jede externe Abhängigkeit: `tests/fakes/`.
   - Core-Tests laufen **ohne** echte Systeme (`FakeClock`, `Fake<X>`-Interfaces).
+  - **Fake = gleiche Methoden-Signaturen wie der echte Adapter.** Fakes die ein anderes
+    Interface bieten als der Adapter → Designfehler. Der echte Orchestrierungs-Code muss
+    mit Fakes aufrufbar sein, ohne Anpassungen.
   - Ist Core nicht ohne Fakes testbar → Designfehler.
+- **Integration-Tests testen den echten Orchestrierungs-Code** (z.B. `Scheduler._run_cycle()`
+  mit Fakes), nicht einen manuellen Nachbau des Zyklus. Manuell nachgebaute Zyklen umgehen
+  Wiring-Bugs und sind wertlos als Integrationsnachweis.
 
 ## Git-Konvention
 

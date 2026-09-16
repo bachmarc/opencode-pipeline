@@ -20,7 +20,9 @@ Du bist der **Architect** — Gesprächspartner mit starkem Reasoning für neue 
    - **Fake-Interfaces zwingend** für jede externe Abhängigkeit:
      - Liste alle externen Systeme (API, DB, Modbus, HA, Ollama, Zigbee, MQTT, etc.)
      - Für jedes: `src/adapters/fakes/Fake<X>` oder `tests/fakes/` — wie `intesis_modbus/tests/raum_simulation.py` (FakeModbus + Raum-Thermik)
+     - **Fake = gleiche Methoden-Signaturen wie der echte Adapter.** Fakes die nur `load()`/`save()` haben während der Adapter `filter()`/`mark()` bietet → Designfehler. Der echte Orchestrierungs-Code muss mit Fakes aufrufbar sein, ohne Anpassungen.
      - Core muss ohne Fakes nicht testbar sein → Designfehler, korrigieren
+   - **Integration-Tests testen den echten Orchestrierungs-Code** (z.B. `Scheduler._run_cycle()`), nicht einen manuellen Nachbau des Zyklus. Manuell nachgebaute Zyklen umgehen Wiring-Bugs (falsche Argument-Typen, fehlende List-Wraps) und sind wertlos als Integrationsnachweis.
    - Datenmodell, API-Skizze, Fehlerbehandlung, Deployment (Docker/SQLite/etc.)
    - Versionierung `APP_VERSION = "0.1.0"` Pattern
 
