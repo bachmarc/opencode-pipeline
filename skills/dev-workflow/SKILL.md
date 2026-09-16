@@ -19,6 +19,22 @@ Dieser Skill standardisiert deinen wiederkehrenden Workflow für Folder-basierte
 - Testbarkeit ohne externe Systeme (Fakes)
 - QA-Gate / Review
 
+## Harte Verbote (gelten IMMER, in jeder Phase)
+
+1. **Architect schreibt keinen Code.** Alles unter `src/`, `tests/`, `utils/`, `main.py`,
+   `models/` — jede Datei die Anwendungs-/Testcode enthält — wird ausschließlich vom
+   `developer`-Agent auf einem Feature-Branch bearbeitet. Auch Einzeiler-Bugfixes.
+   Auch „offensichtliche" Fixes. Keine Ausnahme. Verstößt der Architect dagegen, ist
+   der Commit ungültig.
+2. **Sequenz ist IMMER: Developer → QA-Manager → (PASS) → Merge. Keine Abkürzung.**
+   „Tests sind grün" allein reicht NICHT — QA prüft Architektur, Targets, Commit-Metadaten.
+   Wurde QA übersprungen, ist der Merge ungültig und muss revertiert werden.
+   Bei Batch-Merges (mehrere Branches): JEDER Branch braucht sein eigenes QA-PASS.
+3. **QA-Manager darf nie selbst auf `main` mergen** — nur der Architect nach QA-PASS.
+4. **Keine Imports von IO/Framework in `src/core/`** — nur Stdlib + Domain.
+5. **Subagent-Pfad-Disziplin:** Alle Befehle ausschließlich im zugeteilten Worktree;
+   kein `/tmp`, kein `pip install`, keine Pfade außerhalb des Projekt-Roots.
+
 ## Workflow-Phasen (strikte Reihenfolge)
 
 ### Phase 0 — Planungs-Checkpoint (PFLICHT vor jedem Dev/QA-Start)
@@ -34,8 +50,10 @@ Bugfixes, "kleine" Änderungen. Reihenfolge:
 3. **Explizites User-Go** („passt"/„go") — erst DANN Dev + QA starten.
 
 **Verboten:** Dev/QA implizit oder "nebenbei" starten, nur weil eine Anforderung klar
-formuliert war. Die Planung kann Änderungen enthalten, die der User erst im Review sieht —
-ohne Checkpoint läuft die Maschine gegen dessen Intention (Lesson NetClip 04-01).
+formuliert war. Kein implizites Losrennen bei scheinbar klaren Anforderungen — der User
+muss die Gelegenheit haben, die Planung zu ändern. Die Planung kann Änderungen enthalten,
+die der User erst im Review sieht — ohne Checkpoint läuft die Maschine gegen dessen
+Intention (Lesson NetClip 04-01).
 
 **Ausnahme:** Keine — auch vermeintliche Trivialitäten (Text-Änderungen, Einzeiler)
 gehen durch den Checkpoint. Der Checkpoint ist billig; ein falscher Lauf ist teuer.
@@ -77,8 +95,18 @@ Ablauf (iterativ, immer mit User-Rückkopplung):
      - `adapters/` / `infra/` — dünner Wrapper: liest Sensoren/APIs/DB, schreibt, delegiert Entscheidungen an Core. 3-10 Zeilen pro Methode.
    - **Fake-Interfaces** zwingend für jede externe Abhängigkeit (Modbus, HA, API, DB, LLM, Zigbee, etc.):
      - `FakeModbus`, `FakeHA`, `FakeOllama`, `Raum`-Simulation wie in `intesis_modbus/tests/raum_simulation.py`
+     - **Fake = gleiche Methoden-Signaturen wie der echte Adapter.** Fakes die ein anderes
+       Interface bieten als der Adapter (z.B. nur `load()`/`save()` statt `filter()`/`mark()`)
+       → Designfehler. Der echte Orchestrierungs-Code muss mit Fakes aufrufbar sein, ohne
+       Anpassungen. (Lesson mail-agent: FakeStateStore hatte anderes Interface als StateStore
+       → Scheduler konnte nicht mit Fakes getestet werden → Wiring-Bug blieb unsichtbar.)
      - Core hat Methoden wie `simuliere_aktiv()` / Simulation-Helpers für Tests
      - `src/adapters/fakes/` oder `tests/fakes/` — explizit im Design dokumentieren
+   - **Integration-Tests testen den echten Orchestrierungs-Code** (z.B. `Scheduler._run_cycle()`
+     mit Fakes), nicht einen manuellen Nachbau des Zyklus. Manuell nachgebaute Zyklen umgehen
+     Wiring-Bugs (falsche Argument-Typen, fehlende List-Wraps) und sind wertlos als
+     Integrationsnachweis. (Lesson mail-agent: manuell nachgebauter Zyklus verdeckte
+     `apply(task, result)` statt `apply(task, [result])` Bug.)
    - Datenmodell, API-Skizze, Deployment (Docker/SQLite/etc.)
    - **Im Dialog vorstellen**, du reviewst, erst nach Freigabe schreiben.
 4. **Offene Fragen** sofort im Dialog zurückspielen wenn aussichtslos — nicht raten, nicht in Datei raten.
@@ -129,16 +157,25 @@ Muster aus `intesis_modbus/tests/`:
 - `tests/fakes/` oder `tests/raum_simulation.py` — Fake-Implementierungen
 - `TickSample` / `TickHistory` Pattern für zeitbasierte Logik
 
-### Phase 4 — Implementierung (Developer, günstiges Massenmodell + parallel, per Branch)
+### Phase 4 — Implementierung (Developer, günstiges Massenmodell + parallel, per Worktree)
 
 **Agent: `developer` — günstiges Massenmodell, lokal konfiguriert via `opencode.jsonc` → `agent.developer.model` — repetive Schreibarbeit, mehrere Developer parallel (so viele, wie dein Budget/Setup erlaubt). Starkes Modell nur als Fallback via architect, nicht für Massen-Implementierung.**
 
-```
-git checkout -b feature/<story-id>-<slug>
+**Worktree-Pflicht:** Jede Developer-Session arbeitet in einem eigenen Git-Worktree
+`.worktrees/<story-id>-<slug>/` (angelegt vom Architect). Das Hauptverzeichnis bleibt
+**immer auf `main`** (Merges, Hygiene). **Zwei Agenten teilen NIE ein Working Directory.**
+
+```bash
+# Architect legt an:
+git branch feature/<story-id>-<slug>
+git worktree add .worktrees/<story-id>-<slug> feature/<story-id>-<slug>
+
+# Developer arbeitet NUR im Worktree:
+cd .worktrees/<story-id>-<slug>
 # Implementiert GENAU die Developer Targets der Story
 # Schreibt/erweitert Tests gemäß Testkriterien (mit Fakes, dann pytest ausführen)
 # pytest muss grün sein — Output im Commit-Body festhalten
-# git commit -m "feat(<id>): <titel>" -m "symbols: <geänderte Export-Symbols> | breaks: <none|breaking> | affects: <abhängige Files> | tests: <pytest grün>"
+git commit -m "feat(<id>): <titel>" -m "symbols: ... | breaks: ... | affects: ... | tests: ..."
 ```
 
 Commit-Template (nach CodeTeam — hilft QA beim Requeue nur betroffener Files, verhindert blinden Full-Rebuild):
@@ -149,10 +186,11 @@ symbols: Card, CardStore.create | breaks: none | affects: src/adapters/db.py | t
 ```
 
 Regeln:
-- Ein Developer = ein Branch = eine Story. Nie zwei Agenten auf gleichem Branch/File ohne Koordination.
+- Ein Developer = ein Worktree = ein Branch = eine Story. Zwei Agenten teilen NIE ein Working Directory.
 - Core zuerst, dann Adapter. Fakes bleiben erhalten.
 - Kein Überschreiben von fremden Branches.
 - Commit-Body MUSS `symbols|breaks|affects|tests` enthalten — QA nutzt das für gezieltes Requeue (CodeTeam-Lesson).
+- **Subagent-Pfad-Disziplin:** Alle Befehle ausschließlich im zugeteilten Worktree; kein `/tmp`, kein `pip install`, keine Pfade außerhalb des Projekt-Roots.
 
 ### Phase 5 — QA-Gate (zentraler Qualitätsmanager — deterministischer Richter auf dem günstigen Modell)
 
@@ -171,17 +209,25 @@ Das pytest-Auswerten ist reine Determinisik — der günstige Judge nimmt nur di
 
 Prüft auf dem Feature-Branch:
 
-1. Requirements eingehalten? (gegen `docs/requirements.md` + Story Akzeptanzkriterien)
-2. Tests grün? (`pytest`, `ruff`, `mypy` je nach Projekt)
-3. Testabdeckung gemäß Testkriterien?
-4. Architektur-Trennung eingehalten? (Core ohne IO-Imports?)
-5. Fake-Interfaces vorhanden & genutzt?
+1. **Requirements eingehalten?** (gegen `docs/requirements.md` + Story Akzeptanzkriterien)
+2. **Tests grün?** (`pytest`, `ruff`, `mypy` je nach Projekt). Tests müssen **ohne externe Systeme** (Netzwerk/DB) lauffähig sein — prüfe via `pytest` ohne Netzwerk.
+3. **Testabdeckung gemäß Testkriterien?**
+4. **Developer Targets eingehalten?** Nicht mehr, nicht weniger implementiert. Unangefragte Features = FAIL (zurückbauen).
+5. **Architektur-Trennung eingehalten?** (Core ohne IO-Imports?)
+6. **Fake-Interface-Kompatibilität:** Jeder Fake muss **exakt die gleichen Methoden-Signaturen** haben wie der echte Adapter. Prüfe: Hat der Adapter Methoden die der Fake nicht hat? → FAIL. Kann der echte Orchestrierungs-Code mit dem Fake aufgerufen werden ohne Anpassungen? Wenn nein → FAIL.
+7. **Integration-Tests testen echten Code:** Integration-Tests müssen den echten Orchestrierungs-Code aufrufen (z.B. `Scheduler._run_cycle()` mit Fakes), NICHT den Zyklus manuell nachbauen. Manuell nachgebaute Zyklen umgehen Wiring-Bugs → FAIL.
+8. **Git-Hygiene?** Branch sauber, kein Mix mit anderen Stories, Commit-Message `feat(<id>): ...`, Commit-Body mit `symbols|breaks|affects|tests`?
+
+**„Tests sind grün" allein reicht NICHT** — QA prüft alle 8 Punkte. Grüne Tests bei
+kaputtem Interface, fehlendem Fake oder manuellem Zyklus-Nachbau = FAIL.
 
 **Ergebnis/Status (Autonomie-Konzept — Prozess läuft ohne User, bis Intention relevant):**
-- **PASS** → Merge nach `main`/`dev` (squash oder merge, je nach Repo) — nur nach deiner Freigabe
-- **FAIL** → Zurück zum Developer mit konkretem Fix-Auftrag (gleicher Branch, Loop). Max. 3 FAIL-Loops, dann BLOCKED.
-- **BLOCKED_Design** (Design-Lücke / Architektur trägt nicht: Test un-simulierbar, Story falsch geschnitten, Core/Adapter-Trennung undesignfiziert) → **bleibt AUTONOM, starker Modell-Fallback.** QA delegiert die Ursachenanalyse an `architect` (das lokal konfigurierte starke Modell, nur hier) mit schlanker Diagnose (2-Sätze + komprimierte Testliste, **kein Log-Spam**). Architect revidiert Design minimal-invasiv + Traceability, dann neue Dev-Runde. Nur wenn der Fix wieder scheitert (Autonomie-Budget) → an User.
+- **PASS** → Merge nach `main`/`dev` — nur nach User-Freigabe. QA-Manager darf nie selbst mergen.
+- **FAIL** → Zurück zum Developer mit konkretem Fix-Auftrag (**Datei:Zeile**, was fehlt — gleicher Branch, Loop). Max. 3 FAIL-Loops, dann BLOCKED.
+- **BLOCKED_Design** (Design-Lücke / Architektur trägt nicht: Test un-simulierbar, Story falsch geschnitten, Core/Adapter-Trennung undesignfiziert) → **bleibt AUTONOM, starker Modell-Fallback.** QA delegiert die Ursachenanalyse an `architect` (das lokal konfigurierte starke Modell, nur hier) mit **schlankem, frischem Kontext** (nur `docs/design.md` + betroffener `docs/stories/*.md` + 2-Sätze-Diagnose — **kein Log-Spam, kein pytest-Rohoutput, kein Code-Dump**). Architect revidiert Design minimal-invasiv + Traceability aktualisieren (Pflicht), dann neue Dev-Runde. **STOPP bei Requirements-/Intention-Änderung** — nicht autonom ändern, sondern BLOCKED_Requirements an User. Nur wenn der Fix wieder scheitert (Autonomie-Budget) → an User.
 - **BLOCKED_Requirements** (Fachlichkeit fehlt / Intention-Änderung nötig / nach Autonomie-Budget) → **Eskalation an dich** (präzise Rückfrage, kein Raten). Erst nach deiner Antwort weiter.
+
+**QA dokumentiert** sein Review als Kommentar im Branch oder in `docs/reviews/<story-id>.md`.
 
 **Autonomie-Budget (grenzendose Schleifen verhindern):** Max. 3 Developer-FAIL-Loops je
 Story, max. 1-2 architect-Design-Fixes autonom. Greift beides nicht → BLOCKED_Requirements
@@ -189,6 +235,10 @@ an User (auch wenn die Ursache technisch scheint — der User entscheidet ob Wei
 
 Loop: Developer fixt → QA prüft erneut (nutzt Commit-Body `affects` für gezieltes Requeue) →
 bis PASS oder BLOCKED → BLOCKED_Design autonom an architect, BLOCKED_Requirements an dich.
+
+**QA als Status-Router (Dialog-Rolle nach dem Plan):** Nach Phase 1+2 ist QA Status-Router:
+- User fragt „Stand?", „Fehler?" → kompakte Tabelle (Story | Branch | Status | Tests | letzter Fehler).
+- Ergebnisse von Sub-Agents **1:1 durchreichen** — nichts neu formulieren, nicht paraphrasieren.
 
 ## Git-Branch-Konvention (gegen Überschreiben)
 
@@ -200,9 +250,17 @@ feature/01-01-core-modell
 feature/02-03-rating
 ```
 
+**Worktree-Struktur:**
+```
+projekt/                          ← bleibt IMMER auf main
+projekt/.worktrees/00-01-setup/   ← Developer 1
+projekt/.worktrees/01-01-core/    ← Developer 2 (parallel)
+```
+
 Schutz:
 - Kein Agent pusht direkt auf main
-- Jeder Agent arbeitet nur auf seinem `feature/*` Branch
+- Jeder Agent arbeitet nur in seinem Worktree auf seinem `feature/*` Branch
+- Zwei Agenten teilen NIE ein Working Directory
 - Vor Merge: `git fetch && git rebase origin/main`
 
 ## Checkliste für neues Projekt
@@ -211,7 +269,7 @@ Schutz:
 - [ ] `AGENTS.md` (aus Phase 1, **aus Vorlage `~/.config/opencode/templates/AGENTS.md`**)
 - [ ] `docs/requirements.md`, `docs/design.md`
 - [ ] `STORIES.md` + `docs/stories/*.md`
-- [ ] `tests/` + `tests/fakes/` + Fake-Interfaces im Design
+- [ ] `tests/` + `tests/fakes/` + Fake-Interfaces im Design (**gleiche Signaturen wie echte Adapter**)
 - [ ] `src/core/` (Funktion) + `src/adapters/` (Konnektivität) Struktur
 - [ ] CI: `pytest`, `ruff check`, `mypy` (je nach Stack)
 - [ ] **Lint-/Test-Tools versionsspinnen** (`ruff==X.Y.Z`, `pytest==X.Y.Z`) — lokal == CI
@@ -226,3 +284,11 @@ Schutz:
 - `vokabel/STORIES.md` — Phasen-Index (Foundation → Curriculum)
 - `vokabel/docs/stories/_template.md` — Story-Template
 - `luftersteuerung/`, `lufttrockner/` — weitere AppDaemon-Beispiele
+
+## Lessons Learned (aus realen Projekten)
+
+- **NetClip 04-01:** Implizites Losrennen bei klarer Anforderung → Checkpoint-Pflicht
+- **NetClip 07-01:** ruff-Version nicht gepinnt → CI rot, lokal grün → Tool-Pinning-Pflicht
+- **mail-agent Scheduler-Bug:** `apply(task, result)` statt `apply(task, [result])` — Integration-Tests bauten Zyklus manuell nach statt echten Scheduler zu rufen → Bug blieb unsichtbar → Integration-Test-Regel + Fake-Paritäts-Regel
+- **mail-agent Phase 0+1:** 7 Branches ohne QA-Gate gemergt → Merge-Sperre-Regel
+- **mail-agent Bugfix:** Architect editierte Code direkt auf master statt Story+Branch+QA → Architect-Code-Verbot
