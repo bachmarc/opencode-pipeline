@@ -1,17 +1,17 @@
 ---
-description: Kompakter QA-Testreport — führt pytest aus und liefert nur Exit-Code, Fehler-/Testnamen und Assertions (komprimiert, keine Log-Spam). Für qa-manager und User.
+description: Compact QA test report — runs pytest and delivers only exit code, error/test names and assertions (compressed, no log spam). For qa-manager and user.
 ---
 
-Führe den QA-Testsummary aus und gib das Ergebnis kompakt weiter.
+Execute the QA test summary and pass the result compactly.
 
-1. Führe das Kompressions-Skript aus und prüfe den Exit-Code:
+1. Execute the compression script and check the exit code:
    `~/.config/opencode/scripts/qa_compress.sh`
-2. Falls das Skript nicht ausführbar ist, mache es ausführbar:
+2. If the script is not executable, make it executable:
    `chmod +x ~/.config/opencode/scripts/qa_compress.sh`
-3. Reiche das komprimierte Ergebnis exakt so weiter (1:1, nicht umformulieren).
-   Ergänze NUR einen kurzen Status-Kopf:
+3. Pass the compressed result exactly as is (1:1, do not rephrase).
+   Add ONLY a short status header:
 
-   - `exit_code = 0` → Status: **PASS** (Tests grün).
-   - `exit_code != 0` → Status: **FAIL**, `failed_tests` = die Liste aus dem Skript.
+   - `exit_code = 0` → Status: **PASS** (tests green).
+   - `exit_code != 0` → Status: **FAIL**, `failed_tests` = the list from the script.
 
-Keine vollständigen Logs, keine Tracebacks, kein Wiederkäuen. Nur die kompakte Ausgabe.
+No full logs, no tracebacks, no regurgitation. Only the compact output.

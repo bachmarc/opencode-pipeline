@@ -1,11 +1,11 @@
 ---
-description: Starte Requirements & Design Interview (Architect) für neues Folder-Projekt — sammelt Requirements, entwirft Design mit Fake-Interfaces.
+description: Start Requirements & Design Interview (Architect) for new folder project — collects requirements, designs with fake interfaces.
 agent: architect
 ---
 
-Führe Phase 1 des dev-workflow Skills aus für: $ARGUMENTS
+Execute phase 1 of dev-workflow skill for: $ARGUMENTS
 
-- Lege Folder + git an falls nicht vorhanden
-- Führe iteratives Requirements-Interview (starkes Reasoning, auf Deutsch)
-- Erstelle `docs/requirements.md`, `docs/design.md` (mit Funktion vs Konnektivität + Fake-Interfaces Pflicht), `AGENTS.md`
-- Wenn $ARGUMENTS leer: frage nach Projektidee
+- Create folder + git if not present
+- Execute iterative requirements interview (strong reasoning, in German)
+- Create `docs/requirements.md`, `docs/design.md` (with function vs connectivity + fake interfaces requirement), `AGENTS.md`
+- If $ARGUMENTS empty: ask for project idea

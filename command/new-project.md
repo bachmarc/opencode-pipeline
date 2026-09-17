@@ -1,22 +1,22 @@
 ---
-description: Lege neues Folder-Projekt mit Git + dev-workflow Struktur an (AGENTS.md, docs/, STORIES.md, tests/fakes, src/core + src/adapters). Ohne Argument initialisiert im aktuellen Folder (ersetzt /init).
+description: Create new folder project with Git + dev-workflow structure (AGENTS.md, docs/, STORIES.md, tests/fakes, src/core + src/adapters). Without argument initializes in current folder (replaces /init).
 agent: architect
 ---
 
-Lege neues Projekt an: $ARGUMENTS
+Create new project: $ARGUMENTS
 
-- WENN $ARGUMENTS leer (User ist schon im Ziel-Folder wie `Development/test`):
-  - **WICHTIG:** Dein eigenes `cwd` ist NICHT das Ziel. Nutze als Projekt-Root GENAU diesen hier injizierten Sitzungs-Pfad:
-    - Zielpfad = `!`pwd`` (dieser Befehl läuft im Root der User-Sitzung, nicht in deinem Subagenten-cwd)
-  - Führe nur in diesem Zielpfad aus:
-    - Prüfe dort `git status` — falls kein Repo: `git init && git checkout -b main`
-    - Erstelle Grundstruktur dort falls fehlend: `AGENTS.md` (**aus Vorlage `~/.config/opencode/templates/AGENTS.md` kopieren + Platzhalter im Dialog ausfüllen — NICHT von Null improvisieren**), `docs/requirements.md`, `docs/design.md` (mit Fake-Pflicht), `STORIES.md`, `docs/stories/_template.md`, `tests/fakes/`, `src/core/`, `src/adapters/`, `.gitignore`, `README.md`, `opencode.json`
-  - **Verbote:** Kein `mkdir`, kein `git init`, kein Schreiben außerhalb des injizierten Zielpfads. Niemals `git init` in deinem eigenen cwd oder im Workspace-Root.
-  - Starte dann Requirements-Interview auf Deutsch (architect)
-  - `/init` ist obsolet und muss nicht mehr benutzt werden
-- WENN $ARGUMENTS Pfad/Name enthält (z.B. `mein-projekt` oder `/mnt/content_main/Development/neues-tool`):
-  - Führe aus: `mkdir -p <pfad> && cd <pfad> && git init && git checkout -b main`
-  - Erstelle dort gleiche Grundstruktur (AGENTS.md aus Vorlage `~/.config/opencode/templates/AGENTS.md`)
-  - Starte dann Requirements-Interview
+- IF $ARGUMENTS empty (user is already in target folder like `Development/test`):
+  - **IMPORTANT:** Your own `cwd` is NOT the target. Use as project root EXACTLY this injected session path:
+    - Target path = `!`pwd`` (this command runs in the root of the user session, not in your subagent cwd)
+  - Execute only in this target path:
+    - Check `git status` there — if no repo: `git init && git checkout -b main`
+    - Create base structure there if missing: `AGENTS.md` (**copy from template `~/.config/opencode/templates/AGENTS.md` + fill placeholders in dialogue — do NOT improvise from scratch**), `docs/requirements.md`, `docs/design.md` (with fake requirement), `STORIES.md`, `docs/stories/_template.md`, `tests/fakes/`, `src/core/`, `src/adapters/`, `.gitignore`, `README.md`, `opencode.json`
+  - **Prohibitions:** No `mkdir`, no `git init`, no writing outside the injected target path. Never `git init` in your own cwd or in workspace root.
+  - Then start requirements interview in German (architect)
+  - `/init` is obsolete and no longer needs to be used
+- IF $ARGUMENTS contains path/name (e.g. `my-project` or `/mnt/content_main/Development/new-tool`):
+  - Execute: `mkdir -p <path> && cd <path> && git init && git checkout -b main`
+  - Create same base structure there (AGENTS.md from template `~/.config/opencode/templates/AGENTS.md`)
+  - Then start requirements interview
 
-In beiden Fällen gilt: Folder + git ist Basis, danach folgt dev-workflow (Skill) Phase 1+2.
+In both cases: folder + git is base, then dev-workflow (skill) phase 1+2 follows.

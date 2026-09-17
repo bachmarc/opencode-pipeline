@@ -1,13 +1,13 @@
 ---
-description: Implementiere eine Story isoliert per Git-Branch (feature/<id>-<slug>) mit billigem Modell — Tests zuerst, Fake-Interfaces, nur Developer Targets.
+description: Implement a story isolated per Git branch (feature/<id>-<slug>) with cheap model — tests first, fake interfaces, developer targets only.
 agent: developer
 ---
 
-Implementiere Story: $ARGUMENTS
+Implement story: $ARGUMENTS
 
-- Erwarte Story-ID wie `01-01`, `02-03` oder `feature/01-01-slug`
-- Lege Branch `feature/<story-id>-<slug>` an (falls nicht existent)
-- Implementiere exakt die Developer Targets aus `docs/stories/<id>.md`, Tests zuerst gemäß Testkriterien, nutze Fakes
-- Prüfe `pytest` grün, dann Übergabe an qa-manager
+- Expect story ID like `01-01`, `02-03` or `feature/01-01-slug`
+- Create branch `feature/<story-id>-<slug>` (if not existing)
+- Implement exactly the developer targets from `docs/stories/<id>.md`, tests first according to test criteria, use fakes
+- Check `pytest` green, then handoff to qa-manager
 
-Wenn $ARGUMENTS leer: liste offene Stories aus STORIES.md und frage welche.
+If $ARGUMENTS empty: list open stories from STORIES.md and ask which one.
