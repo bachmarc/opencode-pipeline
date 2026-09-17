@@ -68,5 +68,33 @@ deletion or restructuring fails QA.
 |---|---|---|
 | D1 | No CI yet | local pytest + QA gate is the contract; CI later |
 | D2 | Live clone stays manual | the framework steers the running agent — staged rollout beats automation |
-| D3 | English repo docs, German prompts | portable repo vs. dialogue-facing prompts |
+| D3 | All portable files English | international team; dialogue language per project |
 | D4 | Self-checks read the repo only | zero infra, deterministic, cheap-model-evaluable |
+
+## 8. English-first portable files (REQ-007, NFR-001)
+
+All portable files (`agent/`, `command/`, `templates/`, `scripts/`) are written in English:
+prose, section headers, frontmatter descriptions, inline comments.
+
+**Dialogue language is decoupled from prompt language.** The `templates/AGENTS.md` section
+"Languages" configures the user-facing dialogue language per project. The framework default
+is: "Respond in the user's language." This allows English prompts to drive German, English,
+or any other dialogue — the prompt instructs the agent *what* to do, the Languages section
+tells it *which language* to use with the user.
+
+**Translation scope** (all files, one-time migration):
+
+| Directory | Files | Content |
+|---|---|---|
+| `agent/` | architect.md, developer.md, qa-manager.md | Full prompt + frontmatter description |
+| `command/` | 7 command files | Description + instruction body |
+| `templates/` | AGENTS.md | Section headers + placeholder prose |
+| `STORIES.md` | index | Phase comments, status labels |
+| `AGENTS.md` | repo root | Project-specific guardrails |
+
+**Constraint:** The translation must preserve all technical identifiers, file paths,
+code examples, and JSON structures verbatim. Only natural-language prose is translated.
+
+**Test impact:** `test_framework.py` check 3 already accepts English section markers
+(`## Languages`, `## Prohibitions`). No test changes needed for the translation itself.
+The self-check for model names (check 2) scans the translated files identically.

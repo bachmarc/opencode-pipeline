@@ -36,11 +36,17 @@ assignments.
 - **REQ-006 Template constancy:** `templates/AGENTS.md` constant sections (workflow, git
   conventions, languages, prohibitions) are the binding framework-project interface; changes
   to them require explicit user approval in the planning checkpoint.
+- **REQ-007 English-first portable files:** All portable files (`agent/`, `command/`,
+  `templates/`, `scripts/`) are written in English. This includes agent prompts, command
+  descriptions, template content, section headers, and inline comments. User dialogue
+  language is not hardcoded — it is configured per project in the project's `AGENTS.md`
+  (section "Languages"). The framework default is: respond in the user's language.
 
 ## Non-functional requirements
 
-- **NFR-001 Language:** Repo docs English; agent prompts stay German (they steer German
-  dialogue); user dialogue German.
+- **NFR-001 Language:** All portable files (agent prompts, commands, templates, scripts,
+  repo docs) are English. User dialogue language is configured per project in `AGENTS.md`
+  (default: respond in the user's language). Code identifiers are English.
 - **NFR-002 Zero infrastructure:** No server, no DB, no Docker for the checks — pytest +
   the repo's own files only.
 - **NFR-003 Cheap verifiability:** All checks are deterministic file/bash assertions;
