@@ -1,24 +1,24 @@
-# Story <ID> — <Titel>
+# Story <ID> — <Title>
 
-Status: Geplant | In Arbeit | Erledigt
+Status: Planned | In Progress | Done
 Traceability: <REQ-XXX> → Design §<n>
 
 ## Definition
 
-<Was ist die Story, warum existiert sie>
+<What is the story, why does it exist>
 
-## Entwicklungsziel
+## Development goal
 
-<Worum geht es, was ist danach anders>
+<What is it about, what is different afterwards>
 
-## Developer Targets (exakt, nicht mehr/nicht weniger)
+## Developer Targets (exactly, no more / no less)
 
-- <Konkrete, abgeschlossene Änderungen — Datei für Datei>
+- <Concrete, completed changes — file by file>
 
-## Akzeptanzkriterien (prüft qa-manager)
+## Acceptance criteria (checked by qa-manager)
 
-- <Deterministisch prüfbare Kriterien>
+- <Deterministically verifiable criteria>
 
-## Testkriterien (müssen VOR Implementierung existieren — deterministisch, ohne externe Systeme)
+## Test criteria (must exist BEFORE implementation — deterministic, no external systems)
 
-- <Tests die zuerst geschrieben werden — Datei, Testname, erwartetes Verhalten>
+- <Tests that are written first — file, test name, expected behavior>

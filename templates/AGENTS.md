@@ -1,108 +1,108 @@
-# AGENTS.md — <Projektname>
+# AGENTS.md — <Project name>
 
-> Vorlage aus der opencode-Pipeline (`templates/AGENTS.md`). Ausfüllen: alles in `<...>`.
-> Konstante Abschnitte (Workflow, Git, Sprachen, Verbote) **nicht** projekt-spezifisch abändern —
-> sie sind die verbindliche Schnittstelle zwischen Framework und Projekt.
-> Projekt-spezifisch: Projektname, Stack, Kernregeln, Referenzen (§ „Dieses Projekt").
+> Skeleton from the opencode pipeline (`templates/AGENTS.md`). Fill in: everything in `<...>`.
+> Constant sections (Workflow, Git, Languages, Prohibitions) **must not** be modified per project —
+> they are the binding interface between framework and project.
+> Project-specific: project name, stack, core rules, references (§ "This project").
 
-## Dieses Projekt: <Name, One-Liner>
+## This project: <Name, one-liner>
 
-- **Was:** <1-2 Sätze: Problem, Zielgruppe, Abgrenzung — aus `docs/requirements.md`>
-- **Stack:** <z.B. Python 3.12, FastAPI + uvicorn, statisches HTML/JS-Frontend, Docker>
-- **Versionierung:** `APP_VERSION = "0.1.0"` (in `src/<version>.py` o.ä.) — bei jedem Merge bumpen
+- **What:** <1-2 sentences: problem, target audience, scope — from `docs/requirements.md`>
+- **Stack:** <e.g. Python 3.12, FastAPI + uvicorn, static HTML/JS frontend, Docker>
+- **Versioning:** `APP_VERSION = "0.1.0"` (in `src/<version>.py` or similar) — bump on every merge
 
-## Kernregeln (Projekt-Source-of-Truth: `docs/requirements.md` + `docs/design.md`)
+## Core rules (project source of truth: `docs/requirements.md` + `docs/design.md`)
 
-- <Kernregel 1 — z.B. "`src/core/board.py` (`PostBoard`) kennt kein FastAPI, kein HTTP, keine Uhr. Zeit kommt als Parameter (`now`).">
-- <Kernregel 2 — z.B. "RAM-only: Keine Persistenz, keine Auto-Clear-Timer.">
-- <… weitere, aus `docs/design.md` § Kern-Entscheidungen übernommen>
-- **Fake-Pflicht:** Für JEDE externe Abhängigkeit (`<API>`, `<DB>`, `<HA>`, …) existiert ein Fake in `tests/fakes/` — Tests laufen ohne echte Systeme.
+- <Core rule 1 — e.g. "`src/core/board.py` (`PostBoard`) knows nothing of FastAPI, HTTP, or clocks. Time comes as a parameter (`now`).">
+- <Core rule 2 — e.g. "RAM-only: no persistence, no auto-clear timers.">
+- <… more, taken from `docs/design.md` § core decisions>
+- **Fake requirement:** For EVERY external dependency (`<API>`, `<DB>`, `<HA>`, …) there exists a fake in `tests/fakes/` — tests run without real systems.
 
-## Architektur: Funktion vs Konnektivität
+## Architecture: function vs connectivity
 
-Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
+Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 
-- **`src/core/`** — reine Logik/Algorithmen.
-  - **Null Imports** aus Framework/IO/HA/DB/API.
-  - Bekommt alle Daten als Parameter, gibt Dicts/Primitives zurück.
-  - Vollständig unit-testbar, enthält Simulation-Helper (`simuliere_<x>()`).
-- **`src/adapters/`** — dünne Wrapper (3-10 Zeilen pro Methode).
-  - Extrahiert Request-Daten, **delegiert alle Entscheidungen an Core**, gibt HTTP-Antwort / schreibt Bus.
-  - Timer/Listener/Scheduler ausschließlich hier.
-- **Fakes sind Pflicht** für jede externe Abhängigkeit: `tests/fakes/`.
-  - Core-Tests laufen **ohne** echte Systeme (`FakeClock`, `Fake<X>`-Interfaces).
-  - **Fake = gleiche Methoden-Signaturen wie der echte Adapter.** Fakes die ein anderes
-    Interface bieten als der Adapter → Designfehler. Der echte Orchestrierungs-Code muss
-    mit Fakes aufrufbar sein, ohne Anpassungen.
-  - Ist Core nicht ohne Fakes testbar → Designfehler.
-- **Integration-Tests testen den echten Orchestrierungs-Code** (z.B. `Scheduler._run_cycle()`
-  mit Fakes), nicht einen manuellen Nachbau des Zyklus. Manuell nachgebaute Zyklen umgehen
-  Wiring-Bugs und sind wertlos als Integrationsnachweis.
+- **`src/core/`** — pure logic/algorithms.
+  - **Zero imports** from framework/IO/HA/DB/API.
+  - Receives all data as parameters, returns dicts/primitives.
+  - Fully unit-testable, contains simulation helpers (`simulate_<x>()`).
+- **`src/adapters/`** — thin wrappers (3-10 lines per method).
+  - Extracts request data, **delegates all decisions to core**, returns HTTP response / writes bus.
+  - Timers/listeners/schedulers exclusively here.
+- **Fakes are mandatory** for every external dependency: `tests/fakes/`.
+  - Core tests run **without** real systems (`FakeClock`, `Fake<X>` interfaces).
+  - **Fake = same method signatures as the real adapter.** Fakes offering a different
+    interface than the adapter → design error. The real orchestration code must
+    be callable with fakes, without modifications.
+  - If core is not testable without fakes → design error.
+- **Integration tests test the real orchestration code** (e.g. `Scheduler._run_cycle()`
+  with fakes), not a manual reconstruction of the cycle. Manually reconstructed cycles bypass
+  wiring bugs and are worthless as integration proof.
 
-## Git-Konvention
+## Git conventions
 
-- Jede Story = eigener Branch: `feature/<story-id>-<slug>` (z.B. `feature/01-02-<slug>`).
-- **Worktree-Pflicht:** Jede Developer-Session arbeitet in einem eigenen Git-Worktree
-  `.worktrees/<story-id>-<slug>/` (angelegt vom architect). Das Hauptverzeichnis bleibt
-  **immer auf `main`** (Merges, Hygiene). Zwei Agenten teilen NIE ein Working Directory.
-- **Kein direkter Push auf `main`.** Merge nur nach QA-Gate (PASS).
-- **Merge-Sperre ohne QA:** Architect darf `git merge` auf `main`/`master` **ausschließlich**
-  ausführen wenn der QA-Manager für genau diesen Branch ein explizites `PASS` zurückgegeben
-  hat. Kein Merge bei „Tests sind grün" allein — QA prüft mehr als pytest (Architektur,
-  Targets, Commit-Metadaten). Wurde QA übersprungen, ist der Merge ungültig.
-- Commit-Body enthält Metadaten für QA-Requeue:
+- Every story = its own branch: `feature/<story-id>-<slug>` (e.g. `feature/01-02-<slug>`).
+- **Worktree requirement:** Every developer session works in its own Git worktree
+  `.worktrees/<story-id>-<slug>/` (created by architect). The main directory stays
+  **always on `main`** (merges, hygiene). Two agents never share a working directory.
+- **No direct push to `main`.** Merge only after QA gate (PASS).
+- **Merge lock without QA:** Architect may execute `git merge` on `main`/`master` **exclusively**
+  when the QA manager has returned an explicit `PASS` for exactly this branch. No merge on
+  "tests are green" alone — QA checks more than pytest (architecture, targets, commit metadata).
+  If QA was skipped, the merge is invalid.
+- Commit body contains metadata for QA requeue:
   ```
-  symbols: <geänderte Export-Symbols> | breaks: <none|breaking> | affects: <abhängige Files> | tests: <pytest-Ergebnis>
+  symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <pytest result>
   ```
 
 ## Workflow
 
-0. **Planungs-Checkpoint (PFLICHT vor jedem Dev/QA-Start)** — Reihenfolge für jede
-   Anforderung/Änderung (auch Replannings!):
-   1. **Planungsphase (architect):** Requirements/Design/Stories entwerfen, Doku anpassen
-      (REQ-IDs, Design-Abschnitte, Story-Dateien).
-   2. **Review-Checkpoint (User):** architect stellt dem User die konkrete Umsetzungs-
-      übersicht vor — WAS wird implementiert (Stories + Developer Targets), WIE läuft es ab
-      (Wellen, Reihenfolge, Fakes, Testkriterien). **Dev+QA starten NICHT ohne explizites
-      User-Go** („passt"/„go"). Rückmeldungen fließen zurück in die Planung (Schleife).
-   3. **Erst dann:** Dev + QA gemäß freigegebenem Plan.
-   - Gilt auch für „kleine" Änderungen und Bugfix-Loops — kein implizites Starten.
-1. **Stories**: `STORIES.md` (Index) + `docs/stories/<phase>-<id>-<slug>.md`.
-   Jede Story verlinkt Traceability (`REQ-XXX` + Design-Abschnitt) und enthält
-   **Testkriterien, die VOR Implementierung existieren (Fake-basiert)**.
-2. **Developer**: implementiert GENAU die Developer Targets — nichts mehr, nichts weniger.
-   Tests zuerst schreiben, `pytest` muss grün sein.
-3. **QA-Gate (PFLICHT vor jedem Merge)**: Architect spawnt `qa-manager` für jeden
-   Feature-Branch **bevor** er mergt. QA prüft: Requirements, Tests, Architektur-Trennung,
-   Fake-Nutzung, Commit-Metadaten. Ergebnis:
-   - PASS → Architect darf mergen.
-   - FAIL → Developer-Fix-Loop (max. 3), dann BLOCKED → zurück an architect/User.
-   - BLOCKED_Design → Architect korrigiert Design autonom (max. 2 Fixes).
-   - BLOCKED_Requirements → Eskalation an User.
-   **Kein Branch wird ohne QA-PASS gemergt. Keine Ausnahme.**
+0. **Planning checkpoint (MANDATORY before every dev/QA start)** — sequence for every
+   requirement/change (including replanning!):
+   1. **Planning phase (architect):** design requirements/design/stories, update docs
+      (REQ-IDs, design sections, story files).
+   2. **Review checkpoint (user):** architect presents the concrete implementation
+      overview to the user — WHAT will be implemented (stories + developer targets), HOW it runs
+      (waves, sequence, fakes, test criteria). **Dev+QA do NOT start without explicit
+      user go** ("passt"/"go"). Feedback flows back into planning (loop).
+   3. **Only then:** dev + QA per approved plan.
+   - Applies to "small" changes and bugfix loops too — no implicit starts.
+1. **Stories**: `STORIES.md` (index) + `docs/stories/<phase>-<id>-<slug>.md`.
+   Every story links traceability (`REQ-XXX` + design section) and contains
+   **test criteria that exist BEFORE implementation (fake-based)**.
+2. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
+   Write tests first, `pytest` must be green.
+3. **QA gate (MANDATORY before every merge)**: Architect spawns `qa-manager` for every
+   feature branch **before** merging. QA checks: requirements, tests, architecture separation,
+   fake usage, commit metadata. Result:
+   - PASS → Architect may merge.
+   - FAIL → Developer fix loop (max. 3), then BLOCKED → back to architect/user.
+   - BLOCKED_Design → Architect corrects design autonomously (max. 2 fixes).
+   - BLOCKED_Requirements → escalation to user.
+   **No branch is merged without QA-PASS. No exception.**
 
-## Sprachen
+## Languages
 
-- Dialog mit User: Deutsch
-- Code/Bezeichner: Englisch
-- UI-Texte: Deutsch
+- Dialogue with user: respond in the user's language
+- Code/identifiers: English
+- UI texts: respond in the user's language
 
-## Verbote
+## Prohibitions
 
-- **Architect schreibt keinen Code.** Alles unter `src/`, `tests/`, `utils/`, `main.py`,
-  `models/` — jede Datei die Anwendungs-/Testcode enthält — wird ausschließlich vom
-  `developer`-Agent auf einem Feature-Branch bearbeitet. Auch Einzeiler-Bugfixes.
-  Auch „offensichtliche" Fixes. Keine Ausnahme.
-- Kein autonomes Dekomponieren/Implementieren außerhalb freigegebener Stories.
-- Keine unangefragten Features außerhalb der Developer Targets.
-- Keine Imports von IO/Framework in `src/core/`.
-- Kein `git init`/Schreiben außerhalb des Projekt-Pfads.
-- **Subagent-Pfad-Disziplin:** Alle Befehle ausschließlich im zugeteilten Worktree;
-  kein `/tmp`, kein `pip install`, keine Pfade außerhalb des Projekt-Roots.
+- **Architect writes no code.** Everything under `src/`, `tests/`, `utils/`, `main.py`,
+  `models/` — every file containing application/test code — is edited exclusively by
+  the `developer` agent on a feature branch. Even one-liners. Even "obvious" fixes.
+  No exception.
+- No autonomous decomposition/implementation outside approved stories.
+- No unrequested features outside developer targets.
+- No imports from IO/framework in `src/core/`.
+- No `git init`/writing outside the project path.
+- **Subagent path discipline:** All commands exclusively in the assigned worktree;
+  no `/tmp`, no `pip install`, no paths outside the project root.
 
-## Referenzen
+## References
 
-- `docs/requirements.md` — Source of Truth für Umfang (REQ-IDs)
-- `docs/design.md` — Source of Truth für Architektur (Fakes, Kern-Regeln)
-- `STORIES.md` — Story-Index (Status pro Story)
-- <Projekt-spezifisch: `intesis_modbus/CLAUDE.md`, `vokabel/STORIES.md`, …>
+- `docs/requirements.md` — source of truth for scope (REQ-IDs)
+- `docs/design.md` — source of truth for architecture (fakes, core rules)
+- `STORIES.md` — story index (status per story)
+- <Project-specific: `intesis_modbus/CLAUDE.md`, `vokabel/STORIES.md`, …>
