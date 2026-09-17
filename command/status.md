@@ -1,10 +1,10 @@
 ---
-description: Zeigt Implementierungs-Stand aller Stories und Fehler — Dialog mit QA-Manager nach dem Plan.
+description: Shows implementation status of all stories and errors — dialogue with QA manager per plan.
 agent: qa-manager
 ---
 
-Zeige Status für: $ARGUMENTS
+Show status for: $ARGUMENTS
 
-- Aggregiere `STORIES.md`, `git branch -a`, letzte Commits, `pytest`/`ruff` Ergebnisse, offene QA-FAILs/BLOCKEDs
-- Antworte auf Deutsch kompakt (Tabelle), dann Details zu: $ARGUMENTS
-- Wenn $ARGUMENTS leer: Gesamt-Status aller Stories. Wenn Story-ID/Branch genannt: Detail-Status + Fehler für diese Story.
+- Aggregate `STORIES.md`, `git branch -a`, latest commits, `pytest`/`ruff` results, open QA FAILs/BLOCKEDs
+- Answer in German compactly (table), then details for: $ARGUMENTS
+- If $ARGUMENTS empty: overall status of all stories. If story ID/branch named: detail status + errors for this story.

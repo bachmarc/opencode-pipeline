@@ -1,12 +1,12 @@
 ---
-description: Dekomponiere Requirements/Design in Features & Stories (STORIES.md + docs/stories/) — so geschnitten dass günstige Massenmodelle (lokal via agent.developer.model konfiguriert) sie per Branch implementieren können.
+description: Decompose Requirements/Design into Features & Stories (STORIES.md + docs/stories/) — cut so that cheap mass models (configured locally via agent.developer.model) can implement them per branch.
 agent: architect
 ---
 
-Dekomponiere basierend auf `docs/requirements.md` + `docs/design.md` für: $ARGUMENTS
+Decompose based on `docs/requirements.md` + `docs/design.md` for: $ARGUMENTS
 
-- Erstelle `STORIES.md` (Phasen-Index wie vokabel) + `docs/stories/<phase>-<id>-<slug>.md` pro Story mit Definition, Developer Targets, Akzeptanz- und Testkriterien
-- Stories so schneiden dass das lokal konfigurierte günstige Massenmodell (`agent.developer.model`) sie isoliert per feature/<id>-<slug> Branch implementieren kann
-- Testkriterien müssen VOR Implementierung erfüllbar sein (Fakes!)
+- Create `STORIES.md` (phase index like vocabulary) + `docs/stories/<phase>-<id>-<slug>.md` per story with definition, developer targets, acceptance and test criteria
+- Cut stories so that the locally configured cheap mass model (`agent.developer.model`) can implement them isolated per feature/<id>-<slug> branch
+- Test criteria must be fulfillable BEFORE implementation (fakes!)
 
-Wenn $ARGUMENTS leer: nutze aktuelles Projekt im cwd.
+If $ARGUMENTS empty: use current project in cwd.
