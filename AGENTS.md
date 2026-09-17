@@ -69,10 +69,10 @@ This repo's "product" is configuration and deterministic tooling, not a service:
 
 ## Languages
 
-- Dialogue with user: German
+- Dialogue with user: respond in the user's language
 - Code/identifiers: English
 - Repo docs (README, requirements, design, stories): English
-- Agent prompts: German (they steer German user dialogue)
+- Agent prompts: respond in the user's language
 
 ## Prohibitions
 
