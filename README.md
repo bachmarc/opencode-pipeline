@@ -178,13 +178,102 @@ Every project repo carries its own `AGENTS.md` — loaded via `"instructions": [
 
 ---
 
-## Workflow in 60 seconds
+## How the workflow works — step by step
 
-1. **New project:** `/new-project` → Architect interview (Requirements, Design, Stories) in dialogue, **review checkpoint with user-go**.
-2. **Implement:** `/implement <story-id>` (Developer) — tests first, isolated branch.
-3. **QA gate:** `/qa-check <branch>` (QA-Manager) → `qa_compress.sh` compresses pytest → JSON review.
-4. **Status:** `/status` (QA-Manager, table Story | Branch | Tests | QA | Error).
-5. **Compact QA test report:** `/qa_summary`.
+This section explains the **practical "how"**: what you do as a user, what the agents do autonomously, and where the handoffs happen.
+
+### Overview (Mermaid)
+
+```mermaid
+flowchart TD
+    A["User: idea / requirement"] --> B["Phase 1: Design Dialogue\n(User ↔ Architect)"]
+    B --> C["Architect outputs:\nrequirements.md\ndesign.md\nSTORIES.md + story files"]
+    C --> D{"Phase 2: User-Go Checkpoint\n(Architect presents plan)"}
+    D -- "User says 'go' / 'passt'" --> E["Phase 3: Autonomous Dev+QA"]
+    D -- "User gives feedback" --> B
+
+    E --> F["Developer implements story\n(tests first, isolated branch)"]
+    F --> G["QA-Manager checks\n(qa_compress.sh → JSON verdict)"]
+    G -- "PASS" --> H["Merge to main\n(after user clearance)"]
+    G -- "FAIL (max 3×)" --> F
+    G -- "BLOCKED_Design" --> I["Architect fixes design\n(autonomous, no user needed)"]
+    I --> F
+    G -- "BLOCKED_Requirements" --> J["Escalation to User\n(intent unclear)"]
+    J --> B
+```
+
+### Phase 1: Design dialogue (User ↔ Architect)
+
+You start by talking to the **Architect** — either via `/new-project` (new repo) or `/requirements` (existing repo). The Architect conducts an **iterative interview**: it asks about the problem, target audience, scope boundaries, and non-functional requirements. You answer, it refines, you correct — this is a back-and-forth dialogue.
+
+**How to stay in the dialogue:** The Architect runs in `mode: all` (direct conversation partner). You talk to it like a colleague. It will ask clarifying questions — answer them. If it tries to spawn a Developer or QA-Manager prematurely, the **`permission.task` system** pops up an approval dialog (Tab key to confirm/deny). This is your hard technical gate — the Architect cannot silently start the machine.
+
+**What the Architect produces:**
+- `docs/requirements.md` — functional + non-functional requirements with REQ-IDs
+- `docs/design.md` — architecture (function vs connectivity, fake interfaces, data model)
+- `STORIES.md` + `docs/stories/<phase>-<id>-<slug>.md` — decomposed, implementable stories with developer targets and test criteria
+
+**Key principle:** Stories are cut small enough that a **cheap mass model** can implement each one in isolation on its own Git branch. No monster stories. The expensive/strong model (Architect) only reasons about design — it never writes code.
+
+### Phase 2: User-Go checkpoint
+
+Before any implementation starts, the Architect presents a **concrete implementation overview**:
+- **WHAT:** which stories, which developer targets (exact scope — no more, no less)
+- **HOW:** execution order (waves), which fakes are needed, test criteria per story
+
+**You must give explicit approval** ("passt", "go", or similar). Without your go, nothing starts. If you have feedback, it flows back into planning (loop back to Phase 1), and the Architect presents a revised plan.
+
+This checkpoint exists both as a **prompt rule** (behavioral) and as a **technical enforcement** via `permission.task` — even if the LLM "overhears" the prompt rule, the UI approval dialog catches it.
+
+### Phase 3: Autonomous Dev+QA
+
+Once you give the go, the pipeline runs **autonomously for a long time** without needing you:
+
+1. **Developer** (cheap model) picks up a story, creates branch `feature/<story-id>-<slug>`, and works in its own Git worktree (`.worktrees/<story-id>-<slug>/`).
+   - Reads the story's developer targets and test criteria
+   - **Writes tests first** (using fake interfaces — no real external systems)
+   - Implements exactly the developer targets in `src/core/` (pure logic) then `src/adapters/` (thin wrappers)
+   - Runs `pytest` green, commits with metadata
+
+2. **QA-Manager** (cheap model) checks the branch — **deterministically, not by thinking**:
+   - Runs `qa_compress.sh` which compresses pytest output to ≤200 tokens (exit code + failed test names + assertions — no log spam)
+   - Evaluates the compressed result against acceptance criteria
+   - Checks architecture separation (no IO imports in core, fake parity, integration tests call real orchestration code)
+   - Returns a **strict JSON verdict**: `{"status": "PASS|FAIL|BLOCKED_*", "reason": "...", "failed_tests": [...]}`
+
+3. **On PASS** → branch is cleared for merge (you confirm the merge).
+
+**Multiple stories can run in parallel** — each Developer works in its own worktree on its own branch. The QA-Manager checks each independently.
+
+### Escalation paths (when things go wrong)
+
+The pipeline has **hard autonomy limits** to prevent endless looping:
+
+#### FAIL → Developer fix loop (max 3 rounds)
+
+If QA returns FAIL, the Developer gets a **concrete fix assignment** (file, line, what's missing) and fixes on the same branch. QA checks again. This loops **at most 3 times** — if the story still fails after 3 rounds, it escalates to BLOCKED.
+
+#### BLOCKED_Design → Architect repairs autonomously
+
+If the failure is a **design gap** (test not simulatable, story wrongly cut, core/adapter separation undesigned), QA triggers the Architect with a lean 2-sentence diagnosis. The Architect fixes the design **minimally invasive** — no user needed for technical corrections. Then a new Dev round starts.
+
+**Autonomy budget:** max 1–2 Architect design fixes per story. If the fix doesn't resolve it → escalation to user.
+
+#### BLOCKED_Requirements → Back to you
+
+If the failure is a **domain/intention question** (requirement unclear, behavior ambiguous, feature scope uncertain), QA escalates to you with a precise question. Only you know the intent — the pipeline never guesses.
+
+### Quick reference (commands)
+
+| Command | Agent | What it does |
+|---|---|---|
+| `/new-project` | Architect | Create new project + start requirements interview |
+| `/requirements` | Architect | Start/continue requirements & design dialogue |
+| `/decompose` | Architect | Break requirements into stories |
+| `/implement <story-id>` | Developer | Implement one story (tests first, isolated branch) |
+| `/qa-check <branch>` | QA-Manager | Run QA gate → JSON verdict (PASS/FAIL/BLOCKED) |
+| `/status` | QA-Manager | Show implementation status (table: story, branch, tests, QA, error) |
+| `/qa_summary` | — | Run `qa_compress.sh` and show compact test report |
 
 ---
 

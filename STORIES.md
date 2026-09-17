@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs
 Index and status per story. Template: `docs/stories/_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -19,6 +19,7 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | 04-02-translate-commands | Translate command/*.md to English | Done (QA PASS, 37883c3→49d31ef) | REQ-007, NFR-001 → Design §8 |
 | 04-03-translate-template | Translate templates/AGENTS.md to English | Done (QA PASS, 6f98276→f80825f) | REQ-007, NFR-001 → Design §8 |
 | 04-04-translate-repo-docs | Translate AGENTS.md + STORIES.md to English | Done (QA PASS, 50d2412→51c0919) | REQ-007, NFR-001 → Design §8 |
+| 05-01-readme-workflow-how | README: step-by-step workflow explanation (how, not just why) | Planned | REQ-008 → Design §4 |
 
 ## Phase comments
 
@@ -28,3 +29,4 @@ Index and status per story. Template: `docs/stories/_template.md`.
 - **Phase 02 (Self-Checks):** Tests-first, developer + QA gate.
 - **Phase 03 (Deploy):** Documentation; optional command.
 - **Phase 04 (i18n):** Translate all portable files from German to English (REQ-007).
+- **Phase 05 (Docs):** User-facing documentation improvements (README workflow explanation).

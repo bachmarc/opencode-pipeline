@@ -52,6 +52,12 @@ assignments.
 - **NFR-003 Cheap verifiability:** All checks are deterministic file/bash assertions;
   a cheap model can evaluate the compressed pytest output.
 
+- **REQ-008 Workflow documentation:** The README contains a step-by-step explanation of
+  how the pipeline workflow operates in practice: the interactive design dialogue
+  (User ↔ Architect), the story-driven planning checkpoint, the autonomous Dev+QA
+  execution, and the escalation paths (FAIL loops, BLOCKED_Design, BLOCKED_Requirements).
+  Includes a Mermaid flowchart visualizing the full agent interaction.
+
 ## Out of scope
 
 - Tests for opencode itself (upstream tool).
