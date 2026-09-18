@@ -36,6 +36,11 @@ This repo's "product" is configuration and deterministic tooling, not a service:
   These tests are the QA target for `qa_compress.sh` — no fakes needed beyond the file system.
 - **`agent/`, `command/`, `skills/`, `templates/`** — data, not code: prompts and skeletons.
   Changes here need story + QA like everything else.
+- **`plugins/pipeline-enforcement.ts`** — opencode plugin for deterministic process enforcement.
+  Guards: merge (QA-PASS required), dev-start (story verification), architect-code (no silent
+  code edits), story-status (STORIES.md update reminder), session-recovery (mandatory state
+  scan), documenter (docs: reconcile commit required before merge). Deploys via release branch
+  to `~/.config/opencode/plugins/`.
 
 ## Git conventions
 
