@@ -37,6 +37,13 @@
       "started_at": "2026-09-18T16:17:44.201608+00:00",
       "done": true,
       "branch": "main"
+    },
+    {
+      "story_id": "07-03",
+      "agent": "architect",
+      "step": "orchestration",
+      "started_at": "2026-09-18T17:15:41.755870+00:00",
+      "done": false
     }
   ]
 }
