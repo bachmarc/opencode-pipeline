@@ -5,6 +5,7 @@ import { architectCodeGuard } from "./guards/architect-code-guard"
 import { storyStatusGuard } from "./guards/story-status-guard"
 import { SessionState } from "./helpers/session-state"
 import { sessionRecoveryGuard } from "./guards/session-recovery-guard"
+import { documenterGuard } from "./guards/documenter-guard"
 
 // Guard type: each guard is a function that can inspect and block tool calls
 type Guard = (input: any, output: any) => Promise<void> | void
@@ -33,11 +34,12 @@ export const PipelineEnforcement: Plugin = async ({ project, client, $, director
         sessionState.markRecoveryDone()
       }
 
-      // Check merge guard for bash tool calls
+      // Check merge guard and documenter guard for bash tool git merge commands
       if (input.tool === "bash" && output.args?.command) {
         const command = output.args.command
         if (command.includes("git merge")) {
           mergeGuard(command, directory)
+          await documenterGuard(command, directory, $)
         }
       }
 
