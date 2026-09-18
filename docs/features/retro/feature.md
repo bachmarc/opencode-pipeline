@@ -3,17 +3,20 @@ id: F-RETRO
 title: Retroactive Traceability
 status: done
 owner: ""
-req: [REQ-002]
+req: []
 ---
 
-## Scope
+## Vision
 
-Retroactive documentation of changes already made directly to the repository:
-- Model de-hardwiring (frontmatter)
-- Role abstraction (no model names in prompts)
-- Phase-0 enforcement via permission.task
-- templates/AGENTS.md skeleton
-- README rework (EN + JSON procedure)
+Retroactive documentation of pre-pipeline changes is complete, ensuring all foundational
+changes (model de-hardwiring, role abstraction, Phase-0 enforcement, templates, README)
+are captured in the project history.
+
+## Context
+
+Changes were made directly to the repository before the pipeline existed. Documenting them
+retroactively ensures traceability for the project history and establishes the baseline
+from which the pipeline evolved.
 
 ## Stories
 

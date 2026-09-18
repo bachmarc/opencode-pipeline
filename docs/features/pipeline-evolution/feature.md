@@ -3,18 +3,20 @@ id: F-004
 title: Pipeline Evolution
 status: planned
 owner: ""
-req: [REQ-009, REQ-010, REQ-011, REQ-012, REQ-013]
+req: []
 ---
 
-## Scope
+## Vision
 
-Feature hierarchy, deterministic scripts, session resilience, multi-user claim, documenter agent, and agent prompt updates. 13 stories in 5 implementation waves:
+Pipeline has deterministic scripts (worktree, status, story management, scaffolding),
+session recovery, multi-user support, documenter agent, and feature hierarchy. 13 stories
+in 5 implementation waves deliver the full pipeline infrastructure.
 
-- Wave 1: Foundation — file hierarchy, .pipeline dir, release branch
-- Wave 2: Core scripts — worktree, status, story mgmt, scaffolding
-- Wave 3: Recovery + claim — session recovery, feature claim
-- Wave 4: Documenter agent
-- Wave 5: QA scripts, agent prompt updates, check scripts
+## Context
+
+LLM free-hand operations (manual worktree setup, status tracking, session recovery) needed
+deterministic replacements. The pipeline must support multi-user development, session
+resilience, and automated documentation generation to scale beyond single-user workflows.
 
 ## Stories
 

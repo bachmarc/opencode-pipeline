@@ -3,16 +3,19 @@ id: F-002
 title: Internationalization (English)
 status: done
 owner: ""
-req: [REQ-007, NFR-001]
+req: []
 ---
 
-## Scope
+## Vision
 
-Translation of all portable files from German to English:
-- agent/*.md frontmatter and prompts
-- command/*.md descriptions and instructions
-- templates/AGENTS.md section headers and prose
-- AGENTS.md and STORIES.md repo docs
+All portable files (agents, commands, templates, repo docs) are in English, with dialogue
+language decoupled from code/identifier language. The framework is internationally portable.
+
+## Context
+
+International portability required English-first files and clear separation between
+code/documentation language (English) and user-facing dialogue language (user's language).
+This decoupling makes the framework usable globally.
 
 ## Stories
 
