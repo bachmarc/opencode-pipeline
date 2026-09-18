@@ -86,7 +86,7 @@ def test_template_constancy_fail(tmp_path):
 
 ## Git conventions
 
-- Every story = its own branch: `feature/<story-id>-<slug>`.
+- Every story = its own branch: `feature/<story-id>-<slug>` (e.g. `feature/01-02-<slug>`).
 - **Worktree requirement:** Every developer session works in its own Git worktree
   `.worktrees/<story-id>-<slug>/` (created by architect via `scripts/worktree_setup.py`). The main directory stays
   **always on `main`** (merges, hygiene). Two agents never share a working directory.
@@ -95,12 +95,12 @@ def test_template_constancy_fail(tmp_path):
 - **No direct push to `main`.** Merge only after QA gate (PASS).
 - **Merge lock without QA:** Architect may execute `git merge` on `main`/`master` **exclusively**
   when the QA manager has returned an explicit `PASS` for exactly this branch. Use `scripts/merge_if_passed.py`.
-  No merge on "tests are green" alone — QA checks more than pytest (architecture, targets, commit metadata).
+  No merge on "tests are green" alone — QA checks more than the test suite (architecture, targets, commit metadata).
   If QA was skipped, the merge is invalid.
 - Commit body contains metadata for QA requeue:
-  ```
-  symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <pytest result>
-  ```
+   ```
+   symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <test suite result>
+   ```
 
 ## Workflow
 
@@ -108,19 +108,18 @@ def test_template_constancy_fail(tmp_path):
 
 1. **Planning checkpoint (MANDATORY before every dev/QA start)** — sequence for every
    requirement/change (including replanning!):
-   1. **Planning phase (architect):** design requirements/design/stories, update docs
-      (REQ-IDs, design sections, story files).
+   1. **Planning phase (architect):** create features (vision + context) and self-contained stories, update docs.
    2. **Review checkpoint (user):** architect presents the concrete implementation
       overview to the user — WHAT will be implemented (stories + developer targets), HOW it runs
       (waves, sequence, fakes, test criteria). **Dev+QA do NOT start without explicit
       user go** ("passt"/"go"). Feedback flows back into planning (loop).
    3. **Only then:** dev + QA per approved plan.
    - Applies to "small" changes and bugfix loops too — no implicit starts.
-2. **Stories**: `STORIES.md` (index) + `docs/features/<name>/stories/<id>-<slug>.md`.
-   Every story links traceability (`REQ-XXX` + design section) and contains
+2. **Stories**: `STORIES.md` (index) + `docs/features/*/stories/*.md`.
+   Every story is self-contained (context, requirements, acceptance criteria, targets, tests) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
 3. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
-   Write tests first, `pytest` must be green.
+   Write tests first, the project's configured test suite must be green.
 4. **QA gate (MANDATORY before every merge)**: Architect spawns `qa-manager` for every
    feature branch **before** merging. QA checks: requirements, tests, architecture separation,
    fake usage, commit metadata. Result:
@@ -154,8 +153,7 @@ def test_template_constancy_fail(tmp_path):
 - `docs/requirements.md` — source of truth for scope (REQ-IDs)
 - `docs/design.md` — source of truth for architecture (fakes, core rules)
 - `STORIES.md` — story index (status per story)
-- <Project-specific: `intesis_modbus/CLAUDE.md`, `vokabel/STORIES.md`, …>
-"""
+- <Project-specific: `intesis_modbus/CLAUDE.md`, `vokabel/STORIES.md`, …>"""
     
     test_agents.write_text(project_agents_content, encoding='utf-8')
     
