@@ -59,7 +59,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 12-02-checker-rspec-jest | Checker plugins: rspec (Ruby) + jest (JavaScript) | Done (QA PASS, cbc1d55→f578433) | F-008 polyglot-qa |
 | 12-03-checker-gradle-maven | Checker plugins: gradle + maven (Java) | Done (QA PASS, 9a08022→5f0f279) | F-008 polyglot-qa |
 | 12-04-checker-json-yaml | Checker plugins: JSON + YAML syntax validation | Done (QA PASS, e316058→5dac5b0) | F-008 polyglot-qa |
-| 12-05-checker-html | Checker plugin: HTML (simple syntax check) | Planned | F-008 polyglot-qa |
+| 12-05-checker-html | Checker plugin: HTML (simple syntax check) | Done (QA PASS, 374ad8f→9da3597) | F-008 polyglot-qa |
 | 12-06-commit-metadata-polyglot | Polyglot commit metadata (test command from config, language-aware symbols) | Planned | F-008 polyglot-qa |
 | 12-07-prompt-genericization | Genericize portable prompts: no runner names | Planned | F-008 polyglot-qa |
 | 12-08-template-scaffold-config | Template config sections + scaffold + own qa_config.json | Planned | F-008 polyglot-qa |
