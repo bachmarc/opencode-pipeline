@@ -1,7 +1,7 @@
 ---
 id: F-006
 title: Documentation Model Migration
-status: planned
+status: done
 owner: ""
 req: []
 ---
@@ -26,9 +26,9 @@ This feature migrates everything to the new model in a controlled sequence.
 
 ## Stories
 
-- 09-01-migrate-features (planned) — Migrate 5 feature.md files to new format (Vision + Context, drop req: field)
-- 09-02-migrate-stories (planned) — Migrate 22 story files to new 5-section format (Feature: instead of Traceability:)
-- 09-03-migrate-indexes (planned) — Migrate STORIES.md + FEATURES.md to feature-references
-- 09-04-migrate-summaries (planned) — Rewrite requirements.md + design.md as Documenter-style summaries
-- 09-05-migrate-prompts-commands (planned) — Update QA-manager, developer prompts + commands + AGENTS.md template
-- 09-06-migrate-scripts-tests (planned) — Update scripts + tests that reference REQ-IDs
+- 09-01-migrate-features (done) — Migrate 5 feature.md files to new format (Vision + Context, drop req: field)
+- 09-02-migrate-stories (done) — Migrate 22 story files to new 5-section format (Feature: instead of Traceability:)
+- 09-03-migrate-indexes (done) — Migrate STORIES.md + FEATURES.md to feature-references
+- 09-04-migrate-summaries (done) — Rewrite requirements.md + design.md as Documenter-style summaries
+- 09-05-migrate-prompts-commands (done) — Update QA-manager, developer prompts + commands + AGENTS.md template
+- 09-06-migrate-scripts-tests (done) — Update scripts + tests that reference REQ-IDs
