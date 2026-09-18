@@ -11,6 +11,7 @@ __pycache__/
 opencode.json
 opencode.jsonc
 cron.db
+.pipeline/config.json
 
 # pipeline worktrees
 .worktrees/
