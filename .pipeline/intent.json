@@ -51,6 +51,15 @@
       "done": true,
       "worktree": ".worktrees/12-10-check-architecture-polyglot",
       "branch": "feature/12-10-check-architecture-polyglot"
+    },
+    {
+      "story_id": "12-09",
+      "agent": "developer",
+      "step": "writing tests (red-first)",
+      "started_at": "2026-09-18T20:11:29.046506+00:00",
+      "done": true,
+      "worktree": ".worktrees/12-09-template-migration-tool",
+      "branch": "feature/12-09-template-migration-tool"
     }
   ]
 }
