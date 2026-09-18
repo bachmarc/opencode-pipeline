@@ -5,7 +5,7 @@
       "agent": "architect",
       "step": "Phase-12 Wave 3+4 orchestration: stories 12-06, 12-07, 12-08, 12-09, 12-10",
       "started_at": "2026-09-18T19:32:03.556663+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "12-06",

@@ -1,7 +1,7 @@
 ---
 id: F-008
 title: Polyglot QA Gate
-status: planned
+status: done
 owner: ""
 req: []
 ---
@@ -45,13 +45,13 @@ Design decisions:
 
 ## Stories
 
-- 12-01-qa-config-contract (planned)
-- 12-02-checker-rspec-jest (planned)
-- 12-03-checker-gradle-maven (planned)
-- 12-04-checker-json-yaml (planned)
-- 12-05-checker-html (planned)
-- 12-06-commit-metadata-polyglot (planned)
-- 12-07-prompt-genericization (planned)
-- 12-08-template-scaffold-config (planned)
-- 12-09-template-migration-tool (planned)
-- 12-10-check-architecture-polyglot (planned)
+- 12-01-qa-config-contract (done)
+- 12-02-checker-rspec-jest (done)
+- 12-03-checker-gradle-maven (done)
+- 12-04-checker-json-yaml (done)
+- 12-05-checker-html (done)
+- 12-06-commit-metadata-polyglot (done)
+- 12-07-prompt-genericization (done)
+- 12-08-template-scaffold-config (done)
+- 12-09-template-migration-tool (done)
+- 12-10-check-architecture-polyglot (done)

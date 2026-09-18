@@ -1,6 +1,6 @@
 # Story 12-09 — Template migration tool for existing projects
 
-Status: Planned
+Status: Done (QA PASS, d8273b8→d06e2bd)
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

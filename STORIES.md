@@ -63,7 +63,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 12-06-commit-metadata-polyglot | Polyglot commit metadata (test command from config, language-aware symbols) | Done (QA PASS, 4886916→2b3649e) | F-008 polyglot-qa |
 | 12-07-prompt-genericization | Genericize portable prompts: no runner names | Done (QA PASS, 3804ec3→88dfa53) | F-008 polyglot-qa |
 | 12-08-template-scaffold-config | Template config sections + scaffold + own qa_config.json | Done (QA PASS, d1d0f33→93c8648) | F-008 polyglot-qa |
-| 12-09-template-migration-tool | Template migration tool for existing projects | Planned | F-008 polyglot-qa |
+| 12-09-template-migration-tool | Template migration tool for existing projects | Done (QA PASS, d8273b8→d06e2bd) | F-008 polyglot-qa |
 | 12-10-check-architecture-polyglot | check_architecture.py: polyglot import checking (JS/Ruby/Java) | Done (QA PASS, e28fac5→813549d) | F-008 polyglot-qa |
 | 12-11-test-suite-green | Fix pre-existing test failures blocking QA gate | Done (QA PASS, 8308e6d→5f1a8bb) | F-008 polyglot-qa |
 | 12-12-dev-start-guard-slug | Dev-start-guard: strip story slug when parsing STORIES.md | Done (QA PASS, 45049b2→f020a99) | F-008 polyglot-qa |
