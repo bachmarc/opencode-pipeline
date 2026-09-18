@@ -15,8 +15,9 @@
 ## Core rules (source of truth: `docs/requirements.md` + `docs/design.md`)
 
 - **Two-clone topology:** Development happens HERE (`~/Development/opencode-pipeline`).
-  `~/.config/opencode` is the LIVE clone — **read-only**: `git pull` + opencode restart only.
+  `~/.config/opencode` is the LIVE clone — **read-only**: `git pull release` + opencode restart only.
   Never develop in the live clone. Never edit files in `~/.config/opencode` directly.
+  The live clone pulls from the `release` branch (stable), not `main` (development line).
 - **Role abstraction, no model names:** Portable files (`agent/`, `command/`, `skills/`,
   `templates/`, `scripts/`) contain NO concrete model/provider names. Model assignment lives
   exclusively in the local, gitignored `opencode.jsonc` of each machine.

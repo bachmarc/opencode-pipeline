@@ -23,8 +23,8 @@ def test_readme_deployment_section(readme_text: str) -> None:
     # Section heading present
     assert "## Deployment" in readme_text, "missing '## Deployment' section heading"
 
-    # Pull procedure targeting the live clone (~/.config/opencode)
-    pull_marker = "git -C ~/.config/opencode pull origin main"
+    # Pull procedure targeting the live clone (~/.config/opencode) from release branch
+    pull_marker = "git -C ~/.config/opencode pull origin release"
     assert pull_marker in readme_text, (
         "missing pull procedure (expected marker: "
         f"'{pull_marker}')"
