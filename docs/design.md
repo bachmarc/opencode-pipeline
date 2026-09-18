@@ -397,7 +397,7 @@ The README targets **opencode users who are new to multi-agent setups**. Structu
    - Phase-0 checkpoint enforcement (permission.task)
    - The four agents in detail (table)
    - Deployment (branching strategy, promotion, rollback, live clone)
-   - Extending qa_compress.sh (checker-registry pattern)
+   - Extending qa_compress.sh (checker-registry pattern, plugin files in `scripts/qa_checkers/` — see story 12-01-qa-config-contract)
    - Per-project AGENTS.md (template, constancy)
    - Architecture pattern (function vs. connectivity)
 
