@@ -1,209 +1,54 @@
 # opencode Pipeline
 
-Multi-agent development pipeline for folder projects: **Requirements → Design → Stories → Dev (cheap model) → QA Gate**. Everything kept as flat, portable opencode config (config-as-code).
+**A multi-agent development pipeline as config-as-code** — for teams building software through structured dialogue, deterministic automation, and cheap-model mass work.
 
-> **Heads-up:** This repository intentionally contains **no `opencode.jsonc`** (provider endpoints, model selection) and **no `cron.db`** (local state). Both stay **local** per machine and are gitignored here.
+## Intro / Pitch
 
-> **Per-agent model assignment:** The roles (`agent/*.md`) no longer carry a hardcoded `model:` line. Which model runs for which purpose is configured **locally in the JSON** under `agent` (see § "Model assignment in the JSON"). Other machines have different providers/model names → only adjust the local JSON, the role files stay untouched.
+The opencode pipeline is a framework for **Requirements → Design → Stories → Dev (cheap model) → QA Gate** workflows. Everything is kept as flat, portable configuration (config-as-code), so you can clone it, adjust your local model assignment, and go.
 
----
+### The four roles
 
-## What's inside — and why
+The pipeline orchestrates four specialized agents:
 
-| Folder | Contents | Why |
-|---|---|---|
-| `agent/` | `architect`, `developer`, `qa-manager`, `documenter` | The four pipeline roles as opencode agents |
-| `templates/` | `AGENTS.md`, `.gitignore` | Skeletons for new projects (AGENTS.md + gitignore) |
-| `scripts/` | 15 deterministic Python scripts + `qa_compress.sh` | Pipeline automation: worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks |
-| `command/` | `qa_summary`, `qa-check`, `status`, `new-project`, `requirements`, `decompose`, `implement`, `document` | Invokable commands that orchestrate the flow |
-| `docs/features/` | Feature → Story hierarchy | Hierarchical planning structure (features contain stories) |
-| `.pipeline/` | `intent.json`, `qa-state/` | Persistent pipeline state (intent tracking, QA verdicts) |
+- **Architect** (strong model) — conducts requirements interviews, designs the system, decomposes work into stories. Pure reasoning, dialogue-driven.
+- **Developer** (cheap bulk model) — implements exactly one story per isolated Git branch. Many developers can run in parallel. Tests first, then code.
+- **QA-Manager** (cheap model) — deterministic gatekeeper. Runs compressed test suites, checks architecture rules, returns JSON verdicts (PASS/FAIL/BLOCKED). Falls back to Architect only for unclear design issues.
+- **Documenter** (cheap model) — reconciles documentation after QA-PASS. Synthesizes what exists; does not invent.
 
-The goal is a **lean, cheap, autonomously running multi-agent system** — no nested LLM cascades that burn tokens.
+### What's inside
 
----
+The repository contains:
 
-## Design decisions behind it (the "why")
+- **`agent/`** — The four role definitions (architect, developer, qa-manager, documenter). Each is a Markdown file with frontmatter (description, mode, rules) and a prompt. Roles are portable; model assignment is local.
+- **`scripts/`** — 15+ deterministic Python scripts + `qa_compress.sh` (Bash). Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks.
+- **`templates/`** — Skeletons for new projects: `AGENTS.md` (project knowledge template) and `.gitignore`.
+- **`command/`** — Invokable commands that orchestrate the flow: `/new-project`, `/requirements`, `/decompose`, `/implement`, `/qa-check`, `/status`, `/qa_summary`, `/document`.
+- **`docs/features/`** — Hierarchical planning structure: features contain stories, stories contain developer targets and test criteria.
+- **`.pipeline/`** — Persistent pipeline state: intent tracking (`intent.json`), QA verdicts (`qa-state/`).
 
-### 1. Separation of functions: Architect thinks, Developer writes, QA checks, Documenter reconciles
+### Design principles
 
-- **architect** (strong) — talks Requirements/Design/Stories out in dialogue. Pure reasoning.
-- **developer** (cheap bulk model) — implements **exactly one story** isolated per branch. Many in parallel.
-- **qa-manager** (cheap model) — **deterministic judge**, not a thinker. Strong model only as **fallback** via `architect` for unclear error/design causes.
-- **documenter** (cheap model) — reconciles documentation after QA-PASS: README, design docs, docstrings, stale comments. Does not invent — synthesizes what exists.
+1. **Cheap models for mass work** — Developer and QA-Manager run on lean models. Only the Architect (reasoning) and fallback diagnostics use strong models. This keeps costs low while maintaining quality gates.
 
-### 2. The three efficiency levers (core of the "why")
+2. **Deterministic scripts over LLM free-hand** — QA is not a thinker; it's a judge. Test compression (`qa_compress.sh`) reduces 20,000 lines of pytest spam to ≤200 tokens. Verdicts are strict JSON, no monologues.
 
-1. **Streamline & offload QA** — cost dampener
-   - pytest logs are **deterministically compressed** (`qa_compress.sh`, ≤200 tokens instead of 20 000 log spam). **Evaluating pytest does not need a big model.**
-   - QA output is **strictly JSON-only** (`status | reason | failed_tests`), no monologues, no style chit-chat.
-   - Cheap model for the QA judge; the expensive model only for unclear causes.
+3. **Config-as-code (clone & go)** — The entire framework is flat, readable files (Markdown + Bash). No secrets, no binary format. Transfer to another machine: clone, create local `opencode.jsonc`, restart. Done.
 
-2. **Break the cascade** — against context bloat
-   - `BLOCKED_Design` → **stays autonomous**: QA delegates root-cause analysis to `architect` with a lean diagnosis (2 sentences + compressed test list, **no log spam**).
-   - `BLOCKED_Requirements` → **escalate to the user** (only the user knows the intent).
-   - No automatic architect-dispatch from QA. Results are **passed through 1:1**, nothing reformulated.
+4. **Tests before code** — Every story has test criteria written before implementation. Tests use fake interfaces; no real external systems (Modbus, HA, APIs, Ollama) in the test suite.
 
-3. **Autonomy with hard limits**
-   - The process runs a long time **without user interaction** (dev waves, QA, design repair).
-   - **Autonomy budget:** max. 3 developer FAIL loops + max. 1–2 architect design fixes per story. If both run dry → **BLOCKED_Requirements to user** (no endless looping).
-   - **Phase-0 checkpoint:** before every dev/QA start the architect presents the plan; only **explicit user-go** starts the machine — except for purely technical design corrections.
+5. **Function vs. connectivity separation** — Projects built with this pipeline follow a strict pattern:
+   - `src/core/` — pure logic, zero imports from framework/IO/DB/API. Fully unit-testable.
+   - `src/adapters/` — thin wrappers (3–10 lines) that read/write external interfaces and delegate to core.
+   - Fake interfaces are mandatory for every external dependency.
 
-### 3. Architecture of the projects this pipeline builds (from the workflow)
+### Important notes
 
-The actual pattern behind everything is **function vs. connectivity**:
-
-- `src/core/` — pure logic/rules, **zero imports** from framework/IO/DB/API. Gets everything as parameters, returns dicts/primitives. Fully unit-testable.
-- `src/adapters/` — **thin wrappers** (3–10 lines): read/write external interfaces, delegate decisions to core.
-- **Fake interfaces are mandatory** for every external dependency → tests run without real systems.
-
-Therefore: **tests exist BEFORE the code**, each story has its own fake-based test criteria.
-
-### 4. Why config-as-code / Git
-
-- The whole pipeline is only **flat, readable files** (Markdown + a portable bash script). No secrets, no binary format.
-- Thus **transferable to other machines / other opencode installs**: clone, done. The exec bit of `qa_compress.sh` is preserved via Git.
-- **No secrets** in the config → safe to commit.
-- The only machine-specific part (`opencode.jsonc`) stays deliberately local.
+- **`opencode.jsonc` is local, gitignored** — Provider endpoints, model names, and per-agent model assignment live in `~/.config/opencode/opencode.jsonc` on each machine. This file is not in the repository.
+- **Per-agent model assignment** — The role files (`agent/*.md`) no longer carry a hardcoded `model:` line. Which model runs for which purpose is configured locally in the JSON under `agent`. Other machines have different providers/model names → only adjust the local JSON, the role files stay untouched.
 
 ---
 
-## Installation on another machine
-
-```bash
-# 1. Clone the repo (release branch = stable, default)
-#    (if ~/.config/opencode already exists: back it up / empty it first)
-git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode
-
-# The default branch is 'release' (stable). If you want to contribute
-# to development, switch to main:
-#   git checkout main
-```
-
-Then restart `opencode` — agents, skills, commands are active.
-
-### Local configuration (stays per machine)
-
-Create `~/.config/opencode/opencode.jsonc` (e.g.):
-
-```jsonc
-{
-  "$schema": "https://opencode.ai",
-  "provider": { /* your model provider, e.g. Ollama via openai-compatible */ },
-  "model": "provider/model",            // primary/dialogue model
-  "small_model": "provider/model",      // lean model (titles, summaries)
-  "agent": {                            // model per agent (architect/developer/qa-manager/documenter)
-    "architect": {
-      "model": "provider/strong",
-      "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
-    },
-    "developer":   { "model": "provider/cheap"   },
-    "qa-manager":  { "model": "provider/cheap"   },
-    "documenter":  { "model": "provider/cheap"   }
-  },
-  "skills": { "paths": ["~/.config/opencode/skills"] }
-}
-```
-
-> **Do not** commit this here — it's in `.gitignore`, because host/provider differ per machine.
-
-### How model assignment works ("the JSON procedure")
-
-The four role files (`agent/architect.md`, `developer.md`, `qa-manager.md`, `documenter.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
-
-- **Role (portable, in Git):** *who does what* — mode, temperature, prompt, rules. In `agent/*.md`.
-- **Machine (local, gitignored):** *which model* for *what*. In `~/.config/opencode/opencode.jsonc` under `agent`.
-
-**Why:**
-- Other machines have different APIs/providers wired up and different model names. When the model was hardcoded in the role file, the role core had to be touched.
-- Now a **single local file** (`opencode.jsonc`) suffices — provider endpoints, model names **and** the `agent` assignment. On a clone on a new machine you only create/adjust this file; the roles stay identical.
-
-**Concrete procedure per machine:**
-1. `git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode`
-2. Create `opencode.jsonc` (see above) with your provider + the `agent` mapping entries matching your available models.
-3. Restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
-4. If a mapping entry is missing, opencode does not fail: an agent without an assigned model falls back to the global `model` as default.
-
-### Enforcing the Phase-0 checkpoint technically (not just via prompt)
-
-The rule "no dev/QA without explicit user-go" lives in the prompts — but an LLM follows instructions probabilistically and can "overhear" them. The fix: opencode's `permission.task` system. When the architect tries to spawn a developer or qa-manager, a **UI approval dialog pops up for you** — every time. Your "allow" click **is** the user-go, technically enforced. The architect cannot silently start the machine.
-
-```jsonc
-"agent": {
-  "architect": {
-    "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
-  }
-}
-```
-
-- The prompt rules stay as behavioral training, but the hard guarantee comes from the permission system.
-- Internal QA loops (QA → developer on FAIL fixes) are intentionally **not** gated — that autonomy should remain, since the wave was already started by you.
-- This block belongs in the local `opencode.jsonc` (it's config, not a role), so it travels with the model assignment on every machine.
-
----
-
-## Deployment (dev repo → live config)
-
-### Branching strategy
-
-The repository uses a **two-branch deployment model**:
-
-- **`main` branch** — development line. Stories are developed and merged here after the QA gate. May be unstable between milestones.
-- **`release` branch** — stable, deployable state. Promoted from `main` only when the user considers the code production-ready. The live clone (`~/.config/opencode`) pulls from `release`, not `main`.
-
-### Promotion workflow
-
-When `main` is stable enough for production, promote it to `release` using the `promote_release.py` script:
-
-```bash
-python scripts/promote_release.py
-```
-
-This script:
-1. Validates that `main` is clean and up-to-date with remote
-2. Fast-forward merges `release` to current `main` HEAD
-3. Pushes `release` to remote
-4. Outputs JSON with promotion status and commit hashes
-5. Returns exit code 0 on success, 1 on dirty state or if behind remote
-
-### Live clone deployment
-
-The **live clone** (`~/.config/opencode`) pulls from the `release` branch, not `main`:
-
-```bash
-git -C ~/.config/opencode pull origin release
-```
-
-Then **restart opencode** — the config is loaded once at startup, there is no hot-reload. Running sessions keep using the old config until they are restarted.
-
-**What a pull does not touch:** `opencode.jsonc` and `cron.db` are gitignored, so a pull never overwrites them. New agent-/command-/skill-/template files appear automatically after pull + restart.
-
-**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
-
-**New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `permission.task` block), **every machine** must add them to its local file once — see § "How model assignment works" above for the per-machine procedure.
-
-**Rollback:** check out a known-good version in the live clone and restart opencode:
-
-```bash
-git -C ~/.config/opencode checkout <tag-or-hash>
-```
-
-**No deploy script — by design (D2):** deployment stays deliberately manual (staged rollout; the framework steers the running agent). Optional convenience later, manual is the default.
-
----
-
-## Per-project AGENTS.md (project knowledge, per repo)
-
-Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agent/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
-
-- **Agent definition (global, this repo):** who the agent is, prompt, behavior — identical on every machine.
-- **Project AGENTS.md (per repo, in the project):** what the project is and which rules its code must follow — versioned with the code, correct on every checkout.
-
-**Template:** `templates/AGENTS.md` provides the skeleton. Constant sections (workflow, git conventions, languages, prohibitions) are the binding interface between framework and project and stay untouched; project-specific placeholders (`name`, stack, core rules, references) are filled in dialogue. The architect must use the template — no improvising from zero.
-
----
-
-## How the workflow works — step by step
+## Development Process
 
 This section explains the **practical "how"**: what you do as a user, what the agents do autonomously, and where the handoffs happen.
 
@@ -236,7 +81,7 @@ You start by talking to the **Architect** — either via `/new-project` (new rep
 **What the Architect produces:**
 - `docs/requirements.md` — functional + non-functional requirements with REQ-IDs
 - `docs/design.md` — architecture (function vs connectivity, fake interfaces, data model)
-- `STORIES.md` + `docs/stories/<phase>-<id>-<slug>.md` — decomposed, implementable stories with developer targets and test criteria
+- `STORIES.md` + `docs/features/<feature>/stories/<phase>-<id>-<slug>.md` — decomposed, implementable stories with developer targets and test criteria
 
 **Key principle:** Stories are cut small enough that a **cheap mass model** can implement each one in isolation on its own Git branch. No monster stories. The expensive/strong model (Architect) only reasons about design — it never writes code.
 
@@ -303,7 +148,110 @@ If the failure is a **domain/intention question** (requirement unclear, behavior
 
 ---
 
-## The four agents in detail
+## Installation
+
+### Fresh install
+
+If you're setting up opencode for the first time:
+
+```bash
+# Clone the repo to ~/.config/opencode (release branch = stable, default)
+git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode
+
+# The default branch is 'release' (stable). If you want to contribute
+# to development, switch to main:
+#   git checkout main
+```
+
+Then restart `opencode` — agents, skills, commands are active.
+
+### Existing setup
+
+If you already have `~/.config/opencode` and want to add the framework:
+
+```bash
+cd ~/.config/opencode
+
+# Initialize git and add the remote
+git init
+git remote add origin git@github.com:bachmarc/opencode-pipeline.git
+
+# Fetch and check out the release branch
+git fetch origin
+git checkout -b release --track origin/release
+```
+
+**Important:** Local files (`opencode.jsonc`, `cron.db`) are gitignored, so this process preserves them. Your existing configuration stays intact.
+
+### Local configuration (stays per machine)
+
+Create `~/.config/opencode/opencode.jsonc` (e.g.):
+
+```jsonc
+{
+  "$schema": "https://opencode.ai",
+  "provider": { /* your model provider, e.g. Ollama via openai-compatible */ },
+  "model": "provider/model",            // primary/dialogue model
+  "small_model": "provider/model",      // lean model (titles, summaries)
+  "agent": {                            // model per agent (architect/developer/qa-manager/documenter)
+    "architect": {
+      "model": "provider/strong",
+      "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
+    },
+    "developer":   { "model": "provider/cheap"   },
+    "qa-manager":  { "model": "provider/cheap"   },
+    "documenter":  { "model": "provider/cheap"   }
+  },
+  "skills": { "paths": ["~/.config/opencode/skills"] }
+}
+```
+
+> **Do not** commit this here — it's in `.gitignore`, because host/provider differ per machine.
+
+Then restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
+
+**For details on model assignment, see [Model Assignment](#model-assignment) below. For Phase-0 enforcement, see [Phase-0 Checkpoint](#phase-0-checkpoint) below.**
+
+---
+
+## Technical Details
+
+This section is a reference for deeper topics. Links from the Installation section above point here.
+
+### <a id="model-assignment"></a>Model Assignment
+
+The four role files (`agent/architect.md`, `developer.md`, `qa-manager.md`, `documenter.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
+
+- **Role (portable, in Git):** *who does what* — mode, temperature, prompt, rules. In `agent/*.md`.
+- **Machine (local, gitignored):** *which model* for *what*. In `~/.config/opencode/opencode.jsonc` under `agent`.
+
+**Why:**
+- Other machines have different APIs/providers wired up and different model names. When the model was hardcoded in the role file, the role core had to be touched.
+- Now a **single local file** (`opencode.jsonc`) suffices — provider endpoints, model names **and** the `agent` assignment. On a clone on a new machine you only create/adjust this file; the roles stay identical.
+
+**Concrete procedure per machine:**
+1. `git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode`
+2. Create `opencode.jsonc` (see above) with your provider + the `agent` mapping entries matching your available models.
+3. Restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
+4. If a mapping entry is missing, opencode does not fail: an agent without an assigned model falls back to the global `model` as default.
+
+### <a id="phase-0-checkpoint"></a>Phase-0 Checkpoint Enforcement
+
+The rule "no dev/QA without explicit user-go" lives in the prompts — but an LLM follows instructions probabilistically and can "overhear" them. The fix: opencode's `permission.task` system. When the architect tries to spawn a developer or qa-manager, a **UI approval dialog pops up for you** — every time. Your "allow" click **is** the user-go, technically enforced. The architect cannot silently start the machine.
+
+```jsonc
+"agent": {
+  "architect": {
+    "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
+  }
+}
+```
+
+- The prompt rules stay as behavioral training, but the hard guarantee comes from the permission system.
+- Internal QA loops (QA → developer on FAIL fixes) are intentionally **not** gated — that autonomy should remain, since the wave was already started by you.
+- This block belongs in the local `opencode.jsonc` (it's config, not a role), so it travels with the model assignment on every machine.
+
+### The four agents in detail
 
 | | architect | developer | qa-manager | documenter |
 |---|---|---|---|---|
@@ -314,9 +262,55 @@ If the failure is a **domain/intention question** (requirement unclear, behavior
 | **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) | Updated docs + docstrings |
 | **Budget** | — | 1 story = 1 branch | max. 3 FAIL loops, then escalation | after QA-PASS, before merge |
 
----
+### Deployment (dev repo → live config)
 
-## Extending: new test processes (`qa_compress.sh` is modular)
+#### Branching strategy
+
+The repository uses a **two-branch deployment model**:
+
+- **`main` branch** — development line. Stories are developed and merged here after the QA gate. May be unstable between milestones.
+- **`release` branch** — stable, deployable state. Promoted from `main` only when the user considers the code production-ready. The live clone (`~/.config/opencode`) pulls from `release`, not `main`.
+
+#### Promotion workflow
+
+When `main` is stable enough for production, promote it to `release` using the `promote_release.py` script:
+
+```bash
+python scripts/promote_release.py
+```
+
+This script:
+1. Validates that `main` is clean and up-to-date with remote
+2. Fast-forward merges `release` to current `main` HEAD
+3. Pushes `release` to remote
+4. Outputs JSON with promotion status and commit hashes
+5. Returns exit code 0 on success, 1 on dirty state or if behind remote
+
+#### Live clone deployment
+
+The **live clone** (`~/.config/opencode`) pulls from the `release` branch, not `main`:
+
+```bash
+git -C ~/.config/opencode pull origin release
+```
+
+Then **restart opencode** — the config is loaded once at startup, there is no hot-reload. Running sessions keep using the old config until they are restarted.
+
+**What a pull does not touch:** `opencode.jsonc` and `cron.db` are gitignored, so a pull never overwrites them. New agent-/command-/skill-/template files appear automatically after pull + restart.
+
+**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
+
+**New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `permission.task` block), **every machine** must add them to its local file once — see § "Model Assignment" above for the per-machine procedure.
+
+**Rollback:** check out a known-good version in the live clone and restart opencode:
+
+```bash
+git -C ~/.config/opencode checkout <tag-or-hash>
+```
+
+**No deploy script — by design:** deployment stays deliberately manual (staged rollout; the framework steers the running agent). Optional convenience later, manual is the default.
+
+### Extending: new test processes (`qa_compress.sh` is modular)
 
 `qa_compress.sh` uses a **checker-registry pattern**. Each test process (pytest, ruff, mypy, …) is a function that writes its compressed result to stdout and returns its subprocess's exit code.
 
@@ -329,6 +323,25 @@ register_check mypy mypy_check
 ```
 
 Aggregation (overall FAIL as soon as one checker is non-zero) and exit code happen automatically. Future test processes = one function + one registration line.
+
+### Per-project AGENTS.md (project knowledge, per repo)
+
+Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agent/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
+
+- **Agent definition (global, this repo):** who the agent is, prompt, behavior — identical on every machine.
+- **Project AGENTS.md (per repo, in the project):** what the project is and which rules its code must follow — versioned with the code, correct on every checkout.
+
+**Template:** `templates/AGENTS.md` provides the skeleton. Constant sections (workflow, git conventions, languages, prohibitions) are the binding interface between framework and project and stay untouched; project-specific placeholders (`name`, stack, core rules, references) are filled in dialogue. The architect must use the template — no improvising from zero.
+
+### Architecture pattern projects must follow
+
+The actual pattern behind everything is **function vs. connectivity**:
+
+- `src/core/` — pure logic/rules, **zero imports** from framework/IO/DB/API. Gets everything as parameters, returns dicts/primitives. Fully unit-testable.
+- `src/adapters/` — **thin wrappers** (3–10 lines): read/write external interfaces, delegate decisions to core.
+- **Fake interfaces are mandatory** for every external dependency → tests run without real systems.
+
+Therefore: **tests exist BEFORE the code**, each story has its own fake-based test criteria.
 
 ---
 
