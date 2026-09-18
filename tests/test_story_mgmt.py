@@ -99,7 +99,7 @@ Test feature for story creation.
     template_content = template_file.read_text()
     assert "# Story <ID>" in template_content
     assert "Status: Planned" in template_content
-    assert "Traceability:" in template_content
+    assert "Feature:" in template_content
 
 
 def test_create_story_next_id(tmp_path: Path) -> None:
