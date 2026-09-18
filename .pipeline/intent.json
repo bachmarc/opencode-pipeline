@@ -6,6 +6,15 @@
       "step": "Phase-12 Wave 3+4 orchestration: stories 12-06, 12-07, 12-08, 12-09, 12-10",
       "started_at": "2026-09-18T19:32:03.556663+00:00",
       "done": false
+    },
+    {
+      "story_id": "12-10",
+      "agent": "developer",
+      "step": "writing tests (red-first)",
+      "started_at": "2026-09-18T19:36:19.875833+00:00",
+      "done": false,
+      "worktree": ".worktrees/12-10-check-architecture-polyglot",
+      "branch": "feature/12-10-check-architecture-polyglot"
     }
   ]
 }
