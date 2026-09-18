@@ -11,7 +11,7 @@
 - **Stack:** <e.g. Python 3.12, FastAPI + uvicorn, static HTML/JS frontend, Docker>
 - **Versioning:** `APP_VERSION = "0.1.0"` (in `src/<version>.py` or similar) — bump on every merge
 
-## Core rules (project source of truth: `docs/requirements.md` + `docs/design.md`)
+## Core rules (project source of truth: feature files + story files)
 
 - <Core rule 1 — e.g. "`src/core/board.py` (`PostBoard`) knows nothing of FastAPI, HTTP, or clocks. Time comes as a parameter (`now`).">
 - <Core rule 2 — e.g. "RAM-only: no persistence, no auto-clear timers.">
@@ -63,16 +63,15 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 
 1. **Planning checkpoint (MANDATORY before every dev/QA start)** — sequence for every
    requirement/change (including replanning!):
-   1. **Planning phase (architect):** design requirements/design/stories, update docs
-      (REQ-IDs, design sections, story files).
+   1. **Planning phase (architect):** create features (vision + context) and self-contained stories, update docs.
    2. **Review checkpoint (user):** architect presents the concrete implementation
       overview to the user — WHAT will be implemented (stories + developer targets), HOW it runs
       (waves, sequence, fakes, test criteria). **Dev+QA do NOT start without explicit
       user go** ("passt"/"go"). Feedback flows back into planning (loop).
    3. **Only then:** dev + QA per approved plan.
    - Applies to "small" changes and bugfix loops too — no implicit starts.
-2. **Stories**: `STORIES.md` (index) + `docs/stories/<phase>-<id>-<slug>.md`.
-   Every story links traceability (`REQ-XXX` + design section) and contains
+2. **Stories**: `STORIES.md` (index) + `docs/features/*/stories/*.md`.
+   Every story is self-contained (context, requirements, acceptance criteria, targets, tests) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
 3. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
    Write tests first, `pytest` must be green.
@@ -106,7 +105,7 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 
 ## References
 
-- `docs/requirements.md` — source of truth for scope (REQ-IDs)
-- `docs/design.md` — source of truth for architecture (fakes, core rules)
+- `docs/requirements.md` — Documenter-generated feature overview (derived summary)
+- `docs/design.md` — Documenter-generated architecture summary (derived)
 - `STORIES.md` — story index (status per story)
 - <Project-specific: `intesis_modbus/CLAUDE.md`, `vokabel/STORIES.md`, …>

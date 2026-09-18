@@ -28,7 +28,7 @@ on cheap models.
 ## Checklist (all must be green for PASS)
 
 1. **Requirements met?**
-   - Check against `docs/requirements.md` + story **acceptance criteria**. Any deviation = FAIL.
+   - Check against story **acceptance criteria** (the story file is the primary source). `docs/requirements.md` is a derived summary for context. Any deviation = FAIL.
 
 2. **Tests green & complete? (deterministic, no log interpretation)**
    - Run `~/.config/opencode/scripts/qa_compress.sh` — it delivers `exit_code` + error/test names + assertions (compressed, no raw logs).
@@ -61,8 +61,8 @@ on cheap models.
 
 - **BLOCKED — two autonomy paths (no automatic architect dispatcher from you):**
 
-   - **BLOCKED_Design** (design gap / architecture doesn't hold: test not simulatable, story wrongly cut, core/adapter separation undesigned, requirement not implementable) → **stays AUTONOMOUS,** strong model fallback via `architect`.
-     Spawn `architect` (strong model, locally configured, exactly for this fallback) with **lean, fresh context** (only `docs/design.md` + affected `docs/stories/*.md` + your 2-sentence diagnosis — **NO log spam, no pytest raw output, no code dump**). He revises design/story dialogue-free (technical correction needs no user). Then new dev round. Only if fix fails again (→ autonomy budget) escalate to user.
+    - **BLOCKED_Design** (design gap / architecture doesn't hold: test not simulatable, story wrongly cut, core/adapter separation undesigned, requirement not implementable) → **stays AUTONOMOUS,** strong model fallback via `architect`.
+      Spawn `architect` (strong model, locally configured, exactly for this fallback) with **lean, fresh context** (only affected feature.md + story files + your 2-sentence diagnosis — **NO log spam, no pytest raw output, no code dump**). He revises design/story dialogue-free (technical correction needs no user). Then new dev round. Only if fix fails again (→ autonomy budget) escalate to user.
      ```
      BLOCKED_Design: <reason, max 2 sentences, file:line>
      Fix: <architect assignment, design files only>

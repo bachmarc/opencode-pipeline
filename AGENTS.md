@@ -12,7 +12,7 @@
   Python 3 + pytest (framework self-checks in `tests/`), Git. No runtime app.
 - **Versioning:** `APP_VERSION = "0.1.0"` — bump on notable merges (document in STORIES.md).
 
-## Core rules (source of truth: `docs/requirements.md` + `docs/design.md`)
+## Core rules (source of truth: feature files + story files)
 
 - **Two-clone topology:** Development happens HERE (`~/Development/opencode-pipeline`).
   `~/.config/opencode` is the LIVE clone — **read-only**: `git pull release` + opencode restart only.
@@ -54,14 +54,14 @@ This repo's "product" is configuration and deterministic tooling, not a service:
 
 0. **Planning checkpoint (mandatory before every dev/QA start)** — for every requirement
    (new feature, replanning, bugfix, "small" change):
-   1. **Planning phase (architect):** requirements/design/stories, REQ-IDs, doc updates.
+   1. **Planning phase (architect):** create features (vision + context) and self-contained stories, doc updates.
    2. **Review checkpoint (user):** architect presents the concrete implementation overview —
       WHAT (stories + developer targets), HOW (waves, order, test criteria). **Dev+QA never
       start without explicit user-go** ("passt"/"go").
    3. **Then:** dev + QA per approved plan.
    - Applies to small changes and bugfix loops too — no implicit starts.
-1. **Stories:** `STORIES.md` (index) + `docs/stories/<phase>-<id>-<slug>.md`. Every story links
-   traceability (`REQ-XXX` + design section) and contains **test criteria that exist BEFORE
+1. **Stories:** `STORIES.md` (index) + `docs/features/*/stories/*.md`. Every story is self-contained
+   (context, requirements, acceptance criteria, targets, tests) and contains **test criteria that exist BEFORE
    implementation**.
 2. **Developer:** implements EXACTLY the developer targets — nothing more, nothing less.
    Tests first, `pytest` green.
@@ -85,8 +85,8 @@ This repo's "product" is configuration and deterministic tooling, not a service:
 
 ## References
 
-- `docs/requirements.md` — source of truth for scope (REQ-IDs)
-- `docs/design.md` — source of truth for architecture (two-clone, check design)
+- `docs/requirements.md` — Documenter-generated feature overview (derived summary)
+- `docs/design.md` — Documenter-generated architecture summary (derived)
 - `STORIES.md` — story index (status per story)
 - `templates/AGENTS.md` — the skeleton every project fills in
 - `netclip/AGENTS.md`, `intesis_modbus/CLAUDE.md` — reference projects
