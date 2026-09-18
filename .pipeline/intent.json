@@ -50,7 +50,7 @@
       "agent": "architect",
       "step": "bugfix story: pre-existing test failures block QA gate",
       "started_at": "2026-09-18T18:24:34.085238+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-11-test-suite-green"
     },
     {
@@ -66,7 +66,7 @@
       "agent": "architect",
       "step": "bugfix: pre-existing test failures block QA gate",
       "started_at": "2026-09-18T18:24:39.347393+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-11-test-suite-green"
     },
     {
@@ -88,7 +88,7 @@
       "agent": "architect",
       "step": "wave 2: gradle/maven checkers",
       "started_at": "2026-09-18T18:37:44.321358+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-03-checker-gradle-maven"
     },
     {
@@ -96,7 +96,7 @@
       "agent": "architect",
       "step": "wave 2: json/yaml checkers",
       "started_at": "2026-09-18T18:37:44.394090+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-04-checker-json-yaml"
     },
     {
@@ -104,7 +104,7 @@
       "agent": "architect",
       "step": "wave 2: html checker",
       "started_at": "2026-09-18T18:37:44.464589+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-05-checker-html"
     }
   ]
