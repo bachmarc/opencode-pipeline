@@ -1,0 +1,10 @@
+{
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "reason": "All acceptance criteria met.",
+      "branch": "feature/07-03-free-edit-userdocs",
+      "timestamp": "2026-09-18T19:25:34+02:00"
+    }
+  ]
+}
