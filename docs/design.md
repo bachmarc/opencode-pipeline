@@ -1,8 +1,14 @@
 # Design — opencode-pipeline Dev Repo
 
-**Status:** Draft for review · Traceability: REQ-IDs referenced per section.
+**Status:** Derived summary generated from features and stories · **Purpose:** Architecture overview and design decisions
 
-## 1. Two-clone topology (REQ-001, REQ-001a, REQ-005)
+This document is a **derived summary** generated from the feature and story hierarchy. It provides a high-level overview of architectural patterns, design decisions, and key infrastructure. For detailed context and implementation guidance, refer to the individual feature and story files in `docs/features/`.
+
+## Architecture Overview
+
+### Two-Clone Topology
+
+**Reference:** F-001 Foundation
 
 ```
 github.com:bachmarc/opencode-pipeline.git
@@ -15,109 +21,64 @@ github.com:bachmarc/opencode-pipeline.git
         │     - promoted from main (conscious step)
         │     - always a known-good state
         │
-        ├── /mnt/content_main/Development/opencode-pipeline   DEV clone
+        ├── ~/Development/opencode-pipeline          DEV clone
         │     - full pipeline workflow: stories, branches, worktrees, QA gate
         │     - pytest self-checks run here
         │     - tracks main (and feature branches)
         │
-        └── ~/.config/opencode                                 LIVE clone
+        └── ~/.config/opencode                       LIVE clone
               - read-only: git pull release + opencode restart
               - gitignored local state stays untouched: opencode.jsonc, cron.db
 ```
 
-Deployment is manual and staged: after promoting `main` → `release`, the user pulls
-`release` in the live clone and restarts opencode. The live clone's working tree must
-never be edited. The promotion `main` → `release` is a fast-forward merge or reset,
-only done when the user considers `main` stable enough for production use.
+Deployment is manual and staged: after promoting `main` → `release`, the user pulls `release` in the live clone and restarts opencode. The live clone's working tree must never be edited. The promotion `main` → `release` is a fast-forward merge or reset, only done when the user considers `main` stable enough for production use.
 
-## 2. Retro traceability (REQ-002)
+### Self-Check Architecture
 
-`STORIES.md` carries a phase `Retro` with one entry per already-made direct change
-(model de-hardwiring, role abstraction, permission.task doc, AGENTS.md template, README).
-Each entry links the commit hash. Status `Retro-Erledigt` — these are documentation, not
-re-implementation targets.
-
-## 3. Self-check architecture (REQ-003, REQ-004)
+**Reference:** F-001 Foundation
 
 This repo's "product" is configuration; its invariants are checkable by reading itself:
 
 - **`tests/test_framework.py`** — pytest, stdlib only. Checks:
-  1. `agent/*.md` frontmatter: parseable YAML block, no `model:` key (models live in the
-     local `opencode.jsonc` only), required keys present (`description`, `mode`).
-  2. No concrete model/provider names in portable files (`agent/`, `command/`, `skills/`,
-     `templates/`, `scripts/`): regex over known patterns (e.g. `glm-`, `deepseek`,
-     `qwen`, `haiku`, `claude-`, `ollama-docker`, `:cloud`), with an explicit allowlist for
-     legitimate references (e.g. `CLAUDE.md` filename mentions).
-  3. `templates/AGENTS.md` exists and contains the constant section markers (Workflow,
-     Git conventions, Languages, Prohibitions) plus `<...>` placeholders.
-  4. `scripts/qa_compress.sh` passes `bash -n` (syntax) and has the exec bit.
-- **Fake perspective:** The only "external dependency" is the file system — pytest tmp_path
-  and the repo files themselves. No fakes needed; checks are pure and deterministic.
-- **QA integration:** `pytest tests/` output is compressed by `qa_compress.sh` as usual —
-  the QA gate now has a deterministic target for this repo.
+  1. `agent/*.md` frontmatter: parseable YAML block, no `model:` key (models live in the local `opencode.jsonc` only), required keys present (`description`, `mode`)
+  2. No concrete model/provider names in portable files (`agent/`, `command/`, `skills/`, `templates/`, `scripts/`): regex over known patterns (e.g. `glm-`, `deepseek`, `qwen`, `haiku`, `claude-`, `ollama-docker`, `:cloud`), with an explicit allowlist for legitimate references (e.g. `CLAUDE.md` filename mentions)
+  3. `templates/AGENTS.md` exists and contains the constant section markers (Workflow, Git conventions, Languages, Prohibitions) plus `<...>` placeholders
+  4. `scripts/qa_compress.sh` passes `bash -n` (syntax) and has the exec bit
 
-## 4. Deploy procedure (REQ-005)
+- **Fake perspective:** The only "external dependency" is the file system — pytest tmp_path and the repo files themselves. No fakes needed; checks are pure and deterministic.
+- **QA integration:** `pytest tests/` output is compressed by `qa_compress.sh` as usual — the QA gate now has a deterministic target for this repo.
 
-Documented in README (§ Deployment): `git pull` in `~/.config/opencode` + restart of
-opencode (config is loaded once at startup). Optional convenience later; manual is the
-default. The local `opencode.jsonc`/`cron.db` are gitignored and survive pulls untouched.
+### Deploy Procedure
 
-## 5. Template constancy (REQ-006)
+**Reference:** F-001 Foundation
 
-`templates/AGENTS.md` sections Workflow / Git conventions / Languages / Prohibitions are
-the binding interface. The self-check (§3, check 3) asserts their presence so accidental
-deletion or restructuring fails QA.
+Documented in README (§ Deployment): `git pull` in `~/.config/opencode` + restart of opencode (config is loaded once at startup). Optional convenience later; manual is the default. The local `opencode.jsonc`/`cron.db` are gitignored and survive pulls untouched.
 
-## 6. Versioning
+### Template Constancy
 
-`APP_VERSION = "0.1.0"` in `APP_VERSION.py` at repo root; bump on notable merges
-(documented in STORIES.md). Traceability anchor for releases.
+**Reference:** F-001 Foundation
 
-## 7. Decisions
+`templates/AGENTS.md` sections Workflow / Git conventions / Languages / Prohibitions are the binding interface. The self-check (§ Self-Check Architecture, check 3) asserts their presence so accidental deletion or restructuring fails QA.
 
-| # | Decision | Reason |
-|---|---|---|
-| D1 | No CI yet | local pytest + QA gate is the contract; CI later |
-| D2 | Live clone pulls `release`, not `main` | `main` is dev line (may be unstable); `release` = conscious stable promotion |
-| D3 | All portable files English | international team; dialogue language per project |
-| D4 | Self-checks read the repo only | zero infra, deterministic, cheap-model-evaluable |
-| D5 | Scripts over LLM free-hand | Anything requiring atomicity, state, format consistency, or concurrency → deterministic script; LLM calls script + interprets result |
-| D6 | Feature = work unit per user/session | Stories are implementation slices; features are the planning/claiming/merging unit |
-| D7 | Claim = script + branch + status file | No LLM-managed concurrency; `feature_claim.py` handles atomic claim/release |
-| D8 | Intent file for session recovery | `.pipeline/intent.json` is the single re-entry point after crash/disconnect |
-| D9 | Documenter on cheap model | Documentation consistency is repetitive reconciliation, not creative reasoning |
+### Versioning
 
-## 8. English-first portable files (REQ-007, NFR-001)
+**Reference:** F-001 Foundation
 
-All portable files (`agent/`, `command/`, `templates/`, `scripts/`) are written in English:
-prose, section headers, frontmatter descriptions, inline comments.
+`APP_VERSION = "0.1.0"` in `APP_VERSION.py` at repo root; bump on notable merges (documented in STORIES.md). Traceability anchor for releases.
 
-**Dialogue language is decoupled from prompt language.** The `templates/AGENTS.md` section
-"Languages" configures the user-facing dialogue language per project. The framework default
-is: "Respond in the user's language." This allows English prompts to drive German, English,
-or any other dialogue — the prompt instructs the agent *what* to do, the Languages section
-tells it *which language* to use with the user.
+### English-First Portable Files
 
-**Translation scope** (all files, one-time migration):
+**Reference:** F-002 Internationalization (English)
 
-| Directory | Files | Content |
-|---|---|---|
-| `agent/` | architect.md, developer.md, qa-manager.md | Full prompt + frontmatter description |
-| `command/` | 7 command files | Description + instruction body |
-| `templates/` | AGENTS.md | Section headers + placeholder prose |
-| `STORIES.md` | index | Phase comments, status labels |
-| `AGENTS.md` | repo root | Project-specific guardrails |
+All portable files (`agent/`, `command/`, `templates/`, `scripts/`) are written in English: prose, section headers, frontmatter descriptions, inline comments.
 
-**Constraint:** The translation must preserve all technical identifiers, file paths,
-code examples, and JSON structures verbatim. Only natural-language prose is translated.
+**Dialogue language is decoupled from prompt language.** The `templates/AGENTS.md` section "Languages" configures the user-facing dialogue language per project. The framework default is: "Respond in the user's language." This allows English prompts to drive German, English, or any other dialogue — the prompt instructs the agent *what* to do, the Languages section tells it *which language* to use with the user.
 
-**Test impact:** `test_framework.py` check 3 already accepts English section markers
-(`## Languages`, `## Prohibitions`). No test changes needed for the translation itself.
-The self-check for model names (check 2) scans the translated files identically.
+### Feature → Story Hierarchy
 
-## 9. Feature → Story hierarchy (REQ-009)
+**Reference:** F-004 Pipeline Evolution
 
-### File-system layout
+#### File-system layout
 
 ```
 docs/
@@ -137,9 +98,11 @@ id: F-001
 title: Session Resilience
 status: planned | claimed | in-progress | qa-pending | done
 owner: ""                    # user@host when claimed
-req: [REQ-011]
+req: []                       # empty in new model
 ---
-## Scope
+## Vision
+...
+## Context
 ...
 ## Stories
 - 06-01-intent-tracking (planned)
@@ -151,17 +114,12 @@ req: [REQ-011]
 ```
 | Feature | Title | Status | Owner | Stories | Traceability |
 |---------|-------|--------|-------|---------|--------------|
-| F-001   | ...   | planned | —    | 06-01, 06-02 | REQ-011 |
+| F-001   | ...   | planned | —    | 06-01, 06-02 | — |
 ```
 
-**Status derivation:** A feature's status is the minimum of its stories' statuses
-(all done → feature done; any in-progress → feature in-progress; any planned → not done).
+**Status derivation:** A feature's status is the minimum of its stories' statuses (all done → feature done; any in-progress → feature in-progress; any planned → not done).
 
-**Migration:** Existing `STORIES.md` entries and `docs/stories/` files are migrated into
-the new hierarchy. `STORIES.md` becomes `FEATURES.md`. Old story paths redirect or are
-moved.
-
-### Machine access pattern
+#### Machine access pattern
 
 Agents resolve state by:
 1. Read `FEATURES.md` for overview (O(1) file read)
@@ -170,22 +128,24 @@ Agents resolve state by:
 
 No parsing of large aggregated files; each level is a single predictable path.
 
-## 10. Multi-user feature isolation (REQ-010)
+### Multi-User Feature Isolation
 
-### Claim lifecycle
+**Reference:** F-004 Pipeline Evolution
+
+#### Claim lifecycle
 
 ```
 planned ──claim──► claimed (user@host, timestamp)
-                      │
-                      ├──work──► in-progress
-                      │              │
-                      │              ├──qa-pass──► done
-                      │              └──release──► planned (stale/abort)
-                      │
-                      └──release──► planned
+                       │
+                       ├──work──► in-progress
+                       │              │
+                       │              ├──qa-pass──► done
+                       │              └──release──► planned (stale/abort)
+                       │
+                       └──release──► planned
 ```
 
-### `scripts/feature_claim.py`
+#### `scripts/feature_claim.py`
 
 ```
 feature_claim.py claim <feature-name>     # pull → check → write status → commit → push
@@ -194,24 +154,22 @@ feature_claim.py status                   # list all features with claim state (
 feature_claim.py check-stale [--hours 24] # find claims older than threshold
 ```
 
-**Atomicity:** The script does `git pull --rebase` before writing, then `commit + push`.
-If push fails (concurrent edit), it retries (pull + re-check + push, max 3 attempts).
-If the feature is already claimed by someone else, exit code 1 + error JSON.
+**Atomicity:** The script does `git pull --rebase` before writing, then `commit + push`. If push fails (concurrent edit), it retries (pull + re-check + push, max 3 attempts). If the feature is already claimed by someone else, exit code 1 + error JSON.
 
-**Branch signal:** `feature_claim.py claim` also creates the `feature/<name>` branch
-if it doesn't exist. The branch's existence on the remote is a secondary claim signal
-visible in GitHub.
+**Branch signal:** `feature_claim.py claim` also creates the `feature/<name>` branch if it doesn't exist. The branch's existence on the remote is a secondary claim signal visible in GitHub.
 
-### Agent integration
+#### Agent integration
 
-- Architect calls `feature_claim.py status` to see what's available.
-- Developer calls `feature_claim.py claim <name>` before starting work.
-- On merge or abort: `feature_claim.py release <name>`.
-- Agents never edit `feature.md` status fields directly.
+- Architect calls `feature_claim.py status` to see what's available
+- Developer calls `feature_claim.py claim <name>` before starting work
+- On merge or abort: `feature_claim.py release <name>`
+- Agents never edit `feature.md` status fields directly
 
-## 11. Session resilience / recovery (REQ-011)
+### Session Resilience / Recovery
 
-### Intent tracking
+**Reference:** F-004 Pipeline Evolution
+
+#### Intent tracking
 
 `.pipeline/intent.json`:
 ```json
@@ -227,11 +185,9 @@ visible in GitHub.
 }
 ```
 
-**Write discipline:** The responsible agent writes the intent BEFORE starting the action.
-On completion, sets `"done": true`. History is appended (JSON-lines or array) so the full
-trail is visible.
+**Write discipline:** The responsible agent writes the intent BEFORE starting the action. On completion, sets `"done": true`. History is appended (JSON-lines or array) so the full trail is visible.
 
-### `scripts/session_recovery.py`
+#### `scripts/session_recovery.py`
 
 Runs at session start (triggered by agent prompt instruction). Collects:
 
@@ -261,22 +217,21 @@ Runs at session start (triggered by agent prompt instruction). Collects:
 ```
 
 The agent prompt for architect/developer/qa-manager includes an instruction:
-> "At session start, run `scripts/session_recovery.py`. If open intents or dirty worktrees
-> exist, present the recovery summary to the user BEFORE doing anything else."
+> "At session start, run `scripts/session_recovery.py`. If open intents or dirty worktrees exist, present the recovery summary to the user BEFORE doing anything else."
 
-### Worktree recovery
+#### Worktree recovery
 
-The recovery script specifically handles the scenario described in the requirements
-discussion: developer subagents created worktrees with half-finished changes, then the
-session died. The script:
+The recovery script specifically handles the scenario described in the requirements discussion: developer subagents created worktrees with half-finished changes, then the session died. The script:
 1. Lists all `.worktrees/` entries
 2. For each: checks `git status`, `git log --oneline -3`, staged/unstaged changes
 3. Reports whether the worktree's branch was pushed to remote
 4. The agent can then offer: continue work, stash + park, or discard
 
-## 12. Documenter agent (REQ-012)
+### Documenter Agent
 
-### Role definition
+**Reference:** F-004 Pipeline Evolution
+
+#### Role definition
 
 ```yaml
 # agent/documenter.md (frontmatter)
@@ -289,16 +244,15 @@ temperature: 0.2
 ---
 ```
 
-### Trigger integration
+#### Trigger integration
 
 **Automatic (after QA-PASS):**
-The QA-Manager prompt includes: "On PASS verdict, before signaling merge-ready to
-Architect, spawn `documenter` with the feature branch diff as context."
+The QA-Manager prompt includes: "On PASS verdict, before signaling merge-ready to Architect, spawn `documenter` with the feature branch diff as context."
 
 **Manual:**
 `command/document.md` — user invokes `/document [feature-name|story-id]`.
 
-### Documenter workflow
+#### Documenter workflow
 
 1. Receive git diff (from QA-Manager or `/document` command)
 2. Read affected source files + current `docs/` state
@@ -311,7 +265,7 @@ Architect, spawn `documenter` with the feature branch diff as context."
 4. Commit documentation changes on the same branch
 5. Report what was updated (compact summary)
 
-### Boundary: what the Documenter does NOT do
+#### Boundary: what the Documenter does NOT do
 
 - Does not make architecture decisions (that's the Architect)
 - Does not write new code (that's the Developer)
@@ -319,9 +273,11 @@ Architect, spawn `documenter` with the feature branch diff as context."
 - Does not invent documentation for unchanged code
 - Relies on Architect/Developer/QA having done their work — synthesizes, doesn't create
 
-## 13. Deterministic pipeline scripts (REQ-013, NFR-004)
+### Deterministic Pipeline Scripts
 
-### Design principle
+**Reference:** F-004 Pipeline Evolution
+
+#### Design principle
 
 ```
 ┌─────────────┐     calls      ┌──────────────────┐     reads/writes     ┌──────────┐
@@ -331,101 +287,88 @@ Architect, spawn `documenter` with the feature branch diff as context."
 └─────────────┘     + JSON     └──────────────────┘      file state       └──────────┘
 ```
 
-**Agents call scripts via shell.** Scripts output JSON to stdout (machine-readable) and
-human-readable summaries to stderr. Exit code 0 = success, non-zero = specific error.
-Agents parse stdout JSON; they never grep/sed/awk the repo state themselves.
+**Agents call scripts via shell.** Scripts output JSON to stdout (machine-readable) and human-readable summaries to stderr. Exit code 0 = success, non-zero = specific error. Agents parse stdout JSON; they never grep/sed/awk the repo state themselves.
 
-### Script inventory
+#### Script inventory
 
-| Script | REQ | Input | Output | Called by |
-|--------|-----|-------|--------|----------|
-| `worktree_setup.py` | REQ-013.1 | story-id | worktree path (JSON) | Architect |
-| `pipeline_status.py` | REQ-013.2 | — | full state JSON | QA-Manager, Architect |
-| `scaffold_project.py` | REQ-013.3 | target-path | created files list | Architect |
-| `feature_claim.py` | REQ-010 | claim/release/status | claim state JSON | All agents |
-| `session_recovery.py` | REQ-011 | — | recovery state JSON | All agents (session start) |
-| `prepare_commit_metadata.py` | REQ-013.5 | — (reads git diff) | commit msg template | Developer |
-| `resolve_story.py` | REQ-013.6 | story-id or branch | story metadata JSON | All agents |
-| `story_status.py` | REQ-013.7 | story-id, new-status | updated file path | Architect, QA |
-| `qa_route.py` | REQ-013.8 | story-id, verdict | next agent + context JSON | QA-Manager |
-| `merge_if_passed.py` | REQ-013.9 | branch | merge result | Architect |
-| `create_story.py` | REQ-013.10 | phase, slug, req-id | story file path | Architect |
-| `check_template_constancy.py` | REQ-013.11 | project AGENTS.md path | diff/PASS/FAIL | QA-Manager |
+| Script | Feature | Input | Output | Called by |
+|--------|---------|-------|--------|----------|
+| `worktree_setup.py` | F-004 | story-id | worktree path (JSON) | Architect |
+| `pipeline_status.py` | F-004 | — | full state JSON | QA-Manager, Architect |
+| `scaffold_project.py` | F-004 | target-path | created files list | Architect |
+| `feature_claim.py` | F-004 | claim/release/status | claim state JSON | All agents |
+| `session_recovery.py` | F-004 | — | recovery state JSON | All agents (session start) |
+| `prepare_commit_metadata.py` | F-004 | — (reads git diff) | commit msg template | Developer |
+| `resolve_story.py` | F-004 | story-id or branch | story metadata JSON | All agents |
+| `story_status.py` | F-004 | story-id, new-status | updated file path | Architect, QA |
+| `qa_route.py` | F-004 | story-id, verdict | next agent + context JSON | QA-Manager |
+| `merge_if_passed.py` | F-004 | branch | merge result | Architect |
+| `create_story.py` | F-004 | phase, slug, req-id | story file path | Architect |
+| `check_template_constancy.py` | F-004 | project AGENTS.md path | diff/PASS/FAIL | QA-Manager |
 
-### `.pipeline/` directory
+#### `.pipeline/` directory
 
-All mutable pipeline state lives under `.pipeline/` (gitignored for local-only state,
-or tracked for shared state):
+All mutable pipeline state lives under `.pipeline/` (gitignored for local-only state, or tracked for shared state):
 
 ```
 .pipeline/
-  intent.json          # current/last intent (REQ-011) — tracked in git
+  intent.json          # current/last intent (F-004) — tracked in git
   qa-state/            # per-story QA verdict history — tracked in git
     <story-id>.json
   config.json          # pipeline config overrides (optional) — gitignored
 ```
 
-**Tracked vs. gitignored:** `intent.json` and `qa-state/` are committed so other sessions
-(multi-user) can see the pipeline state. `config.json` is local.
+**Tracked vs. gitignored:** `intent.json` and `qa-state/` are committed so other sessions (multi-user) can see the pipeline state. `config.json` is local.
 
-### Testing
+#### Testing
 
-All scripts are tested in `tests/` with pytest. Tests use the repo's own files or
-`tmp_path` fixtures. Scripts are pure (no network calls except git push/pull, which is
-mocked in tests). This extends the existing self-check pattern (REQ-003, REQ-004).
+All scripts are tested in `tests/` with pytest. Tests use the repo's own files or `tmp_path` fixtures. Scripts are pure (no network calls except git push/pull, which is mocked in tests). This extends the existing self-check pattern (F-001 Foundation).
 
-## 14. Orchestration principles (NFR-004)
+### Orchestration Principles
 
-### Phase 3 token optimization
+**Reference:** F-004 Pipeline Evolution
 
-The architect's role in Phase 3 (implementation) is decision-making and dialogue, not
-mechanical orchestration. All deterministic work (worktree setup, status queries, merge
-decisions) is delegated to scripts. This minimizes architect token usage on the expensive
-model and allows cheap models to handle the repetitive parts (developer, QA-Manager).
+#### Phase 3 token optimization
 
-**Pytest discipline:** Pytest runs exactly **twice** per story — once by the Developer
-(before commit, to verify their own work) and once by the QA-Manager (independent
-verification). The Architect never runs pytest: not before QA, not after merge.
-Exception: merge conflicts that required manual resolution — then one verification run.
+The architect's role in Phase 3 (implementation) is decision-making and dialogue, not mechanical orchestration. All deterministic work (worktree setup, status queries, merge decisions) is delegated to scripts. This minimizes architect token usage on the expensive model and allows cheap models to handle the repetitive parts (developer, QA-Manager).
 
-**Principle:** Architect calls scripts for state queries and atomic operations; scripts
-return JSON; architect interprets and decides. No free-hand LLM orchestration.
+**Pytest discipline:** Pytest runs exactly **twice** per story — once by the Developer (before commit, to verify their own work) and once by the QA-Manager (independent verification). The Architect never runs pytest: not before QA, not after merge. Exception: merge conflicts that required manual resolution — then one verification run.
 
-### Pipeline streaming
+**Principle:** Architect calls scripts for state queries and atomic operations; scripts return JSON; architect interprets and decides. No free-hand LLM orchestration.
 
-QA does not wait for all developers to finish before starting. Each story's QA runs
-independently as soon as its developer reports completion. This enables parallel
-development and QA, reducing total pipeline latency.
+#### Pipeline streaming
 
-**Principle:** Start QA per story, not per wave. No batch-QA (multiple stories in one
-QA invocation).
+QA does not wait for all developers to finish before starting. Each story's QA runs independently as soon as its developer reports completion. This enables parallel development and QA, reducing total pipeline latency.
 
-### QA self-enforcement
+**Principle:** Start QA per story, not per wave. No batch-QA (multiple stories in one QA invocation).
 
-The QA-Manager enforces a single-story rule: if a prompt contains multiple stories,
-QA checks only the first and returns FAIL with reason "Batch-QA forbidden — invoke
-separately per story." This prevents context degradation on cheap models and ensures
-deterministic, focused evaluation.
+#### QA self-enforcement
+
+The QA-Manager enforces a single-story rule: if a prompt contains multiple stories, QA checks only the first and returns FAIL with reason "Batch-QA forbidden — invoke separately per story." This prevents context degradation on cheap models and ensures deterministic, focused evaluation.
 
 **Principle:** One story per QA invocation. Cheap models work best with focused scope.
 
-### Determinism boundary
+#### Determinism boundary
 
-Operations requiring atomicity, state consistency, or format determinism (concurrency,
-merge conflicts, file state) must use scripts, not LLM free-hand. The architect
-proactively recommends script-based solutions and does not accept LLM-only approaches
-for operations that need determinism.
+Operations requiring atomicity, state consistency, or format determinism (concurrency, merge conflicts, file state) must use scripts, not LLM free-hand. The architect proactively recommends script-based solutions and does not accept LLM-only approaches for operations that need determinism.
 
-**Principle:** If it needs to be atomic or deterministic, use a script. LLM handles
-reasoning and dialogue; scripts handle state.
+**Principle:** If it needs to be atomic or deterministic, use a script. LLM handles reasoning and dialogue; scripts handle state.
 
-## 15. README structure (REQ-014)
+### Documentation Model
 
-The README targets **opencode users who are new to multi-agent setups**. Structure
-follows a user-oriented flow (pitch → process → install → reference), not an
-inside-out dump of internals.
+**Reference:** F-005 Documentation Model Reform
 
-### Section layout
+Features become more than folders — they carry their own vision and context that describes what all their stories together create. Stories become self-contained: they carry their own purpose, requirements, and acceptance criteria without needing to reference external REQ-IDs.
+
+The Documenter's role expands: after implementation, it generates/updates `requirements.md` and `design.md` as derived summaries with feature/story references, serving as a quick-start for the Architect in the next session.
+
+### README Structure
+
+**Reference:** F-003 Documentation
+
+The README targets **opencode users who are new to multi-agent setups**. Structure follows a user-oriented flow (pitch → process → install → reference), not an inside-out dump of internals.
+
+#### Section layout
 
 ```
 1. Intro / Pitch (ausführlich, ~1-2 screens)
@@ -461,11 +404,20 @@ inside-out dump of internals.
 5. Open points / outlook (brief)
 ```
 
-### Design decisions
+## Decisions
 
-| # | Decision | Reason |
-|---|---|---|
-| D10 | Repo contents in prose, not isolated table | Reads naturally in the pitch; table was disconnected from context |
-| D11 | Two installation paths (fresh + existing) | Users with existing opencode.jsonc must not lose their config |
-| D12 | Technical details as anchored sections at end of README | All in one file (user preference), but not cluttering the intro flow |
-| D13 | Forward-links from Installation to Details | Installation stays short; curious users can drill down |
+| # | Decision | Reason | Feature |
+|---|---|---|---|
+| D1 | No CI yet | local pytest + QA gate is the contract; CI later | F-001 |
+| D2 | Live clone pulls `release`, not `main` | `main` is dev line (may be unstable); `release` = conscious stable promotion | F-001 |
+| D3 | All portable files English | international team; dialogue language per project | F-002 |
+| D4 | Self-checks read the repo only | zero infra, deterministic, cheap-model-evaluable | F-001 |
+| D5 | Scripts over LLM free-hand | Anything requiring atomicity, state, format consistency, or concurrency → deterministic script; LLM calls script + interprets result | F-004 |
+| D6 | Feature = work unit per user/session | Stories are implementation slices; features are the planning/claiming/merging unit | F-004 |
+| D7 | Claim = script + branch + status file | No LLM-managed concurrency; `feature_claim.py` handles atomic claim/release | F-004 |
+| D8 | Intent file for session recovery | `.pipeline/intent.json` is the single re-entry point after crash/disconnect | F-004 |
+| D9 | Documenter on cheap model | Documentation consistency is repetitive reconciliation, not creative reasoning | F-004 |
+| D10 | Repo contents in prose, not isolated table | Reads naturally in the pitch; table was disconnected from context | F-003 |
+| D11 | Two installation paths (fresh + existing) | Users with existing opencode.jsonc must not lose their config | F-003 |
+| D12 | Technical details as anchored sections at end of README | All in one file (user preference), but not cluttering the intro flow | F-003 |
+| D13 | Forward-links from Installation to Details | Installation stays short; curious users can drill down | F-003 |

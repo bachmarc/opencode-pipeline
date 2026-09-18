@@ -275,3 +275,93 @@ def test_features_index_has_new_features():
 
     assert "F-005" in content, "FEATURES.md: Missing F-005 entry"
     assert "F-006" in content, "FEATURES.md: Missing F-006 entry"
+
+
+# === Summary document migration tests (Story 09-04) ===
+
+
+def test_requirements_is_derived_summary():
+    """requirements.md must state it is a derived summary (not primary source)."""
+    req_file = Path(__file__).parent.parent / "docs" / "requirements.md"
+    assert req_file.exists(), "docs/requirements.md not found"
+
+    content = read_file_content(req_file)
+
+    # Check for derived/summary/generated language
+    has_derived = "derived" in content.lower()
+    has_summary = "summary" in content.lower()
+    has_generated = "generated from" in content.lower()
+
+    assert has_derived or has_summary or has_generated, \
+        "requirements.md must state it is a derived summary (contains 'derived', 'summary', or 'generated from')"
+
+
+def test_requirements_has_feature_table():
+    """requirements.md must contain a feature overview table with feature IDs."""
+    req_file = Path(__file__).parent.parent / "docs" / "requirements.md"
+    assert req_file.exists(), "docs/requirements.md not found"
+
+    content = read_file_content(req_file)
+
+    # Check for feature IDs in the content (F-RETRO, F-001, F-002, etc.)
+    feature_ids = ["F-RETRO", "F-001", "F-002", "F-003", "F-004", "F-005", "F-006"]
+    found_features = sum(1 for fid in feature_ids if fid in content)
+
+    assert found_features >= 6, \
+        f"requirements.md must contain a feature table with at least 6 feature IDs (found {found_features})"
+
+
+def test_requirements_no_req_definitions():
+    """requirements.md must NOT contain REQ-ID definitions (old format like 'REQ-001 Two-clone topology:')."""
+    req_file = Path(__file__).parent.parent / "docs" / "requirements.md"
+    assert req_file.exists(), "docs/requirements.md not found"
+
+    content = read_file_content(req_file)
+
+    # Pattern: REQ-<digits> followed by whitespace and word character (old definition format)
+    old_format = re.search(r"REQ-\d+\s+\w", content)
+
+    assert not old_format, \
+        "requirements.md must not contain old REQ-ID definition format (e.g., 'REQ-001 Two-clone topology:')"
+
+
+def test_design_is_derived_summary():
+    """design.md must state it is a derived summary (not primary source)."""
+    design_file = Path(__file__).parent.parent / "docs" / "design.md"
+    assert design_file.exists(), "docs/design.md not found"
+
+    content = read_file_content(design_file)
+
+    has_derived = "derived" in content.lower()
+    has_summary = "summary" in content.lower()
+    has_generated = "generated from" in content.lower()
+
+    assert has_derived or has_summary or has_generated, \
+        "design.md must state it is a derived summary (contains 'derived', 'summary', or 'generated from')"
+
+
+def test_design_no_numbered_req_sections():
+    """design.md must NOT contain old §-numbered sections with REQ-IDs."""
+    design_file = Path(__file__).parent.parent / "docs" / "design.md"
+    assert design_file.exists(), "docs/design.md not found"
+
+    content = read_file_content(design_file)
+
+    old_numbered_sections = re.search(r"^##\s+\d+\.\s+.+\s*\(REQ-", content, re.MULTILINE)
+
+    assert not old_numbered_sections, \
+        "design.md must not contain old §-numbered sections with REQ-IDs in titles"
+
+
+def test_design_has_decisions_table():
+    """design.md must still contain a Decisions table (with | D rows)."""
+    design_file = Path(__file__).parent.parent / "docs" / "design.md"
+    assert design_file.exists(), "docs/design.md not found"
+
+    content = read_file_content(design_file)
+
+    has_decisions_header = "Decisions" in content or "| D" in content
+    has_d_rows = re.search(r"\|\s*D\d+\s*\|", content)
+
+    assert has_decisions_header and has_d_rows, \
+        "design.md must contain a Decisions table with D1-D13 decision rows"
