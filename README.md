@@ -321,7 +321,7 @@ git -C ~/.config/opencode checkout <tag-or-hash>
 
 ### Extending: new test processes (`qa_compress.sh` is modular)
 
-`qa_compress.sh` uses a **checker-registry pattern with plugin files**. Each test process lives in its own file in `scripts/qa_checkers/` and registers itself. Available checkers: `pytest` (default), `rspec` (Ruby), `jest` (JavaScript).
+`qa_compress.sh` uses a **checker-registry pattern with plugin files**. Each test process lives in its own file in `scripts/qa_checkers/` and registers itself. Available checkers: `pytest` (default), `rspec` (Ruby), `jest` (JavaScript), `gradle` / `maven` (Java), `json` / `yaml` (syntax validation), `html` (simple syntax check).
 
 ```bash
 # scripts/qa_checkers/mypy.sh — one file per checker
@@ -329,7 +329,7 @@ mypy_check() { mypy "$@" >/dev/null 2>&1; return $?; }
 register_check mypy mypy_check
 ```
 
-Which checkers actually run is declared per project in `qa_config.json` (in the project cwd): `{"checkers": ["pytest", "mypy"]}`. Missing file → default `["pytest"]`; invalid JSON → loud fail; unknown checker name → loud FAIL; empty list → explicit opt-out (PASS). Aggregation (overall FAIL as soon as one checker is non-zero) and exit code happen automatically. New checkers = one plugin file + registration line. See feature: polyglot-qa, stories: 12-01-qa-config-contract, 12-02-checker-rspec-jest.
+Which checkers actually run is declared per project in `qa_config.json` (in the project cwd): `{"checkers": ["pytest", "mypy"]}`. Missing file → default `["pytest"]`; invalid JSON → loud fail; unknown checker name → loud FAIL; empty list → explicit opt-out (PASS). Aggregation (overall FAIL as soon as one checker is non-zero) and exit code happen automatically. New checkers = one plugin file + registration line. See feature: polyglot-qa, stories: 12-01-qa-config-contract, 12-02-checker-rspec-jest, 12-03-checker-gradle-maven, 12-04-checker-json-yaml.
 
 ### Per-project AGENTS.md (project knowledge, per repo)
 
