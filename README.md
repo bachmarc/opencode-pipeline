@@ -141,19 +141,41 @@ The rule "no dev/QA without explicit user-go" lives in the prompts — but an LL
 
 ## Deployment (dev repo → live config)
 
-Stories are developed and merged to `main` in the dev repo (after the QA gate). Deployment means: pull in the **live clone** (`~/.config/opencode`) and restart opencode.
+### Branching strategy
 
-**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
+The repository uses a **two-branch deployment model**:
 
-**Procedure** (only after a QA-PASS merge to `main`):
+- **`main` branch** — development line. Stories are developed and merged here after the QA gate. May be unstable between milestones.
+- **`release` branch** — stable, deployable state. Promoted from `main` only when the user considers the code production-ready. The live clone (`~/.config/opencode`) pulls from `release`, not `main`.
+
+### Promotion workflow
+
+When `main` is stable enough for production, promote it to `release` using the `promote_release.py` script:
 
 ```bash
-git -C ~/.config/opencode pull origin main
+python scripts/promote_release.py
+```
+
+This script:
+1. Validates that `main` is clean and up-to-date with remote
+2. Fast-forward merges `release` to current `main` HEAD
+3. Pushes `release` to remote
+4. Outputs JSON with promotion status and commit hashes
+5. Returns exit code 0 on success, 1 on dirty state or if behind remote
+
+### Live clone deployment
+
+The **live clone** (`~/.config/opencode`) pulls from the `release` branch, not `main`:
+
+```bash
+git -C ~/.config/opencode pull origin release
 ```
 
 Then **restart opencode** — the config is loaded once at startup, there is no hot-reload. Running sessions keep using the old config until they are restarted.
 
 **What a pull does not touch:** `opencode.jsonc` and `cron.db` are gitignored, so a pull never overwrites them. New agent-/command-/skill-/template files appear automatically after pull + restart.
+
+**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
 
 **New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `permission.task` block), **every machine** must add them to its local file once — see § "How model assignment works" above for the per-machine procedure.
 
