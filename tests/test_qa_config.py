@@ -118,11 +118,13 @@ def test_unknown_checker_fails(
 ) -> None:
     """Configured checker with no registered plugin -> loud FAIL, exit 1."""
     _install_fake_pytest(tmp_path, monkeypatch, FAKE_PYTEST_PASS_OUTPUT)
-    _write_config(tmp_path, '{"checkers": ["rspec"]}')
+    # NOTE: "rspec" became a real plugin in story 12-02 — use a name that is
+    # guaranteed to never have a registered checker plugin.
+    _write_config(tmp_path, '{"checkers": ["definitely-not-a-checker"]}')
     result = _run_qa_compress(tmp_path)
 
     assert result.returncode == 1
-    assert "unknown checker: rspec" in result.stdout + result.stderr
+    assert "unknown checker: definitely-not-a-checker" in result.stdout + result.stderr
     # The registered (but not configured) pytest checker must NOT run.
     assert "## pytest" not in result.stdout
 

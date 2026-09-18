@@ -397,7 +397,7 @@ The README targets **opencode users who are new to multi-agent setups**. Structu
    - Phase-0 checkpoint enforcement (permission.task)
    - The four agents in detail (table)
    - Deployment (branching strategy, promotion, rollback, live clone)
-   - Extending qa_compress.sh (checker-registry pattern, plugin files in `scripts/qa_checkers/` — see story 12-01-qa-config-contract)
+   - Extending qa_compress.sh (checker-registry pattern, plugin files in `scripts/qa_checkers/` — checkers: pytest (default), rspec, jest; see stories 12-01-qa-config-contract, 12-02-checker-rspec-jest)
    - Per-project AGENTS.md (template, constancy)
    - Architecture pattern (function vs. connectivity)
 
@@ -421,3 +421,4 @@ The README targets **opencode users who are new to multi-agent setups**. Structu
 | D11 | Two installation paths (fresh + existing) | Users with existing opencode.jsonc must not lose their config | F-003 |
 | D12 | Technical details as anchored sections at end of README | All in one file (user preference), but not cluttering the intro flow | F-003 |
 | D13 | Forward-links from Installation to Details | Installation stays short; curious users can drill down | F-003 |
+| D14 | Checkers as self-registering plugins, declared per project | New runner = one file + registration line, no shared-file edits; project declares stack in `qa_config.json` | F-008 |
