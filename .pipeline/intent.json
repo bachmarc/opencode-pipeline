@@ -6,6 +6,24 @@
       "step": "Phase-12 Wave 3+4 orchestration: stories 12-06, 12-07, 12-08, 12-09, 12-10",
       "started_at": "2026-09-18T19:32:03.556663+00:00",
       "done": false
+    },
+    {
+      "story_id": "12-07",
+      "agent": "developer",
+      "step": "writing tests (red-first)",
+      "started_at": "2026-09-18T19:36:17.682424+00:00",
+      "done": true,
+      "worktree": ".worktrees/12-07-prompt-genericization",
+      "branch": "feature/12-07-prompt-genericization"
+    },
+    {
+      "story_id": "12-07",
+      "agent": "developer",
+      "step": "genericizing prompts (tests RED confirmed)",
+      "started_at": "2026-09-18T19:39:47.265738+00:00",
+      "done": true,
+      "worktree": ".worktrees/12-07-prompt-genericization",
+      "branch": "feature/12-07-prompt-genericization"
     }
   ]
 }
