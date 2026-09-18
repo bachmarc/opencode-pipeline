@@ -46,31 +46,41 @@
       "done": true
     },
     {
-      "story_id": "12-01",
+      "story_id": "12-11",
+      "agent": "architect",
+      "step": "bugfix story: pre-existing test failures block QA gate",
+      "started_at": "2026-09-18T18:24:34.085238+00:00",
+      "done": false,
+      "branch": "feature/12-11-test-suite-green"
+    },
+    {
+      "story_id": "12-02",
+      "agent": "architect",
+      "step": "wave 2: checker plugins parallel",
+      "started_at": "2026-09-18T18:24:34.145224+00:00",
+      "done": false,
+      "branch": "feature/12-02-checker-rspec-jest"
+    },
+    {
+      "story_id": "12-11",
+      "agent": "architect",
+      "step": "bugfix: pre-existing test failures block QA gate",
+      "started_at": "2026-09-18T18:24:39.347393+00:00",
+      "done": false,
+      "branch": "feature/12-11-test-suite-green"
+    },
+    {
+      "story_id": "12-02",
       "agent": "developer",
-      "step": "writing tests test_qa_config.py",
-      "started_at": "2026-09-18T18:07:44.409090+00:00",
+      "step": "writing tests",
+      "started_at": "2026-09-18T18:25:56.392609+00:00",
       "done": true
     },
     {
-      "story_id": "12-01",
+      "story_id": "12-02",
       "agent": "developer",
-      "step": "implementing qa_compress.sh rework + pytest.sh plugin",
-      "started_at": "2026-09-18T18:07:46.339128+00:00",
-      "done": true
-    },
-    {
-      "story_id": "12-01",
-      "agent": "developer",
-      "step": "verifying full suite + no-model-names check",
-      "started_at": "2026-09-18T18:17:56.502722+00:00",
-      "done": true
-    },
-    {
-      "story_id": "12-01",
-      "agent": "developer",
-      "step": "committing",
-      "started_at": "2026-09-18T18:18:31.421882+00:00",
+      "step": "implementing rspec + jest checker plugins",
+      "started_at": "2026-09-18T18:27:01.330486+00:00",
       "done": true
     }
   ]
