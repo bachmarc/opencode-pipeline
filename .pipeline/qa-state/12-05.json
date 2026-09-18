@@ -1,6 +1,11 @@
 {
-  "story_id": "12-05",
-  "verdict": "PASS",
-  "reason": "Implementation matches developer targets exactly (html.sh + test file only, scope clean); full suite 207 passed, bash -n clean, all 5 story tests green, commit metadata complete, no model names. Spec reconciliation accepted: close tag deeper in stack = implicit close reported as 'unclosed <tag>' (innermost), close tag matching nothing = 'mismatch' — satisfies both acceptance criteria (unclosed div / mismatch).",
-  "timestamp": "2026-09-18T21:45:00+02:00"
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "timestamp": "2026-09-18T21:45:00+02:00",
+      "commit": "374ad8f",
+      "tests": "207 passed",
+      "notes": "Targets met exactly (html.sh, test_qa_checker_html.py); qa_compress.sh + existing plugins untouched; bash -n OK; no model names; commit metadata complete. Spec reconciliation accepted: deeper close tag = implicit close reported 'unclosed <tag>', close matching nothing in stack = 'mismatch'."
+    }
+  ]
 }
