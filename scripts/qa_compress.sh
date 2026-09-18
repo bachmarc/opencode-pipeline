@@ -1,14 +1,14 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # QA-Summary: kompakter, modularer Testreport.
-# Der QA-Agent liest NIEMALS rohe Logs — nur dieses kompakte Ergebnis.
+# Der QA-Agent liest NIEMALS rohe Logs â€” nur dieses kompakte Ergebnis.
 #
 # Modulares Checker-Registry-Pattern:
 #   - Jeder Testprozess (pytest, ruff, mypy, ...) ist eine separate Funktion,
 #     die sich mit `register_check <name> <funktion>` am Ende registriert.
-#   - Jede Check-Funktion gibt auf stdout ihr KOMPRIMIERTES Ergebnis (≤200 Tokens)
+#   - Jede Check-Funktion gibt auf stdout ihr KOMPRIMIERTES Ergebnis (â‰¤200 Tokens)
 #     aus und returned den Exit-Code ihres Unterprozesses.
 #   - Das Skript aggregiert: Gesamtstatus = FAIL sobald EIN Checker non-zero ist.
-#   - Neue zukünftige Testprozesse = eine neue Funktion + eine register_check-Zeile.
+#   - Neue zukÃ¼nftige Testprozesse = eine neue Funktion + eine register_check-Zeile.
 #
 # Nutzung: aus dem Projekt-Root aufrufen. Gibt das kompakte QA-Paket aus.
 
@@ -48,7 +48,7 @@ pytest_check() {
   return "$code"
 }
 
-# Weitere künftige Checker hier anfügen, z.B.:
+# Weitere kÃ¼nftige Checker hier anfÃ¼gen, z.B.:
 # ruff_check()  { ruff check  "$@" >/dev/null 2>&1; return $?; }
 # mypy_check()  { mypy "$@" >/dev/null 2>&1; return $?; }
 
