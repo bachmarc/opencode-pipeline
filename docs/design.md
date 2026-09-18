@@ -320,6 +320,20 @@ The QA-Manager prompt includes: "On PASS verdict, before signaling merge-ready t
 | `merge_if_passed.py` | F-004 | branch | merge result | Architect |
 | `create_story.py` | F-004 | phase, slug, req-id | story file path | Architect |
 | `check_template_constancy.py` | F-004 | project AGENTS.md path | diff/PASS/FAIL | QA-Manager |
+| `migrate_template_sections.py` | F-008 | project AGENTS.md path | migration result (JSON) | Architect (adoption runbook) |
+
+#### Template migration tool
+
+**Reference:** F-008 Polyglot QA Gate, story 12-09-template-migration-tool
+
+`scripts/migrate_template_sections.py` re-syncs the 4 constant sections (Workflow, Git conventions, Languages, Prohibitions) of an existing project's AGENTS.md with the current `templates/AGENTS.md` (the runner-agnostic version from 12-08). Semantics:
+
+- **Constant sections replaced verbatim** from the template; project-specific content (everything else) is preserved byte-identical.
+- **Missing constant sections are inserted** before `## References` (existing projects whose AGENTS.md predates the template).
+- **Template resolution:** the template is resolved from the pipeline repo root, so the tool works cross-project (any target AGENTS.md path).
+- **Idempotent:** running it again after a migration is a no-op (exit 0, no content change).
+- **JSON contract:** machine-readable result on stdout; exit 0 = migrated/clean, exit 1 = failure (e.g. unreadable template or target).
+- Follows the deterministic-script pattern (§ Design principle): agents call it during adoption, then verify with `check_template_constancy.py`.
 
 #### `.pipeline/` directory
 
