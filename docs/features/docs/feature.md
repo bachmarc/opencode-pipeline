@@ -1,7 +1,7 @@
 ---
 id: F-003
 title: Documentation
-status: in-progress
+status: done
 owner: ""
 req: []
 ---
@@ -20,4 +20,4 @@ accessible to new teams.
 ## Stories
 
 - 05-01-readme-workflow-how (done)
-- 07-01-readme-restructure (planned)
+- 07-01-readme-restructure (done)
