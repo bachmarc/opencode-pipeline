@@ -55,7 +55,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 11-06-prompt-integration | Prompt integration and documentation | **Done (QA PASS, 466be79)** | F-007 pipeline-enforcement |
 | 11-07-session-recovery-guard | Session recovery guard (block on session start) | **Done (QA PASS, d725ca3)** | F-007 pipeline-enforcement |
 | 11-08-documenter-guard | Documenter guard (block merge without documenter) | **Done (QA PASS, 3055169)** | F-007 pipeline-enforcement |
-| 12-01-qa-config-contract | QA config contract + config-driven checker dispatch | Planned | F-008 polyglot-qa |
+| 12-01-qa-config-contract | QA config contract + config-driven checker dispatch | Done (QA PASS, 93591cf→afc8fcb) | F-008 polyglot-qa |
 | 12-02-checker-rspec-jest | Checker plugins: rspec (Ruby) + jest (JavaScript) | Planned | F-008 polyglot-qa |
 | 12-03-checker-gradle-maven | Checker plugins: gradle + maven (Java) | Planned | F-008 polyglot-qa |
 | 12-04-checker-json-yaml | Checker plugins: JSON + YAML syntax validation | Planned | F-008 polyglot-qa |
