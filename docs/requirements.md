@@ -67,6 +67,7 @@ The opencode-pipeline project is organized into 7 features, each representing a 
 
 ### F-008: Polyglot QA Gate
 - **Legacy project adoption runbook:** When adopting this pipeline version in an existing project: run `scripts/migrate_template_sections.py` once, then verify with `check_template_constancy.py`, then adapt `qa_config.json` to the project stack — see story 12-09-template-migration-tool
+- **Template migration tool:** `scripts/migrate_template_sections.py` re-syncs the 4 constant sections (Workflow, Git conventions, Languages, Prohibitions) of an existing project AGENTS.md with the current `templates/AGENTS.md` (after 12-08's runner-agnostic change) — the supported path for existing projects to adopt the updated template; project-specific content is preserved byte-identical and the tool is idempotent
 
 ## Non-Functional Requirements
 
