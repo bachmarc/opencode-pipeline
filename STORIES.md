@@ -34,6 +34,7 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **06-12-prompt-updates** | **Agent prompts: script integration + recovery** | **Done (QA PASS, 7108618)** | **REQ-013, NFR-004 → Design §13** |
 | **06-13-check-scripts** | **Template constancy + architecture check scripts** | **Done (QA PASS, 46e054a)** | **REQ-013.4,11 → Design §13** |
 | **06-14-orchestration-rules** | **Orchestration rules + QA self-enforcement** | **Done (QA PASS, 571287d)** | **NFR-004 → Design §13** |
+| **07-01-readme-restructure** | **README restructure (user-oriented documentation)** | **Planned** | **REQ-014 → Design §15** |
 
 ## Phase comments
 
@@ -52,3 +53,5 @@ Index and status per story. Template: `docs/stories/_template.md`.
   - Wave 3 (06-08..09): Recovery + claim — session recovery, feature claim
   - Wave 4 (06-10): Documenter agent
   - Wave 5 (06-11..13): QA scripts, agent prompt updates, check scripts
+- **Phase 07 (Docs Restructure):** README restructure for end-user documentation.
+  User-oriented flow: pitch → process → install → reference.

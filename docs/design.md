@@ -418,3 +418,54 @@ for operations that need determinism.
 
 **Principle:** If it needs to be atomic or deterministic, use a script. LLM handles
 reasoning and dialogue; scripts handle state.
+
+## 15. README structure (REQ-014)
+
+The README targets **opencode users who are new to multi-agent setups**. Structure
+follows a user-oriented flow (pitch → process → install → reference), not an
+inside-out dump of internals.
+
+### Section layout
+
+```
+1. Intro / Pitch (ausführlich, ~1-2 screens)
+   - What the framework does for developers (elevator pitch)
+   - The four roles: Architect thinks, Developer writes, QA checks, Documenter reconciles
+   - Repo contents woven into prose (agent/, scripts/, templates/, command/, ...)
+   - Key design principles (cheap models for mass, deterministic scripts, config-as-code)
+   - Note: no opencode.jsonc in repo (local, gitignored)
+
+2. Development Process (the heart)
+   - Mermaid flowchart (prominent)
+   - Phase 1: Design dialogue (User ↔ Architect)
+   - Phase 2: User-Go checkpoint
+   - Phase 3: Autonomous Dev+QA (worktrees, qa_compress, JSON verdicts)
+   - Escalation paths (FAIL → fix loop, BLOCKED_Design → Architect, BLOCKED_Requirements → User)
+   - Command quick-reference table
+
+3. Installation
+   - 3a: Fresh install (git clone → ~/.config/opencode)
+   - 3b: Existing setup (git init + remote add + fetch + checkout in existing dir)
+   - Local opencode.jsonc creation (example)
+   - Forward-links to Technical Details for model assignment, Phase-0 enforcement
+
+4. Technical Details (reference sections, linked from above)
+   - How model assignment works (role vs. machine separation)
+   - Phase-0 checkpoint enforcement (permission.task)
+   - The four agents in detail (table)
+   - Deployment (branching strategy, promotion, rollback, live clone)
+   - Extending qa_compress.sh (checker-registry pattern)
+   - Per-project AGENTS.md (template, constancy)
+   - Architecture pattern (function vs. connectivity)
+
+5. Open points / outlook (brief)
+```
+
+### Design decisions
+
+| # | Decision | Reason |
+|---|---|---|
+| D10 | Repo contents in prose, not isolated table | Reads naturally in the pitch; table was disconnected from context |
+| D11 | Two installation paths (fresh + existing) | Users with existing opencode.jsonc must not lose their config |
+| D12 | Technical details as anchored sections at end of README | All in one file (user preference), but not cluttering the intro flow |
+| D13 | Forward-links from Installation to Details | Installation stays short; curious users can drill down |

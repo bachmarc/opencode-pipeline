@@ -157,6 +157,27 @@ assignments.
   deterministic scripts. Agents call scripts and interpret results; they never perform
   these operations free-hand.
 
+- **REQ-014 README restructure (end-user documentation):** The README is restructured
+  from inside-out (folder table → design decisions → installation) to a user-oriented
+  flow for opencode users new to multi-agent setups:
+  1. **Intro/Pitch** (ausführlich): What the framework does for developers, the four
+     agent roles, repo contents woven into prose (not isolated table), key design
+     principles as bullet points.
+  2. **Development process**: Mermaid flowchart (prominent), Phase 1 (design dialogue),
+     Phase 2 (user-go checkpoint), Phase 3 (autonomous dev+QA), escalation paths,
+     command quick-reference table.
+  3. **Installation**: Two scenarios — (a) fresh install via `git clone` and (b)
+     adding the framework to an existing `~/.config/opencode` via `git init` + remote
+     add + pull (preserving local files like `opencode.jsonc`). Local config setup.
+     Forward-links to technical details.
+  4. **Technical Details** (reference, linked from above): model assignment mechanics,
+     Phase-0 enforcement, agent detail table, deployment/branching/promotion/rollback,
+     qa_compress.sh extension, per-project AGENTS.md, architecture pattern
+     (function vs. connectivity).
+  5. **Open points / outlook** (brief).
+  Content is also editorially revised (not just reordered): tightened, improved, and
+  adapted to the target audience (opencode users new to agents).
+
 ## Out of scope
 
 - Tests for opencode itself (upstream tool).
