@@ -23,4 +23,5 @@ accessible to new teams.
 
 - 05-01-readme-workflow-how (done)
 - 07-01-readme-restructure (done)
-- 07-02-document-reasoning-effort (planned)
+- 07-02-document-reasoning-effort (done)
+- 07-03-free-edit-userdocs (planned)
