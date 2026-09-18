@@ -3,6 +3,8 @@ import { mergeGuard } from "./guards/merge-guard"
 import { devStartGuard } from "./guards/dev-start-guard"
 import { architectCodeGuard } from "./guards/architect-code-guard"
 import { storyStatusGuard } from "./guards/story-status-guard"
+import { SessionState } from "./helpers/session-state"
+import { sessionRecoveryGuard } from "./guards/session-recovery-guard"
 
 // Guard type: each guard is a function that can inspect and block tool calls
 type Guard = (input: any, output: any) => Promise<void> | void
@@ -14,11 +16,21 @@ export const PipelineEnforcement: Plugin = async ({ project, client, $, director
   // Capture agent from context (will be available in input during tool execution)
   let currentAgent = "unknown"
 
+  // Session-scoped state: tracks whether recovery has been performed
+  const sessionState = new SessionState()
+
   return {
     "tool.execute.before": async (input: any, output: any) => {
       // Extract agent from input metadata if available
       if (input.metadata?.agent) {
         currentAgent = input.metadata.agent
+      }
+      const agentName = input?.context?.agent || currentAgent || "unknown"
+
+      // Session recovery guard runs once per session, before other guards
+      if (!sessionState.isRecoveryDone()) {
+        await sessionRecoveryGuard(agentName, directory, $)
+        sessionState.markRecoveryDone()
       }
 
       // Check merge guard for bash tool calls
@@ -45,7 +57,7 @@ export const PipelineEnforcement: Plugin = async ({ project, client, $, director
       // Check architect code guard for edit and write tools
       if ((input.tool === "edit" || input.tool === "write") && output.args?.filePath) {
         const result = architectCodeGuard(
-          currentAgent,
+          agentName,
           input.tool,
           output.args.filePath,
           directory
