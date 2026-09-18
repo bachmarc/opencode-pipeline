@@ -3,6 +3,7 @@ node_modules
 package.json
 package-lock.json
 bun.lock
+plugins/node_modules/
 __pycache__/
 .pytest_cache/
 *.pyc
