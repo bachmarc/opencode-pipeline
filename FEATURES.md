@@ -11,7 +11,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-004 | Pipeline Evolution | done | — | 06-01, 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-08, 06-09, 06-10, 06-11, 06-12, 06-13 |
 | F-005 | Doc Model Reform | done | — | 08-01, 08-02, 08-03 |
 | F-006 | Doc Model Migration | in-progress | — | 09-01, 09-02, 09-03, 09-04, 09-05, 09-06 |
-| F-007 | Pipeline Enforcement Plugin | planned | — | 11-01, 11-02, 11-03, 11-04, 11-05, 11-06, 11-07, 11-08 |
+| F-007 | Pipeline Enforcement Plugin | done | — | 11-01, 11-02, 11-03, 11-04, 11-05, 11-06, 11-07, 11-08 |
 
 ## Feature status derivation
 

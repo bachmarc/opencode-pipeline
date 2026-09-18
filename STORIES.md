@@ -50,7 +50,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 11-03-dev-start-guard | Dev-start guard (warn without story) | **Done (QA PASS, 8121d3c)** | F-007 pipeline-enforcement |
 | 11-04-architect-code-guard | Architect code guard (interactive housekeeping) | **Done (QA PASS, 466c2cd)** | F-007 pipeline-enforcement |
 | 11-05-story-status-guard | Story status guard (warn after merge) | **Done (QA PASS, c133636)** | F-007 pipeline-enforcement |
-| 11-06-prompt-integration | Prompt integration and documentation | Planned | F-007 pipeline-enforcement |
+| 11-06-prompt-integration | Prompt integration and documentation | **Done (QA PASS, 466be79)** | F-007 pipeline-enforcement |
 | 11-07-session-recovery-guard | Session recovery guard (block on session start) | **Done (QA PASS, d725ca3)** | F-007 pipeline-enforcement |
 | 11-08-documenter-guard | Documenter guard (block merge without documenter) | **Done (QA PASS, 3055169)** | F-007 pipeline-enforcement |
 
