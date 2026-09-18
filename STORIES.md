@@ -33,6 +33,7 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **06-11-qa-scripts** | **QA routing, commit metadata, merge validation** | **Done (QA PASS, 18b3907)** | **REQ-013.5,8,9 → Design §13** |
 | **06-12-prompt-updates** | **Agent prompts: script integration + recovery** | **Done (QA PASS, 7108618)** | **REQ-013, NFR-004 → Design §13** |
 | **06-13-check-scripts** | **Template constancy + architecture check scripts** | **Done (QA PASS, 46e054a)** | **REQ-013.4,11 → Design §13** |
+| **06-14-orchestration-rules** | **Orchestration rules + QA self-enforcement** | **Planned** | **NFR-004 → Design §13** |
 
 ## Phase comments
 
