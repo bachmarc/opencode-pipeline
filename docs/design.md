@@ -368,6 +368,8 @@ The Documenter's role expands: after implementation, it generates/updates `requi
 
 The README targets **opencode users who are new to multi-agent setups**. Structure follows a user-oriented flow (pitch → process → install → reference), not an inside-out dump of internals.
 
+**Free-edit area:** `README.md` and user-facing docs are **free-edit** — any agent (build, architect, developer) can edit them directly without creating a story or test criteria. Internal/derived docs (`docs/requirements.md`, `docs/design.md`, feature/story infrastructure) remain governed by the Documenter workflow and test suite.
+
 #### Section layout
 
 ```
