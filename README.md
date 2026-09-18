@@ -321,17 +321,15 @@ git -C ~/.config/opencode checkout <tag-or-hash>
 
 ### Extending: new test processes (`qa_compress.sh` is modular)
 
-`qa_compress.sh` uses a **checker-registry pattern**. Each test process (pytest, ruff, mypy, …) is a function that writes its compressed result to stdout and returns its subprocess's exit code.
+`qa_compress.sh` uses a **checker-registry pattern with plugin files**. Each test process (pytest, ruff, mypy, …) lives in its own file in `scripts/qa_checkers/` and registers itself.
 
 ```bash
-# 1. Define a new checker function
+# scripts/qa_checkers/mypy.sh — one file per checker
 mypy_check() { mypy "$@" >/dev/null 2>&1; return $?; }
-
-# 2. Register (activate) it
 register_check mypy mypy_check
 ```
 
-Aggregation (overall FAIL as soon as one checker is non-zero) and exit code happen automatically. Future test processes = one function + one registration line.
+Which checkers actually run is declared per project in `qa_config.json` (in the project cwd): `{"checkers": ["pytest", "mypy"]}`. Missing file → default `["pytest"]`; invalid JSON → loud fail; unknown checker name → loud FAIL; empty list → explicit opt-out (PASS). Aggregation (overall FAIL as soon as one checker is non-zero) and exit code happen automatically. New checkers = one plugin file + registration line. See feature: polyglot-qa, story: 12-01-qa-config-contract.
 
 ### Per-project AGENTS.md (project knowledge, per repo)
 
