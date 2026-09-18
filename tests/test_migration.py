@@ -170,3 +170,108 @@ def test_no_stories_have_old_sections():
             f"{story_file.relative_to(story_file.parent.parent.parent.parent)}: Still has '## Definition' section"
         assert not has_dev_goal, \
             f"{story_file.relative_to(story_file.parent.parent.parent.parent)}: Still has old development goal section"
+
+
+# === Index file migration tests (Story 09-03) ===
+
+
+def test_stories_index_no_req_ids():
+    """STORIES.md Traceability column should not contain REQ- references."""
+    stories_file = Path(__file__).parent.parent / "STORIES.md"
+    assert stories_file.exists(), "STORIES.md not found"
+
+    content = read_file_content(stories_file)
+
+    # Extract table rows (lines starting with |)
+    lines = content.split("\n")
+    table_started = False
+    for line in lines:
+        if line.startswith("|") and "Traceability" in line:
+            table_started = True
+            continue
+        if table_started and line.startswith("|"):
+            # Skip header separator line
+            if "---" in line:
+                continue
+            # Extract the Traceability column (last column)
+            cells = [cell.strip() for cell in line.split("|")]
+            if len(cells) >= 5:  # Story | Title | Status | Traceability | (empty)
+                traceability = cells[4]
+                assert "REQ-" not in traceability, \
+                    f"STORIES.md: Found REQ- in Traceability column: {line}"
+
+
+def test_stories_index_no_design_refs():
+    """STORIES.md Traceability column should not contain 'Design §' references."""
+    stories_file = Path(__file__).parent.parent / "STORIES.md"
+    assert stories_file.exists(), "STORIES.md not found"
+
+    content = read_file_content(stories_file)
+
+    # Extract table rows (lines starting with |)
+    lines = content.split("\n")
+    table_started = False
+    for line in lines:
+        if line.startswith("|") and "Traceability" in line:
+            table_started = True
+            continue
+        if table_started and line.startswith("|"):
+            # Skip header separator line
+            if "---" in line:
+                continue
+            # Extract the Traceability column (last column)
+            cells = [cell.strip() for cell in line.split("|")]
+            if len(cells) >= 5:  # Story | Title | Status | Traceability | (empty)
+                traceability = cells[4]
+                assert "Design §" not in traceability, \
+                    f"STORIES.md: Found 'Design §' in Traceability column: {line}"
+
+
+def test_features_index_no_traceability_column():
+    """FEATURES.md table should not have a Traceability column."""
+    features_file = Path(__file__).parent.parent / "FEATURES.md"
+    assert features_file.exists(), "FEATURES.md not found"
+
+    content = read_file_content(features_file)
+
+    # Find the table header line
+    lines = content.split("\n")
+    for line in lines:
+        if line.startswith("|") and "Feature" in line:
+            # This is the header line
+            assert "Traceability" not in line, \
+                f"FEATURES.md: Table header still contains 'Traceability' column"
+            break
+
+
+def test_features_index_no_req_ids():
+    """FEATURES.md table rows should not contain REQ- references."""
+    features_file = Path(__file__).parent.parent / "FEATURES.md"
+    assert features_file.exists(), "FEATURES.md not found"
+
+    content = read_file_content(features_file)
+
+    # Extract table rows (lines starting with |)
+    lines = content.split("\n")
+    table_started = False
+    for line in lines:
+        if line.startswith("|") and "Feature" in line:
+            table_started = True
+            continue
+        if table_started and line.startswith("|"):
+            # Skip header separator line
+            if "---" in line:
+                continue
+            assert "REQ-" not in line, \
+                f"FEATURES.md: Found REQ- in table row: {line}"
+
+
+def test_features_index_has_new_features():
+    """FEATURES.md should include F-005 and F-006 entries."""
+    features_file = Path(__file__).parent.parent / "FEATURES.md"
+    assert features_file.exists(), "FEATURES.md not found"
+
+    content = read_file_content(features_file)
+
+    assert "F-005" in content, "FEATURES.md: Missing F-005 entry"
+    assert "F-006" in content, "FEATURES.md: Missing F-006 entry"

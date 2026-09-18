@@ -75,6 +75,8 @@ def test_feature_dirs_exist() -> None:
         "F-002": "i18n",
         "F-003": "docs",
         "F-004": "pipeline-evolution",
+        "F-005": "doc-model-reform",
+        "F-006": "doc-model-migration",
     }
     
     for feature_id in feature_ids:
