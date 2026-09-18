@@ -1,7 +1,7 @@
 ---
 id: F-005
 title: Documentation Model Reform
-status: planned
+status: done
 owner: ""
 req: []
 ---
@@ -35,6 +35,6 @@ Documenter to keep derived docs consistent.
 
 ## Stories
 
-- 08-01-templates-reform (planned) — Story + Feature templates with new sections
-- 08-02-architect-prompt (planned) — Architect prompt: features/stories as primary source
-- 08-03-documenter-prompt (planned) — Documenter prompt: generate summaries + consistency
+- 08-01-templates-reform (done) — Story + Feature templates with new sections
+- 08-02-architect-prompt (done) — Architect prompt: features/stories as primary source
+- 08-03-documenter-prompt (done) — Documenter prompt: generate summaries + consistency
