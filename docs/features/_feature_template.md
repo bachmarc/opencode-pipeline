@@ -3,6 +3,7 @@ id: F-<NNN>
 title: <Feature Title>
 status: planned | in-progress | done
 owner: ""
+req: []
 ---
 
 ## Vision

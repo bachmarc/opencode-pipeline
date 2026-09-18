@@ -3,6 +3,7 @@ id: F-008
 title: Polyglot QA Gate
 status: planned
 owner: ""
+req: []
 ---
 
 ## Vision
