@@ -35,7 +35,7 @@
       "agent": "architect",
       "step": "planning",
       "started_at": "2026-09-18T16:17:44.201608+00:00",
-      "done": false,
+      "done": true,
       "branch": "main"
     }
   ]
