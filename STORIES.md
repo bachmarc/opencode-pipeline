@@ -38,6 +38,12 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **08-01-templates-reform** | **Story + Feature templates with new sections** | **Done (QA PASS, 346bf12)** | **F-005 doc-model-reform** |
 | **08-02-architect-prompt** | **Architect prompt: features/stories as primary source** | **Done (QA PASS, f901fa6)** | **F-005 doc-model-reform** |
 | **08-03-documenter-prompt** | **Documenter prompt: generate summaries + consistency** | **Done (QA PASS, a56dc8b)** | **F-005 doc-model-reform** |
+| **09-01-migrate-features** | **Migrate feature.md files to new format** | **Planned** | **F-006 doc-model-migration** |
+| **09-02-migrate-stories** | **Migrate story files to new 5-section format** | **Planned** | **F-006 doc-model-migration** |
+| **09-03-migrate-indexes** | **Migrate STORIES.md + FEATURES.md to feature-references** | **Planned** | **F-006 doc-model-migration** |
+| **09-04-migrate-summaries** | **Rewrite requirements.md + design.md as summaries** | **Planned** | **F-006 doc-model-migration** |
+| **09-05-migrate-prompts-commands** | **Update QA/dev prompts + commands + AGENTS.md template** | **Planned** | **F-006 doc-model-migration** |
+| **09-06-migrate-scripts-tests** | **Update scripts + tests for new model** | **Planned** | **F-006 doc-model-migration** |
 
 ## Phase comments
 
@@ -62,3 +68,8 @@ Index and status per story. Template: `docs/stories/_template.md`.
   to feature/story-primary. Templates, architect prompt, documenter prompt.
   - Wave 1 (08-01, 08-02): Templates + Architect prompt (parallel)
   - Wave 2 (08-03): Documenter prompt (depends on new model being defined)
+- **Phase 09 (Doc Model Migration):** Migrate existing repo data to new model.
+  6 stories in 3 waves:
+  - Wave 1 (09-01, 09-02): Features + Stories files (parallel, data only)
+  - Wave 2 (09-03, 09-04): Indexes + Summaries (parallel, depend on migrated data)
+  - Wave 3 (09-05, 09-06): Prompts/Commands + Scripts/Tests (parallel, depend on summaries)
