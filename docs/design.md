@@ -393,7 +393,7 @@ The README targets **opencode users who are new to multi-agent setups**. Structu
    - Forward-links to Technical Details for model assignment, Phase-0 enforcement
 
 4. Technical Details (reference sections, linked from above)
-   - How model assignment works (role vs. machine separation)
+   - How model assignment works (role vs. machine separation, per-agent reasoning depth via `reasoningEffort`)
    - Phase-0 checkpoint enforcement (permission.task)
    - The four agents in detail (table)
    - Deployment (branching strategy, promotion, rollback, live clone)

@@ -197,17 +197,20 @@ Create `~/.config/opencode/opencode.jsonc` (e.g.):
   "agent": {                            // model per agent (architect/developer/qa-manager/documenter)
     "architect": {
       "model": "provider/strong",
+      "reasoningEffort": "high",
       "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
     },
-    "developer":   { "model": "provider/cheap"   },
-    "qa-manager":  { "model": "provider/cheap"   },
-    "documenter":  { "model": "provider/cheap"   }
+    "developer":   { "model": "provider/cheap", "reasoningEffort": "medium" },
+    "qa-manager":  { "model": "provider/cheap", "reasoningEffort": "high"   },
+    "documenter":  { "model": "provider/cheap", "reasoningEffort": "low"    }
   },
   "skills": { "paths": ["~/.config/opencode/skills"] }
 }
 ```
 
 > **Do not** commit this here — it's in `.gitignore`, because host/provider differ per machine.
+>
+> **Reasoning depth (`reasoningEffort`)** is set per agent and controls how hard the model thinks before answering. Values: `low`, `medium`, `high` (unset = model default). Like model assignment, it stays in the local file and is not committed. Different machines can tune reasoning depth independently.
 
 Then restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
 
@@ -236,6 +239,10 @@ The four role files (`agent/architect.md`, `developer.md`, `qa-manager.md`, `doc
 3. Restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
 4. If a mapping entry is missing, opencode does not fail: an agent without an assigned model falls back to the global `model` as default.
 
+**Reasoning depth: `reasoningEffort`**
+
+Model choice and reasoning depth are two separate tuning axes on the same model. A cheap model with `"reasoningEffort": "high"` reasons more carefully than the same model at `"low"`. The pipeline's rationale: developer at medium (repetitive implementation benefits from speed), qa-manager at high (verdicts require scrutiny — wrong PASS is worse than slow PASS), documenter at low (mechanical reconciliation), architect unset (strong model's default reasoning is sufficient).
+
 ### <a id="phase-0-checkpoint"></a>Phase-0 Checkpoint Enforcement
 
 The rule "no dev/QA without explicit user-go" lives in the prompts — but an LLM follows instructions probabilistically and can "overhear" them. The fix: opencode's `permission.task` system. When the architect tries to spawn a developer or qa-manager, a **UI approval dialog pops up for you** — every time. Your "allow" click **is** the user-go, technically enforced. The architect cannot silently start the machine.
@@ -258,6 +265,7 @@ The rule "no dev/QA without explicit user-go" lives in the prompts — but an LL
 |---|---|---|---|---|
 | **Role** | Requirements-/Design-/Story partner, dialogue | Cheap story implementer | Deterministic gatekeeper | Documentation consistency |
 | **Model** | strong | cheap bulk | cheap (+ strong fallback via architect) | cheap |
+| **Reasoning depth** | high (deep design reasoning) | medium (speed over depth) | high (verdicts need scrutiny) | low (mechanical reconciliation) |
 | **Model source** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` | `opencode.jsonc` → `agent.documenter.model` |
 | **Mode** | `all` (dialogue) | `subagent` | `all` | `subagent` |
 | **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) | Updated docs + docstrings |
