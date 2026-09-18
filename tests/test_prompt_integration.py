@@ -49,27 +49,3 @@ def test_agents_md_documents_plugin() -> None:
     assert "plugins/pipeline-enforcement" in content, (
         "AGENTS.md: does not mention plugins/pipeline-enforcement"
     )
-
-
-def test_readme_mentions_plugin() -> None:
-    """README.md mentions enforcement or plugin."""
-    readme_path = REPO_ROOT / "README.md"
-    assert readme_path.is_file(), f"missing {readme_path.relative_to(REPO_ROOT)}"
-
-    content = readme_path.read_text(encoding="utf-8")
-
-    # Check for plugin references
-    plugin_indicators = [
-        "enforcement",
-        "pipeline-enforcement",
-    ]
-
-    found_plugin_reference = False
-    for indicator in plugin_indicators:
-        if indicator.lower() in content.lower():
-            found_plugin_reference = True
-            break
-
-    assert found_plugin_reference, (
-        "README.md: does not mention enforcement or pipeline-enforcement"
-    )

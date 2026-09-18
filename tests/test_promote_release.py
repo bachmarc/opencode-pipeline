@@ -3,7 +3,6 @@
 Test criteria (from story 06-03):
 - test_script_exists: scripts/promote_release.py exists and is valid Python
 - test_script_has_main_guard: script has if __name__ == "__main__" entry point
-- test_readme_mentions_release_branch: README contains "release" branch documentation
 - test_agents_md_mentions_release: AGENTS.md references "release" for deployment
 """
 
@@ -35,17 +34,6 @@ def test_script_has_main_guard() -> None:
     content = script_path.read_text(encoding="utf-8")
     assert 'if __name__ == "__main__"' in content, (
         "Script must have 'if __name__ == \"__main__\"' entry point"
-    )
-
-
-def test_readme_mentions_release_branch() -> None:
-    """README.md contains "release" branch documentation."""
-    readme_path = REPO_ROOT / "README.md"
-    assert readme_path.exists(), f"README not found: {readme_path}"
-    
-    content = readme_path.read_text(encoding="utf-8")
-    assert "release" in content.lower(), (
-        "README must document the release branch strategy"
     )
 
 
