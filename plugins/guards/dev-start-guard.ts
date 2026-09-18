@@ -49,7 +49,10 @@ export function devStartGuard(
     if (line.startsWith("|") && !line.includes("---")) {
       const parts = line.split("|").map((p) => p.trim())
       if (parts.length >= 4) {
-        const storyId = parts[1]
+        const rawId = parts[1]
+        // Row IDs carry slugs (e.g. 12-01-qa-config-contract); normalize to bare
+        // XX-YY / RETRO-XX by keeping the first two dash-separated segments.
+        const storyId = rawId.split("-").slice(0, 2).join("-")
         const status = parts[3]
         // Only store if storyId matches pattern XX-YY or RETRO-XX
         if (storyId && /^(\d{2}-\d{2}|RETRO-\d{2})$/.test(storyId)) {
