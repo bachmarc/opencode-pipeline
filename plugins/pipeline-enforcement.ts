@@ -1,5 +1,6 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import { mergeGuard } from "./guards/merge-guard"
+import { devStartGuard } from "./guards/dev-start-guard"
 
 // Guard type: each guard is a function that can inspect and block tool calls
 type Guard = (input: any, output: any) => Promise<void> | void
@@ -15,6 +16,19 @@ export const PipelineEnforcement: Plugin = async ({ project, client, $, director
         const command = output.args.command
         if (command.includes("git merge")) {
           mergeGuard(command, directory)
+        }
+      }
+
+      // Check for dev-start guard: if spawning developer or qa-manager without story
+      if (input.tool === "task") {
+        const subagentType = output.args?.subagent_type
+        const prompt = output.args?.prompt || ""
+        
+        if (subagentType === "developer" || subagentType === "qa-manager") {
+          const warnings = devStartGuard(subagentType, prompt, directory)
+          for (const warning of warnings) {
+            console.warn(`[Dev-Start Guard] ${warning}`)
+          }
         }
       }
 
