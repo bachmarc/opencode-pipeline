@@ -1,1 +1,11 @@
-{"intents": []}
+{
+  "intents": [
+    {
+      "story_id": "10-01",
+      "agent": "architect",
+      "step": "orchestration",
+      "started_at": "2026-09-18T14:14:59.951701+00:00",
+      "done": false
+    }
+  ]
+}

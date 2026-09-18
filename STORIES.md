@@ -44,6 +44,7 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **09-04-migrate-summaries** | **Rewrite requirements.md + design.md as summaries** | **Done (QA PASS, f61671f)** | **F-006 doc-model-migration** |
 | **09-05-migrate-prompts-commands** | **Update QA/dev prompts + commands + AGENTS.md template** | **Done (QA PASS, 2394a20)** | **F-006 doc-model-migration** |
 | **09-06-migrate-scripts-tests** | **Update scripts + tests for new model** | **Done (QA PASS, 4e285f2)** | **F-006 doc-model-migration** |
+| 10-01-remove-legacy-stories-dir | Remove legacy `docs/stories/` directory | Planned | F-004 pipeline-evolution |
 
 ## Phase comments
 
