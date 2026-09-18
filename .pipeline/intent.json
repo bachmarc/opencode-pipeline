@@ -58,7 +58,7 @@
       "agent": "architect",
       "step": "wave 2: checker plugins parallel",
       "started_at": "2026-09-18T18:24:34.145224+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-02-checker-rspec-jest"
     },
     {
