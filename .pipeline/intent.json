@@ -66,7 +66,7 @@
       "agent": "architect",
       "step": "bugfix: pre-existing test failures block QA gate",
       "started_at": "2026-09-18T18:24:39.347393+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-11-test-suite-green"
     },
     {
@@ -82,7 +82,7 @@
       "agent": "architect",
       "step": "bugfix: dev-start-guard false warnings",
       "started_at": "2026-09-18T18:31:17.923840+00:00",
-      "done": false,
+      "done": true,
       "branch": "feature/12-12-dev-start-guard-slug"
     }
   ]
