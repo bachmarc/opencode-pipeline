@@ -35,6 +35,9 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **06-13-check-scripts** | **Template constancy + architecture check scripts** | **Done (QA PASS, 46e054a)** | **REQ-013.4,11 → Design §13** |
 | **06-14-orchestration-rules** | **Orchestration rules + QA self-enforcement** | **Done (QA PASS, 571287d)** | **NFR-004 → Design §13** |
 | **07-01-readme-restructure** | **README restructure (user-oriented documentation)** | **Planned** | **REQ-014 → Design §15** |
+| **08-01-templates-reform** | **Story + Feature templates with new sections** | **Planned** | **F-005 doc-model-reform** |
+| **08-02-architect-prompt** | **Architect prompt: features/stories as primary source** | **Planned** | **F-005 doc-model-reform** |
+| **08-03-documenter-prompt** | **Documenter prompt: generate summaries + consistency** | **Planned** | **F-005 doc-model-reform** |
 
 ## Phase comments
 
@@ -55,3 +58,7 @@ Index and status per story. Template: `docs/stories/_template.md`.
   - Wave 5 (06-11..13): QA scripts, agent prompt updates, check scripts
 - **Phase 07 (Docs Restructure):** README restructure for end-user documentation.
   User-oriented flow: pitch → process → install → reference.
+- **Phase 08 (Doc Model Reform):** Shift documentation model from architect-primary
+  to feature/story-primary. Templates, architect prompt, documenter prompt.
+  - Wave 1 (08-01, 08-02): Templates + Architect prompt (parallel)
+  - Wave 2 (08-03): Documenter prompt (depends on new model being defined)
