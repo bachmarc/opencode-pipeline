@@ -76,6 +76,14 @@
       "started_at": "2026-09-18T18:24:40.102230+00:00",
       "done": false,
       "branch": "feature/12-02-checker-rspec-jest"
+    },
+    {
+      "story_id": "12-12",
+      "agent": "architect",
+      "step": "bugfix: dev-start-guard false warnings",
+      "started_at": "2026-09-18T18:31:17.923840+00:00",
+      "done": false,
+      "branch": "feature/12-12-dev-start-guard-slug"
     }
   ]
 }
