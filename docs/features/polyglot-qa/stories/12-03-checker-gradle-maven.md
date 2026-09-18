@@ -1,6 +1,6 @@
 # Story 12-03 — Checker plugins: gradle + maven (Java)
 
-Status: Planned
+Status: Done (QA PASS, 9a08022)
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose
