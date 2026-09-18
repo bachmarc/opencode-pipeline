@@ -13,6 +13,30 @@
       "step": "writing tests",
       "started_at": "2026-09-18T14:16:45.842053+00:00",
       "done": true
+    },
+    {
+      "story_id": "11-01",
+      "agent": "architect",
+      "step": "Planning: document per-agent reasoning depth (reasoningEffort) in pipeline README",
+      "started_at": "2026-09-18T16:17:23.829329+00:00",
+      "done": true,
+      "branch": "main"
+    },
+    {
+      "story_id": "11-01",
+      "agent": "architect",
+      "step": "Planning: document per-agent reasoning depth (reasoningEffort) in pipeline docs",
+      "started_at": "2026-09-18T16:17:25.901808+00:00",
+      "done": true,
+      "branch": "main"
+    },
+    {
+      "story_id": "11-01",
+      "agent": "architect",
+      "step": "planning",
+      "started_at": "2026-09-18T16:17:44.201608+00:00",
+      "done": true,
+      "branch": "main"
     }
   ]
 }
