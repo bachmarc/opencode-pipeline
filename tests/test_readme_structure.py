@@ -256,3 +256,149 @@ def test_readme_technical_details_anchors() -> None:
     assert has_forward_link, (
         "Installation section does not contain forward-links to Technical Details sections"
     )
+
+
+def test_readme_local_config_reasoning_effort() -> None:
+    """Local-configuration section contains reasoningEffort on all four agent entries."""
+    assert README_PATH.is_file(), f"README.md not found at {README_PATH}"
+    
+    content = README_PATH.read_text(encoding="utf-8")
+    
+    # Find Local configuration section
+    local_config_start = content.lower().find("local configuration")
+    assert local_config_start != -1, "Local configuration section not found"
+    
+    # Find the jsonc code block
+    jsonc_start = content.find("```jsonc", local_config_start)
+    assert jsonc_start != -1, "jsonc code block not found in Local configuration section"
+    
+    # Find the end of the jsonc block
+    jsonc_end = content.find("```", jsonc_start + len("```jsonc"))
+    assert jsonc_end != -1, "jsonc code block not properly closed"
+    
+    jsonc_block = content[jsonc_start:jsonc_end]
+    
+    # Check for reasoningEffort on all four agents
+    required_agents = ["architect", "developer", "qa-manager", "documenter"]
+    for agent in required_agents:
+        # Look for the agent entry and reasoningEffort within it
+        agent_pattern = f'"{agent}"'
+        assert agent_pattern in jsonc_block, f"Agent '{agent}' not found in jsonc block"
+    
+    # Check that reasoningEffort appears in the block
+    assert "reasoningEffort" in jsonc_block, (
+        "reasoningEffort not found in Local configuration jsonc example"
+    )
+    
+    # Check that low/medium/high values are mentioned
+    has_values = any(val in jsonc_block for val in ["low", "medium", "high"])
+    assert has_values, (
+        "reasoningEffort values (low/medium/high) not found in Local configuration section"
+    )
+
+
+def test_readme_model_assignment_reasoning_axis() -> None:
+    """Model Assignment section contains reasoningEffort and distinguishes two axes."""
+    assert README_PATH.is_file(), f"README.md not found at {README_PATH}"
+    
+    content = README_PATH.read_text(encoding="utf-8")
+    
+    # Find Model Assignment subsection (### level, not just text)
+    model_assignment_start = content.find("### <a id=\"model-assignment\"></a>Model Assignment")
+    if model_assignment_start == -1:
+        model_assignment_start = content.find("### Model Assignment")
+    assert model_assignment_start != -1, "Model Assignment subsection not found"
+    
+    # Find next top-level section (##)
+    next_section = content.find("\n## ", model_assignment_start + 1)
+    if next_section == -1:
+        model_assignment_section = content[model_assignment_start:]
+    else:
+        model_assignment_section = content[model_assignment_start:next_section]
+    
+    # Check for reasoningEffort
+    assert "reasoningEffort" in model_assignment_section, (
+        "reasoningEffort not mentioned in Model Assignment section"
+    )
+    
+    # Check for "axis" or "axes" or "separate" to indicate two separate tuning dimensions
+    section_lower = model_assignment_section.lower()
+    has_axis_language = (
+        "axis" in section_lower or 
+        "axes" in section_lower or 
+        "separate" in section_lower
+    )
+    assert has_axis_language, (
+        "Model Assignment section does not distinguish model and reasoning depth as separate axes"
+    )
+
+
+def test_readme_agents_table_reasoning_column() -> None:
+    """The agents detail table has a reasoning-depth column with low/medium/high values."""
+    assert README_PATH.is_file(), f"README.md not found at {README_PATH}"
+    
+    content = README_PATH.read_text(encoding="utf-8")
+    
+    # Find "The four agents in detail" section
+    agents_table_start = content.lower().find("four agents in detail")
+    assert agents_table_start != -1, "The four agents in detail section not found"
+    
+    # Find the next top-level section
+    next_section = content.find("\n## ", agents_table_start)
+    if next_section == -1:
+        agents_section = content[agents_table_start:]
+    else:
+        agents_section = content[agents_table_start:next_section]
+    
+    # Find the table (starts with |)
+    table_start = agents_section.find("|")
+    assert table_start != -1, "Table not found in agents section"
+    
+    # Extract table lines
+    table_lines = []
+    for line in agents_section[table_start:].split("\n"):
+        if line.startswith("|"):
+            table_lines.append(line)
+        elif table_lines:  # Stop at first non-table line after table starts
+            break
+    
+    table_text = "\n".join(table_lines)
+    
+    # Check for "Reasoning" in header (case-insensitive)
+    has_reasoning_header = "reasoning" in table_text.lower()
+    assert has_reasoning_header, (
+        "Table does not have a 'Reasoning' column header"
+    )
+    
+    # Check that low/medium/high appear in the table
+    has_low = "low" in table_text.lower()
+    has_medium = "medium" in table_text.lower()
+    has_high = "high" in table_text.lower()
+    
+    assert has_low and has_medium and has_high, (
+        "Reasoning column does not contain all of low/medium/high values"
+    )
+
+
+def test_design_mentions_reasoning_effort() -> None:
+    """docs/design.md mentions reasoningEffort in README Structure context."""
+    design_path = REPO_ROOT / "docs" / "design.md"
+    assert design_path.is_file(), f"design.md not found at {design_path}"
+    
+    content = design_path.read_text(encoding="utf-8")
+    
+    # Find README Structure section
+    readme_structure_start = content.lower().find("readme structure")
+    assert readme_structure_start != -1, "README Structure section not found in design.md"
+    
+    # Find next top-level section (##)
+    next_section = content.find("\n## ", readme_structure_start + 1)
+    if next_section == -1:
+        readme_structure_section = content[readme_structure_start:]
+    else:
+        readme_structure_section = content[readme_structure_start:next_section]
+    
+    # Check for reasoningEffort
+    assert "reasoningEffort" in readme_structure_section, (
+        "reasoningEffort not mentioned in design.md README Structure section"
+    )
