@@ -383,6 +383,11 @@ mechanical orchestration. All deterministic work (worktree setup, status queries
 decisions) is delegated to scripts. This minimizes architect token usage on the expensive
 model and allows cheap models to handle the repetitive parts (developer, QA-Manager).
 
+**Pytest discipline:** Pytest runs exactly **twice** per story — once by the Developer
+(before commit, to verify their own work) and once by the QA-Manager (independent
+verification). The Architect never runs pytest: not before QA, not after merge.
+Exception: merge conflicts that required manual resolution — then one verification run.
+
 **Principle:** Architect calls scripts for state queries and atomic operations; scripts
 return JSON; architect interprets and decides. No free-hand LLM orchestration.
 

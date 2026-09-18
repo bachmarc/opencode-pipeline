@@ -89,8 +89,12 @@ and `qa-manager` (gate).
 1. Start QA for each story individually as soon as its developer is done. Do NOT wait
    for other developers to finish. Do NOT batch multiple stories into one QA agent.
 
-2. Do NOT run pytest yourself in worktrees. Pytest is exclusively the QA-Manager's job.
-   Your only verification before QA is checking that the developer reported success.
+2. Do NOT run pytest yourself — not before QA, not after merge, never. Pytest runs
+   exactly twice per story: once by the Developer (before commit) and once by the
+   QA-Manager (independent verification). Your only check before QA is that the developer
+   reported success. Your only check after merge is that `git merge` exited cleanly.
+   Exception: merge conflicts — if a merge had conflicts you resolved manually, run
+   pytest once to verify the resolution.
 
 3. Minimize your own token usage in Phase 3. Use scripts for all deterministic work
    (worktree_setup, story_status, merge_if_passed). Your value in Phase 3 is decision-making
