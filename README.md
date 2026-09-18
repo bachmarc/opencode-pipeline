@@ -21,6 +21,7 @@ The repository contains:
 
 - **`agent/`** — The four role definitions (architect, developer, qa-manager, documenter). Each is a Markdown file with frontmatter (description, mode, rules) and a prompt. Roles are portable; model assignment is local.
 - **`scripts/`** — 15+ deterministic Python scripts + `qa_compress.sh` (Bash). Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks.
+- **`plugins/`** — Pipeline enforcement plugin (TypeScript). Deterministic guards that block process violations: merge without QA-PASS, architect editing code, merge without documenter, session start without recovery. Deploys to `~/.config/opencode/plugins/` via release branch.
 - **`templates/`** — Skeletons for new projects: `AGENTS.md` (project knowledge template) and `.gitignore`.
 - **`command/`** — Invokable commands that orchestrate the flow: `/new-project`, `/requirements`, `/decompose`, `/implement`, `/qa-check`, `/status`, `/qa_summary`, `/document`.
 - **`docs/features/`** — Hierarchical planning structure: features contain stories, stories contain developer targets and test criteria.
