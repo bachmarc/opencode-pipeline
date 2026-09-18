@@ -55,6 +55,16 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 11-06-prompt-integration | Prompt integration and documentation | **Done (QA PASS, 466be79)** | F-007 pipeline-enforcement |
 | 11-07-session-recovery-guard | Session recovery guard (block on session start) | **Done (QA PASS, d725ca3)** | F-007 pipeline-enforcement |
 | 11-08-documenter-guard | Documenter guard (block merge without documenter) | **Done (QA PASS, 3055169)** | F-007 pipeline-enforcement |
+| 12-01-qa-config-contract | QA config contract + config-driven checker dispatch | Planned | F-008 polyglot-qa |
+| 12-02-checker-rspec-jest | Checker plugins: rspec (Ruby) + jest (JavaScript) | Planned | F-008 polyglot-qa |
+| 12-03-checker-gradle-maven | Checker plugins: gradle + maven (Java) | Planned | F-008 polyglot-qa |
+| 12-04-checker-json-yaml | Checker plugins: JSON + YAML syntax validation | Planned | F-008 polyglot-qa |
+| 12-05-checker-html | Checker plugin: HTML (simple syntax check) | Planned | F-008 polyglot-qa |
+| 12-06-commit-metadata-polyglot | Polyglot commit metadata (test command from config, language-aware symbols) | Planned | F-008 polyglot-qa |
+| 12-07-prompt-genericization | Genericize portable prompts: no runner names | Planned | F-008 polyglot-qa |
+| 12-08-template-scaffold-config | Template config sections + scaffold + own qa_config.json | Planned | F-008 polyglot-qa |
+| 12-09-template-migration-tool | Template migration tool for existing projects | Planned | F-008 polyglot-qa |
+| 12-10-check-architecture-polyglot | check_architecture.py: polyglot import checking (JS/Ruby/Java) | Planned | F-008 polyglot-qa |
 
 ## Phase comments
 
@@ -89,3 +99,13 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   - Wave 1 (11-01): Plugin scaffold — infrastructure, guard registry
   - Wave 2 (11-02, 11-03, 11-04, 11-05, 11-07, 11-08): All 6 guards parallel — isolated modules
   - Wave 3 (11-06): Prompt integration — documentation updates
+- **Phase 12 (Polyglot QA Gate):** Runner abstraction for the QA gate — any language
+  (Ruby, JavaScript, Java, JSON/YAML config repos, HTML), mixed projects via checker
+  list in `qa_config.json`. 10 stories in 4 waves:
+  - Wave 1 (12-01): Config contract + config-driven dispatch in qa_compress.sh
+  - Wave 2 (12-02, 12-03, 12-04, 12-05): Checker plugins parallel — rspec/jest,
+    gradle/maven, json/yaml, html (one file each, no shared-file edits)
+  - Wave 3 (12-06, 12-07, 12-08, 12-09): Commit metadata polyglot, prompt
+    genericization, template + scaffold + own config, migration tool
+  - Wave 4 (12-10): check_architecture.py polyglot — automated core-purity
+    check for JS/Ruby/Java (parallel with Wave 3, independent of it)

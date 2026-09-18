@@ -5,7 +5,7 @@
       "agent": "architect",
       "step": "orchestration",
       "started_at": "2026-09-18T14:14:59.951701+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "10-01",
@@ -37,6 +37,13 @@
       "started_at": "2026-09-18T16:17:44.201608+00:00",
       "done": true,
       "branch": "main"
+    },
+    {
+      "story_id": "12-00",
+      "agent": "architect",
+      "step": "planning polyglot-qa feature (F-008): stories 12-01..12-09",
+      "started_at": "2026-09-18T17:53:47.583005+00:00",
+      "done": true
     }
   ]
 }
