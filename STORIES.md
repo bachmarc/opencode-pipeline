@@ -35,8 +35,8 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **06-13-check-scripts** | **Template constancy + architecture check scripts** | **Done (QA PASS, 46e054a)** | **REQ-013.4,11 → Design §13** |
 | **06-14-orchestration-rules** | **Orchestration rules + QA self-enforcement** | **Done (QA PASS, 571287d)** | **NFR-004 → Design §13** |
 | **07-01-readme-restructure** | **README restructure (user-oriented documentation)** | **Planned** | **REQ-014 → Design §15** |
-| **08-01-templates-reform** | **Story + Feature templates with new sections** | **Planned** | **F-005 doc-model-reform** |
-| **08-02-architect-prompt** | **Architect prompt: features/stories as primary source** | **Planned** | **F-005 doc-model-reform** |
+| **08-01-templates-reform** | **Story + Feature templates with new sections** | **Done (QA PASS, 346bf12)** | **F-005 doc-model-reform** |
+| **08-02-architect-prompt** | **Architect prompt: features/stories as primary source** | **Done (QA PASS, f901fa6)** | **F-005 doc-model-reform** |
 | **08-03-documenter-prompt** | **Documenter prompt: generate summaries + consistency** | **Planned** | **F-005 doc-model-reform** |
 
 ## Phase comments
