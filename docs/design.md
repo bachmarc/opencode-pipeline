@@ -48,6 +48,18 @@ This repo's "product" is configuration; its invariants are checkable by reading 
 - **Fake perspective:** The only "external dependency" is the file system — pytest tmp_path and the repo files themselves. No fakes needed; checks are pure and deterministic.
 - **QA integration:** `pytest tests/` output is compressed by `qa_compress.sh` as usual — the QA gate now has a deterministic target for this repo.
 
+### Polyglot Architecture Checking
+
+**Reference:** F-004 Pipeline Evolution, story 12-10-check-architecture-polyglot
+
+`scripts/check_architecture.py` checks import boundaries across languages, not just Python:
+
+- **Per-suffix import extraction:** Python, JS/TS/JSX/TSX, Ruby, Java each get their own import/include parser (regex per language).
+- **Per-language allowlists:** Node builtins (`fs`, `path`, ...), Ruby stdlib, and `java.`/`javax.`/`jakarta.` prefixes are always allowed.
+- **Relative/internal imports** are always allowed (same-project references).
+- **Custom `--allowlist`** extends the default allowlist for any language.
+- **`files_checked`** in the result JSON covers all languages, so the architecture contract is uniformly enforced across the polyglot codebase.
+
 ### Deploy Procedure
 
 **Reference:** F-001 Foundation
