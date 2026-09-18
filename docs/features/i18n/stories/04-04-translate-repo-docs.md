@@ -1,9 +1,9 @@
 # Story 04-04 — Translate AGENTS.md + STORIES.md to English
 
 Status: Planned
-Traceability: REQ-007, NFR-001 → Design §8
+Feature: i18n (F-002)
 
-## Definition
+## Context / Purpose
 
 The repo-root `AGENTS.md` (project-specific guardrails) and `STORIES.md` (story index)
 still contain German prose, status labels, and phase comments. They must be translated
@@ -13,7 +13,7 @@ Note: `AGENTS.md` at repo root is project-specific (not the template). It was al
 partially English but contains German fragments. `STORIES.md` has German status labels
 and phase comments.
 
-## Development goal
+## Requirements
 
 After this story, both files are fully English. Status labels use English terms
 (`Done`, `Planned`, `In Progress`). Phase comments are English. The `AGENTS.md`

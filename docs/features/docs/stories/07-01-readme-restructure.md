@@ -1,16 +1,16 @@
 # Story 07-01 — README restructure (user-oriented documentation)
 
 Status: Planned
-Traceability: REQ-014 → Design §15
+Feature: docs (F-003)
 
-## Definition
+## Context / Purpose
 
 The README is currently structured inside-out (folder table → design decisions →
 installation → deployment → workflow). It needs to be restructured into a user-oriented
 flow targeting opencode users who are new to multi-agent setups. Content is also
 editorially revised — not just reordered.
 
-## Development goal
+## Requirements
 
 After this story, the README follows the structure: Intro/Pitch → Development Process →
 Installation (fresh + existing setup) → Technical Details (reference) → Open Points.

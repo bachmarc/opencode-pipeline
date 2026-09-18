@@ -1,14 +1,14 @@
 # Story 06-02 — .pipeline directory and intent tracking
 
 Status: Planned
-Traceability: REQ-011 → Design §11
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Create the `.pipeline/` directory structure for mutable pipeline state (intent tracking,
 QA state). This is the foundation for session recovery and QA routing.
 
-## Development goal
+## Requirements
 
 After this story, `.pipeline/` exists with `intent.json` schema and `qa-state/` directory.
 A Python module `scripts/intent.py` provides deterministic read/write of intents.

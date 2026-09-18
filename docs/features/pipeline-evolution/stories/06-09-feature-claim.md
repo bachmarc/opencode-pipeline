@@ -1,15 +1,15 @@
 # Story 06-09 — Feature claim script
 
 Status: Planned
-Traceability: REQ-010 → Design §10
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Deterministic feature claiming for multi-user isolation. The script handles atomic
 claim/release with git pull-check-commit-push, preventing race conditions that an LLM
 cannot handle reliably.
 
-## Development goal
+## Requirements
 
 After this story, `scripts/feature_claim.py` manages feature claims atomically.
 No agent ever edits feature status directly — they call this script.

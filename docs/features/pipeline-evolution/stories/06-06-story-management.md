@@ -1,15 +1,15 @@
 # Story 06-06 — Story management scripts (resolve, create, status-update)
 
 Status: Planned
-Traceability: REQ-013.6, REQ-013.7, REQ-013.10 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Three closely related scripts for story lifecycle management: resolving a story from
 various input formats, creating new stories from template, and updating story status.
 Bundled because they share the same file-system knowledge (feature/story layout).
 
-## Development goal
+## Requirements
 
 After this story, story ID resolution, creation, and status mutation are deterministic.
 Agents call these scripts instead of manually parsing FEATURES.md or editing Markdown.

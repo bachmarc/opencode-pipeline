@@ -1,14 +1,14 @@
 # Story 06-03 — Release branch setup
 
 Status: Planned
-Traceability: REQ-001a → Design §1
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Establish the `release` branch strategy: `main` = development line, `release` = stable
 deployable state. Includes documentation update and a convenience script for promotion.
 
-## Development goal
+## Requirements
 
 After this story, a `release` branch exists, the README documents the new strategy, and
 a script handles the `main` → `release` promotion.

@@ -1,15 +1,15 @@
 # Story 06-11 — QA routing and commit metadata scripts
 
 Status: Planned
-Traceability: REQ-013.5, REQ-013.8, REQ-013.9 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Deterministic scripts for QA verdict routing (FAIL → developer, BLOCKED → architect),
 commit metadata generation, and merge validation. These replace LLM free-hand operations
 in the QA cycle.
 
-## Development goal
+## Requirements
 
 After this story, QA verdict routing with budget tracking, commit metadata, and merge
 validation are script-based with proper state persistence.

@@ -1,15 +1,15 @@
 # Story 06-08 — Session recovery script
 
 Status: Planned
-Traceability: REQ-011 → Design §11
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Create the central recovery script that runs at session start and collects the full
 pipeline state: open intents, worktree conditions, QA state, feature claims. This is
 what prevents the "session crashed, unclear where we are" problem.
 
-## Development goal
+## Requirements
 
 After this story, `scripts/session_recovery.py` produces a comprehensive JSON report
 that an agent can present to the user immediately at session start.

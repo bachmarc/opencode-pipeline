@@ -1,14 +1,14 @@
 # Story 06-04 — Worktree setup script
 
 Status: Planned
-Traceability: REQ-013.1 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Replace LLM free-hand worktree/branch creation with a deterministic Python script.
 The Architect calls this script instead of running git commands directly.
 
-## Development goal
+## Requirements
 
 After this story, `scripts/worktree_setup.py` creates worktrees atomically, validates
 story IDs, and handles error cases. Agents call the script and parse its JSON output.

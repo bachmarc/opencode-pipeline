@@ -1,15 +1,15 @@
 # Story 06-10 — Documenter agent and /document command
 
 Status: Planned
-Traceability: REQ-012 → Design §12
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Create the Documenter agent role (cheap model) and the `/document` command. The Documenter
 reconciles documentation against actual code state, triggered automatically after QA-PASS
 or manually via command.
 
-## Development goal
+## Requirements
 
 After this story, `agent/documenter.md` exists with the correct prompt, `command/document.md`
 is available, and the QA-Manager prompt includes the auto-trigger instruction.

@@ -1,9 +1,9 @@
 # Story 06-14 — Orchestration rules and QA self-enforcement
 
 Status: Planned
-Traceability: NFR-004 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Add orchestration discipline rules to the architect prompt and QA self-enforcement to
 the qa-manager prompt. These rules prevent three observed anti-patterns: batch-QA
@@ -12,7 +12,7 @@ unnecessary waiting for all developers before starting QA.
 
 Also document the orchestration principles in design.md.
 
-## Development goal
+## Requirements
 
 After this story, the architect prompt contains explicit orchestration rules for Phase 3
 (implementation), the QA-manager refuses batch assignments, and design.md documents the
