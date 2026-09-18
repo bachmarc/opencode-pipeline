@@ -8,6 +8,15 @@
       "done": false
     },
     {
+      "story_id": "12-06",
+      "agent": "developer",
+      "step": "writing tests (red-first)",
+      "started_at": "2026-09-18T19:36:16.186092+00:00",
+      "done": true,
+      "worktree": ".worktrees/12-06-commit-metadata-polyglot",
+      "branch": "feature/12-06-commit-metadata-polyglot"
+    },
+    {
       "story_id": "12-07",
       "agent": "developer",
       "step": "writing tests (red-first)",

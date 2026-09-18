@@ -49,6 +49,7 @@ The opencode-pipeline project is organized into 7 features, each representing a 
 - **Session resilience / recovery:** Intent tracking (`.pipeline/intent.json`) and recovery script (`scripts/session_recovery.py`) for crash/disconnect re-entry
 - **Documenter agent:** New role on cheap model maintains documentation consistency after QA-PASS and on manual `/document` command
 - **Deterministic pipeline scripts:** 11 scripts handle worktree setup, status aggregation, scaffolding, commit metadata, story management, QA routing, merge validation, etc.
+- **Polyglot commit metadata:** `prepare_commit_metadata.py` derives the test command from `qa_config.json` (config-driven, runner-agnostic) and extracts commit symbols/affects in a language-aware way (Python, JS/TS, Bash, Ruby, Java) — see story 12-06-commit-metadata-polyglot
 
 ### F-005: Documentation Model Reform
 - Features become primary source of truth with their own vision and context
