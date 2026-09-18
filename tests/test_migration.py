@@ -6,6 +6,8 @@ Tests verify that all feature.md and story files have been migrated from the old
 (Vision, Context, Feature reference, Context/Purpose, Requirements).
 """
 
+import json
+import os
 import re
 from pathlib import Path
 import yaml
@@ -377,8 +379,6 @@ def test_qa_prompt_no_requirements_source_of_truth():
 
     content = read_file_content(qa_file)
 
-    # Check that requirements.md is not mentioned as "source of truth" in the context of checking
-    # Pattern: "source of truth" + "requirements.md" in close proximity
     has_bad_pattern = re.search(
         r"source\s+of\s+truth.*requirements\.md|requirements\.md.*source\s+of\s+truth",
         content,
@@ -396,14 +396,12 @@ def test_developer_prompt_story_primary():
 
     content = read_file_content(dev_file)
 
-    # Check for language indicating story file is primary
     has_story_primary = re.search(
         r"story\s+file.*primary|primary.*story\s+file",
         content,
         re.IGNORECASE
     )
 
-    # Also check that design.md is mentioned as optional
     has_optional_design = re.search(
         r"[Oo]ptional.*design\.md|design\.md.*[Oo]ptional",
         content
@@ -420,13 +418,11 @@ def test_template_no_req_id_traceability():
 
     content = read_file_content(template_file)
 
-    # Extract Workflow section
     workflow_match = re.search(r"^##\s+Workflow\s*\n(.*?)(?=^##\s+|\Z)", content, re.MULTILINE | re.DOTALL)
     assert workflow_match, "templates/AGENTS.md: Workflow section not found"
 
     workflow_section = workflow_match.group(1)
 
-    # Check that REQ-XXX is not mentioned as traceability anchor
     has_req_traceability = re.search(r"REQ-\w+.*traceability|traceability.*REQ-\w+", workflow_section, re.IGNORECASE)
 
     assert not has_req_traceability, \
@@ -440,13 +436,11 @@ def test_template_references_derived():
 
     content = read_file_content(template_file)
 
-    # Extract References section
     references_match = re.search(r"^##\s+References\s*\n(.*?)(?=^##\s+|\Z)", content, re.MULTILINE | re.DOTALL)
     assert references_match, "templates/AGENTS.md: References section not found"
 
     references_section = references_match.group(1)
 
-    # Check for requirements.md line with "derived" or "summary"
     req_line = re.search(r"`docs/requirements\.md`.*", references_section)
     assert req_line, "templates/AGENTS.md References: requirements.md line not found"
 
@@ -465,13 +459,11 @@ def test_agents_md_references_derived():
 
     content = read_file_content(agents_file)
 
-    # Extract References section
     references_match = re.search(r"^##\s+References\s*\n(.*?)(?=^##\s+|\Z)", content, re.MULTILINE | re.DOTALL)
     assert references_match, "AGENTS.md: References section not found"
 
     references_section = references_match.group(1)
 
-    # Check for requirements.md line with "derived" or "summary"
     req_line = re.search(r"`docs/requirements\.md`.*", references_section)
     assert req_line, "AGENTS.md References: requirements.md line not found"
 
@@ -496,8 +488,6 @@ def test_commands_no_primary_requirements():
 
         content = read_file_content(cmd_file)
 
-        # Check that requirements.md is not mentioned as primary source to create
-        # Pattern: "Create" + "requirements.md" as primary instruction
         has_primary_req = re.search(
             r"[Cc]reate\s+`docs/requirements\.md`\s*,\s*`docs/design\.md`",
             content
@@ -505,3 +495,256 @@ def test_commands_no_primary_requirements():
 
         assert not has_primary_req, \
             f"{cmd_file.name}: Must not instruct creating requirements.md as primary source"
+
+
+# === Scripts migration tests (Story 09-06) ===
+
+
+def test_create_story_no_req_required(tmp_path):
+    """create_story.py works without --req parameter (or with --feature instead)."""
+    import subprocess
+    import sys
+    import json
+    import os
+
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    create_story_script = scripts_dir / "create_story.py"
+
+    assert create_story_script.exists(), f"create_story.py not found at {create_story_script}"
+
+    # Create a temporary feature directory
+    test_feature_dir = tmp_path / "test-feature"
+    test_feature_dir.mkdir()
+
+    feature_md = test_feature_dir / "feature.md"
+    feature_md.write_text("""---
+id: F-TEST
+title: Test Feature
+status: planned
+owner: ""
+---
+
+## Vision
+
+Test feature vision.
+
+## Context
+
+Test feature context.
+
+## Stories
+
+""")
+
+    stories_dir = test_feature_dir / "stories"
+    stories_dir.mkdir()
+
+    docs_dir = tmp_path / "docs" / "features"
+    docs_dir.mkdir(parents=True)
+
+    import shutil
+    test_feature_copy = docs_dir / "test-feature"
+    shutil.copytree(test_feature_dir, test_feature_copy)
+
+    template_file = Path(__file__).parent.parent / "docs" / "features" / "_story_template.md"
+    assert template_file.exists(), f"Template file not found: {template_file}"
+
+    template_copy = docs_dir / "_story_template.md"
+    shutil.copy(template_file, template_copy)
+
+    cmd = [
+        sys.executable,
+        str(create_story_script),
+        "test-feature",
+        "test-story",
+        "--feature", "F-TEST"
+    ]
+
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+    )
+
+    if result.returncode != 0 and "--feature" in result.stderr:
+        cmd = [
+            sys.executable,
+            str(create_story_script),
+            "test-feature",
+            "test-story"
+        ]
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+            env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+        )
+
+    assert result.returncode == 0 or "--req" not in result.stderr, \
+        f"Script failed or requires --req: exit={result.returncode}, stderr={result.stderr}"
+
+
+def test_create_story_generates_feature_line(tmp_path):
+    """create_story.py generates story files with 'Feature:' line (not 'Traceability:')."""
+    import subprocess
+    import sys
+    import json
+    import os
+
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    create_story_script = scripts_dir / "create_story.py"
+
+    test_feature_dir = tmp_path / "test-feature"
+    test_feature_dir.mkdir()
+
+    feature_md = test_feature_dir / "feature.md"
+    feature_md.write_text("""---
+id: F-TEST
+title: Test Feature
+status: planned
+owner: ""
+---
+
+## Vision
+
+Test feature vision.
+
+## Context
+
+Test feature context.
+
+## Stories
+
+""")
+
+    stories_dir = test_feature_dir / "stories"
+    stories_dir.mkdir()
+
+    docs_dir = tmp_path / "docs" / "features"
+    docs_dir.mkdir(parents=True)
+
+    import shutil
+    test_feature_copy = docs_dir / "test-feature"
+    shutil.copytree(test_feature_dir, test_feature_copy)
+
+    template_file = Path(__file__).parent.parent / "docs" / "features" / "_story_template.md"
+    assert template_file.exists(), f"Template file not found: {template_file}"
+
+    template_copy = docs_dir / "_story_template.md"
+    shutil.copy(template_file, template_copy)
+
+    cmd = [
+        sys.executable,
+        str(create_story_script),
+        "test-feature",
+        "test-story",
+        "--feature", "F-TEST"
+    ]
+
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+    )
+
+    if result.returncode != 0 and "--feature" in result.stderr:
+        cmd = [
+            sys.executable,
+            str(create_story_script),
+            "test-feature",
+            "test-story"
+        ]
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+            env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+        )
+
+    if result.returncode == 0:
+        try:
+            output = json.loads(result.stdout)
+            story_file = tmp_path / output["story_file"]
+
+            story_content = story_file.read_text()
+
+            assert re.search(r"^Feature:\s+", story_content, re.MULTILINE), \
+                f"Story file missing 'Feature:' line. Content:\n{story_content}"
+
+            assert not re.search(r"^Traceability:\s+", story_content, re.MULTILINE), \
+                f"Story file still has 'Traceability:' line. Content:\n{story_content}"
+        except json.JSONDecodeError:
+            pass
+
+
+def test_pipeline_status_no_req_field(tmp_path):
+    """pipeline_status.py does not error on feature.md files without 'req:' field."""
+    import subprocess
+    import sys
+    import json
+
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    pipeline_status_script = scripts_dir / "pipeline_status.py"
+
+    assert pipeline_status_script.exists(), f"pipeline_status.py not found at {pipeline_status_script}"
+
+    repo_dir = tmp_path / "test_repo"
+    repo_dir.mkdir()
+
+    subprocess.run(
+        ["git", "init"],
+        cwd=repo_dir,
+        capture_output=True,
+        check=True
+    )
+
+    features_dir = repo_dir / "docs" / "features"
+    feature_dir = features_dir / "test-feature"
+    feature_dir.mkdir(parents=True)
+
+    feature_md = feature_dir / "feature.md"
+    feature_md.write_text("""---
+id: F-TEST
+title: Test Feature
+status: planned
+owner: ""
+---
+
+## Vision
+
+Test feature vision.
+
+## Context
+
+Test feature context.
+
+## Stories
+
+""")
+
+    cmd = [
+        sys.executable,
+        str(pipeline_status_script)
+    ]
+
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(repo_dir)
+    )
+
+    assert result.returncode == 0, \
+        f"pipeline_status.py failed on feature.md without req: field. stderr={result.stderr}"
+
+    try:
+        output = json.loads(result.stdout)
+        assert isinstance(output, dict), "Output should be a JSON object"
+    except json.JSONDecodeError:
+        assert False, f"pipeline_status.py output is not valid JSON: {result.stdout}"

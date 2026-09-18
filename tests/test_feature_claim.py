@@ -61,10 +61,13 @@ id: F-001
 title: Feature One
 status: planned
 owner: ""
-req: [REQ-001]
 ---
 
-## Scope
+## Vision
+
+Test feature one vision.
+
+## Context
 
 Test feature one.
 """
@@ -80,10 +83,13 @@ id: F-002
 title: Feature Two
 status: planned
 owner: ""
-req: [REQ-002]
 ---
 
-## Scope
+## Vision
+
+Test feature two vision.
+
+## Context
 
 Test feature two.
 """
@@ -101,10 +107,13 @@ title: Feature Three
 status: claimed
 owner: "olduser@oldhost"
 claimed_at: "{old_timestamp}"
-req: [REQ-003]
 ---
 
-## Scope
+## Vision
+
+Test feature three vision (old claim).
+
+## Context
 
 Test feature three (old claim).
 """

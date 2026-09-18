@@ -68,19 +68,22 @@ def test_create_story_copies_template(tmp_path: Path) -> None:
     test_feature_dir = tmp_path / "test-feature"
     test_feature_dir.mkdir()
     
-    # Create a feature.md with YAML header
+    # Create a feature.md with YAML header (new format, no req field)
     feature_md = test_feature_dir / "feature.md"
     feature_md.write_text("""---
 id: F-TEST
 title: Test Feature
 status: planned
 owner: ""
-req: [REQ-999]
 ---
 
-## Scope
+## Vision
 
 Test feature for story creation.
+
+## Context
+
+Test feature context.
 
 ## Stories
 
@@ -111,19 +114,22 @@ def test_create_story_next_id(tmp_path: Path) -> None:
     test_feature_dir = tmp_path / "test-feature"
     test_feature_dir.mkdir()
     
-    # Create a feature.md
+    # Create a feature.md (new format, no req field)
     feature_md = test_feature_dir / "feature.md"
     feature_md.write_text("""---
 id: F-TEST
 title: Test Feature
 status: planned
 owner: ""
-req: [REQ-999]
 ---
 
-## Scope
+## Vision
 
 Test feature.
+
+## Context
+
+Test feature context.
 
 ## Stories
 
@@ -149,18 +155,18 @@ def test_status_update_preserves_content(tmp_path: Path) -> None:
     
     Uses tmp_path to create isolated test story file.
     """
-    # Create a test story file
+    # Create a test story file (new format)
     story_file = tmp_path / "test-story.md"
     original_content = """# Story 99-01 - Test Story
 
 Status: Planned
-Traceability: REQ-999 - Design 99
+Feature: test-feature (F-TEST)
 
-## Definition
+## Context / Purpose
 
 This is a test story.
 
-## Development goal
+## Requirements
 
 Test the status update.
 
@@ -190,7 +196,7 @@ Test the status update.
     # Verify only status line changed
     assert "Status: In Progress" in updated_content
     assert "# Story 99-01 - Test Story" in updated_content
-    assert "## Definition" in updated_content
+    assert "## Context / Purpose" in updated_content
     assert "This is a test story." in updated_content
     
     # Verify other content is preserved

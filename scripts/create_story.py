@@ -3,10 +3,10 @@
 
 Creates a new story from template for a given feature.
 
-Usage: create_story.py <feature-name> <slug> --req <REQ-ID>
+Usage: create_story.py <feature-name> <slug> [--feature <feature-id>]
 
 Determines next free ID for the feature's phase, copies _story_template.md,
-fills machine fields (ID, REQ-ID, status=Planned), and adds entry to feature.md.
+fills machine fields (ID, Feature, status=Planned), and adds entry to feature.md.
 
 Outputs JSON: {"story_file": "<path>", "id": "<id>"}
 
@@ -101,7 +101,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Create a new story from template")
     parser.add_argument("feature_name", help="Feature name (e.g., 'pipeline-evolution')")
     parser.add_argument("slug", help="Story slug (e.g., 'my-story')")
-    parser.add_argument("--req", required=True, help="REQ-ID (e.g., 'REQ-013.6')")
+    parser.add_argument("--feature", required=False, help="Feature ID (e.g., 'F-001') to fill Feature: line")
+    parser.add_argument("--req", required=False, help="(Deprecated) REQ-ID parameter, ignored")
     
     args = parser.parse_args()
     
@@ -147,7 +148,13 @@ def main() -> int:
         # Replace placeholders
         content = content.replace("<ID>", next_id)
         content = content.replace("<Title>", args.slug.replace("-", " ").title())
-        content = content.replace("<REQ-XXX>", args.req)
+        
+        # Fill Feature: line if --feature is provided
+        if args.feature:
+            content = content.replace("<feature-name> (<feature-id>)", f"{args.feature_name} ({args.feature})")
+        else:
+            # Just fill with feature name if no feature ID provided
+            content = content.replace("<feature-name> (<feature-id>)", args.feature_name)
         
         # Ensure status is "Planned"
         lines = content.splitlines(keepends=True)
