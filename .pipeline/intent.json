@@ -72,6 +72,30 @@
       "step": "committing",
       "started_at": "2026-09-18T18:18:31.421882+00:00",
       "done": true
+    },
+    {
+      "story_id": "12-03",
+      "agent": "architect",
+      "step": "wave 2: gradle/maven checkers",
+      "started_at": "2026-09-18T18:37:44.321358+00:00",
+      "done": false,
+      "branch": "feature/12-03-checker-gradle-maven"
+    },
+    {
+      "story_id": "12-04",
+      "agent": "architect",
+      "step": "wave 2: json/yaml checkers",
+      "started_at": "2026-09-18T18:37:44.394090+00:00",
+      "done": false,
+      "branch": "feature/12-04-checker-json-yaml"
+    },
+    {
+      "story_id": "12-05",
+      "agent": "architect",
+      "step": "wave 2: html checker",
+      "started_at": "2026-09-18T18:37:44.464589+00:00",
+      "done": false,
+      "branch": "feature/12-05-checker-html"
     }
   ]
 }
