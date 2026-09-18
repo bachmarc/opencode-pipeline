@@ -65,6 +65,9 @@ The opencode-pipeline project is organized into 7 features, each representing a 
 - Rewrite requirements.md and design.md as Documenter-style summaries
 - Update commands, prompts, templates, scripts, and tests to reference new model
 
+### F-008: Polyglot QA Gate
+- **Legacy project adoption runbook:** When adopting this pipeline version in an existing project: run `scripts/migrate_template_sections.py` once, then verify with `check_template_constancy.py`, then adapt `qa_config.json` to the project stack — see story 12-09-template-migration-tool
+
 ## Non-Functional Requirements
 
 - **NFR-001 Language:** All portable files (agent prompts, commands, templates, scripts, repo docs) are English. User dialogue language is configured per project in `AGENTS.md` (default: respond in the user's language). Code identifiers are English.
