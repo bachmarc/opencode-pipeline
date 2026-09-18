@@ -44,6 +44,22 @@
       "step": "planning polyglot-qa feature (F-008): stories 12-01..12-09",
       "started_at": "2026-09-18T17:53:47.583005+00:00",
       "done": true
+    },
+    {
+      "story_id": "12-11",
+      "agent": "architect",
+      "step": "bugfix story: pre-existing test failures block QA gate",
+      "started_at": "2026-09-18T18:24:34.085238+00:00",
+      "done": false,
+      "branch": "feature/12-11-test-suite-green"
+    },
+    {
+      "story_id": "12-02",
+      "agent": "architect",
+      "step": "wave 2: checker plugins parallel",
+      "started_at": "2026-09-18T18:24:34.145224+00:00",
+      "done": false,
+      "branch": "feature/12-02-checker-rspec-jest"
     }
   ]
 }
