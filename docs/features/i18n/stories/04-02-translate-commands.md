@@ -1,14 +1,14 @@
 # Story 04-02 — Translate command/*.md to English
 
 Status: Planned
-Traceability: REQ-007, NFR-001 → Design §8
+Feature: i18n (F-002)
 
-## Definition
+## Context / Purpose
 
 All seven command files in `command/` have German descriptions and instruction bodies.
 They must be translated to English for international accessibility.
 
-## Development goal
+## Requirements
 
 After this story, all command files are English. Frontmatter `description` fields and
 instruction bodies are translated. Technical identifiers, file paths, variable references

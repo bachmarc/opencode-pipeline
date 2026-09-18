@@ -1,14 +1,14 @@
 # Story 06-12 — Agent prompt updates for script integration
 
 Status: Planned
-Traceability: REQ-013, NFR-004 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Update all agent prompts (architect, developer, qa-manager) to call deterministic scripts
 instead of performing operations free-hand. Also update commands to reference scripts.
 
-## Development goal
+## Requirements
 
 After this story, all agent prompts instruct agents to use scripts for git operations,
 status aggregation, story management, and QA routing. The LLM ↔ Script boundary (NFR-004)

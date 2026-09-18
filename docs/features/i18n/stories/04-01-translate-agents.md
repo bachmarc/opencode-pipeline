@@ -1,16 +1,16 @@
 # Story 04-01 — Translate agent/*.md to English
 
 Status: Planned
-Traceability: REQ-007, NFR-001 → Design §8
+Feature: i18n (F-002)
 
-## Definition
+## Context / Purpose
 
 All three agent prompt files (`architect.md`, `developer.md`, `qa-manager.md`) are
 currently written in German. They must be translated to English so the framework is
 accessible to international team members. Dialogue language is decoupled — agents will
 respond in the user's language as configured per project.
 
-## Development goal
+## Requirements
 
 After this story, all agent prompts are English. The frontmatter `description` field,
 all section headers, all prose, and all inline comments are in English. Technical

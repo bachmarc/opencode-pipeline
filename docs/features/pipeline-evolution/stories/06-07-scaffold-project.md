@@ -1,15 +1,15 @@
 # Story 06-07 — Project scaffolding script
 
 Status: Planned
-Traceability: REQ-013.3 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Replace LLM free-hand project creation (`/new-project`) with a deterministic script that
 copies real templates and creates the directory structure atomically. Only placeholder
 filling (project name, description, stack) remains with the LLM.
 
-## Development goal
+## Requirements
 
 After this story, `scripts/scaffold_project.py` creates a complete project skeleton by
 copying templates and creating directories — no LLM text generation for structure.

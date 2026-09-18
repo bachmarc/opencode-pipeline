@@ -1,14 +1,14 @@
 # Story 06-13 — Template constancy and architecture check scripts
 
 Status: Planned
-Traceability: REQ-013.4, REQ-013.11 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Two scripts that extend the QA pipeline: template constancy checking for projects created
 by the pipeline, and AST-based architecture validation (import rules for src/core/).
 
-## Development goal
+## Requirements
 
 After this story, template constancy and architecture rules are deterministically
 verifiable by script — not by LLM visual inspection.

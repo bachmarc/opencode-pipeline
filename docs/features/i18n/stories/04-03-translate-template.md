@@ -1,15 +1,15 @@
 # Story 04-03 — Translate templates/AGENTS.md to English
 
 Status: Planned
-Traceability: REQ-007, NFR-001 → Design §8
+Feature: i18n (F-002)
 
-## Definition
+## Context / Purpose
 
 The project template `templates/AGENTS.md` contains German section headers, placeholder
 descriptions, and prose. It must be translated to English. This is the skeleton that every
 new project copies — it defines the binding interface between framework and project.
 
-## Development goal
+## Requirements
 
 After this story, `templates/AGENTS.md` is fully English: section headers, placeholder
 text inside `<...>`, prose descriptions, and comments. The constant sections (Workflow,

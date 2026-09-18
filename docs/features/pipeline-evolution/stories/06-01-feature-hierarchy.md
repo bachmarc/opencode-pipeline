@@ -1,15 +1,15 @@
 # Story 06-01 — Feature-hierarchy file structure
 
 Status: Planned
-Traceability: REQ-009 → Design §9
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Replace the flat `STORIES.md` table with a hierarchical feature → story structure in the
 file system. This is the foundation for all subsequent stories (claim, recovery, status
 scripts all depend on this layout).
 
-## Development goal
+## Requirements
 
 After this story, the repo has `docs/features/` with the new directory layout, a
 `FEATURES.md` index, and `feature.md` + `stories/` sub-directories. Existing stories

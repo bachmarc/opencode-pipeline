@@ -1,14 +1,14 @@
 # Story 06-05 — Pipeline status aggregation script
 
 Status: Planned
-Traceability: REQ-013.2 → Design §13
+Feature: pipeline-evolution (F-004)
 
-## Definition
+## Context / Purpose
 
 Replace LLM free-hand status aggregation (STORIES.md parsing, branch listing, pytest
 correlation) with a deterministic script that outputs machine-readable JSON.
 
-## Development goal
+## Requirements
 
 After this story, `scripts/pipeline_status.py` collects the full pipeline state and
 outputs it as JSON. The QA-Manager and Architect consume this instead of manually
