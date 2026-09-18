@@ -1,5 +1,5 @@
 ---
-description: Create new folder project with Git + dev-workflow structure (AGENTS.md, docs/, STORIES.md, tests/fakes, src/core + src/adapters). Without argument initializes in current folder (replaces /init).
+description: Create new folder project with Git + dev-workflow structure (AGENTS.md, docs/features, STORIES.md, tests/fakes, src/core + src/adapters). Without argument initializes in current folder (replaces /init).
 agent: architect
 ---
 
@@ -10,7 +10,7 @@ Create new project: $ARGUMENTS
      - Target path = `!`pwd`` (this command runs in the root of the user session, not in your subagent cwd)
    - Execute only in this target path:
      - Check `git status` there — if no repo: `git init && git checkout -b main`
-     - Create base structure there if missing: `AGENTS.md` (**copy from template `~/.config/opencode/templates/AGENTS.md` + fill placeholders in dialogue — do NOT improvise from scratch**), `docs/requirements.md`, `docs/design.md` (with fake requirement), `STORIES.md`, `docs/stories/_template.md`, `tests/fakes/`, `src/core/`, `src/adapters/`, `.gitignore`, `README.md`, `opencode.json`
+     - Create base structure there if missing: `AGENTS.md` (**copy from template `~/.config/opencode/templates/AGENTS.md` + fill placeholders in dialogue — do NOT improvise from scratch**), `docs/features/_feature_template.md`, `docs/features/_story_template.md`, `STORIES.md`, `tests/fakes/`, `src/core/`, `src/adapters/`, `.gitignore`, `README.md`, `opencode.json`
    - **Prohibitions:** No `mkdir`, no `git init`, no writing outside the injected target path. Never `git init` in your own cwd or in workspace root.
    - Use `scripts/worktree_setup.py` for any worktree operations (do NOT use `git worktree add` directly)
    - Then start requirements interview in German (architect)

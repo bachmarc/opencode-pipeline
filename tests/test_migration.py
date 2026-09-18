@@ -365,3 +365,143 @@ def test_design_has_decisions_table():
 
     assert has_decisions_header and has_d_rows, \
         "design.md must contain a Decisions table with D1-D13 decision rows"
+
+
+# === Prompt and command migration tests (Story 09-05) ===
+
+
+def test_qa_prompt_no_requirements_source_of_truth():
+    """qa-manager.md does not reference requirements.md as 'source of truth' for checking."""
+    qa_file = Path(__file__).parent.parent / "agent" / "qa-manager.md"
+    assert qa_file.exists(), "agent/qa-manager.md not found"
+
+    content = read_file_content(qa_file)
+
+    # Check that requirements.md is not mentioned as "source of truth" in the context of checking
+    # Pattern: "source of truth" + "requirements.md" in close proximity
+    has_bad_pattern = re.search(
+        r"source\s+of\s+truth.*requirements\.md|requirements\.md.*source\s+of\s+truth",
+        content,
+        re.IGNORECASE | re.DOTALL
+    )
+
+    assert not has_bad_pattern, \
+        "qa-manager.md must not reference requirements.md as 'source of truth' for checking"
+
+
+def test_developer_prompt_story_primary():
+    """developer.md references story file as primary source (not design.md)."""
+    dev_file = Path(__file__).parent.parent / "agent" / "developer.md"
+    assert dev_file.exists(), "agent/developer.md not found"
+
+    content = read_file_content(dev_file)
+
+    # Check for language indicating story file is primary
+    has_story_primary = re.search(
+        r"story\s+file.*primary|primary.*story\s+file",
+        content,
+        re.IGNORECASE
+    )
+
+    # Also check that design.md is mentioned as optional
+    has_optional_design = re.search(
+        r"[Oo]ptional.*design\.md|design\.md.*[Oo]ptional",
+        content
+    )
+
+    assert has_story_primary or has_optional_design, \
+        "developer.md must indicate story file is primary source and design.md is optional"
+
+
+def test_template_no_req_id_traceability():
+    """templates/AGENTS.md Workflow section does not mention REQ-XXX as traceability anchors."""
+    template_file = Path(__file__).parent.parent / "templates" / "AGENTS.md"
+    assert template_file.exists(), "templates/AGENTS.md not found"
+
+    content = read_file_content(template_file)
+
+    # Extract Workflow section
+    workflow_match = re.search(r"^##\s+Workflow\s*\n(.*?)(?=^##\s+|\Z)", content, re.MULTILINE | re.DOTALL)
+    assert workflow_match, "templates/AGENTS.md: Workflow section not found"
+
+    workflow_section = workflow_match.group(1)
+
+    # Check that REQ-XXX is not mentioned as traceability anchor
+    has_req_traceability = re.search(r"REQ-\w+.*traceability|traceability.*REQ-\w+", workflow_section, re.IGNORECASE)
+
+    assert not has_req_traceability, \
+        "templates/AGENTS.md Workflow section must not mention REQ-XXX as traceability anchors"
+
+
+def test_template_references_derived():
+    """templates/AGENTS.md References section describes requirements.md as derived summary."""
+    template_file = Path(__file__).parent.parent / "templates" / "AGENTS.md"
+    assert template_file.exists(), "templates/AGENTS.md not found"
+
+    content = read_file_content(template_file)
+
+    # Extract References section
+    references_match = re.search(r"^##\s+References\s*\n(.*?)(?=^##\s+|\Z)", content, re.MULTILINE | re.DOTALL)
+    assert references_match, "templates/AGENTS.md: References section not found"
+
+    references_section = references_match.group(1)
+
+    # Check for requirements.md line with "derived" or "summary"
+    req_line = re.search(r"`docs/requirements\.md`.*", references_section)
+    assert req_line, "templates/AGENTS.md References: requirements.md line not found"
+
+    req_text = req_line.group(0)
+    has_derived = "derived" in req_text.lower()
+    has_summary = "summary" in req_text.lower()
+
+    assert has_derived or has_summary, \
+        "templates/AGENTS.md References section must describe requirements.md as 'derived' or 'summary'"
+
+
+def test_agents_md_references_derived():
+    """AGENTS.md (root) References section describes requirements.md as derived summary."""
+    agents_file = Path(__file__).parent.parent / "AGENTS.md"
+    assert agents_file.exists(), "AGENTS.md not found"
+
+    content = read_file_content(agents_file)
+
+    # Extract References section
+    references_match = re.search(r"^##\s+References\s*\n(.*?)(?=^##\s+|\Z)", content, re.MULTILINE | re.DOTALL)
+    assert references_match, "AGENTS.md: References section not found"
+
+    references_section = references_match.group(1)
+
+    # Check for requirements.md line with "derived" or "summary"
+    req_line = re.search(r"`docs/requirements\.md`.*", references_section)
+    assert req_line, "AGENTS.md References: requirements.md line not found"
+
+    req_text = req_line.group(0)
+    has_derived = "derived" in req_text.lower()
+    has_summary = "summary" in req_text.lower()
+
+    assert has_derived or has_summary, \
+        "AGENTS.md References section must describe requirements.md as 'derived' or 'summary'"
+
+
+def test_commands_no_primary_requirements():
+    """Commands (decompose, requirements, new-project) do not instruct creating requirements.md as primary."""
+    command_files = [
+        Path(__file__).parent.parent / "command" / "decompose.md",
+        Path(__file__).parent.parent / "command" / "requirements.md",
+        Path(__file__).parent.parent / "command" / "new-project.md",
+    ]
+
+    for cmd_file in command_files:
+        assert cmd_file.exists(), f"{cmd_file.name} not found"
+
+        content = read_file_content(cmd_file)
+
+        # Check that requirements.md is not mentioned as primary source to create
+        # Pattern: "Create" + "requirements.md" as primary instruction
+        has_primary_req = re.search(
+            r"[Cc]reate\s+`docs/requirements\.md`\s*,\s*`docs/design\.md`",
+            content
+        )
+
+        assert not has_primary_req, \
+            f"{cmd_file.name}: Must not instruct creating requirements.md as primary source"
