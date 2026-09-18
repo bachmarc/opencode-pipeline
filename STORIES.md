@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -45,6 +45,13 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | **09-05-migrate-prompts-commands** | **Update QA/dev prompts + commands + AGENTS.md template** | **Done (QA PASS, 2394a20)** | **F-006 doc-model-migration** |
 | **09-06-migrate-scripts-tests** | **Update scripts + tests for new model** | **Done (QA PASS, 4e285f2)** | **F-006 doc-model-migration** |
 | **10-01-remove-legacy-stories-dir** | **Remove legacy `docs/stories/` directory** | **Done (QA PASS, 5230bd1)** | **F-004 pipeline-evolution** |
+| 11-01-plugin-scaffold | Plugin scaffold and infrastructure | Planned | F-007 pipeline-enforcement |
+| 11-02-merge-guard | Merge guard (block without QA-PASS) | Planned | F-007 pipeline-enforcement |
+| 11-03-dev-start-guard | Dev-start guard (warn without story) | Planned | F-007 pipeline-enforcement |
+| 11-04-architect-code-guard | Architect code guard (interactive housekeeping) | Planned | F-007 pipeline-enforcement |
+| 11-05-story-status-guard | Story status guard (warn after merge) | Planned | F-007 pipeline-enforcement |
+| 11-06-prompt-integration | Prompt integration and documentation | Planned | F-007 pipeline-enforcement |
+| 11-07-session-recovery-guard | Session recovery guard (block on session start) | Planned | F-007 pipeline-enforcement |
 
 ## Phase comments
 
@@ -74,3 +81,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   - Wave 1 (09-01, 09-02): Features + Stories files (parallel, data only)
   - Wave 2 (09-03, 09-04): Indexes + Summaries (parallel, depend on migrated data)
   - Wave 3 (09-05, 09-06): Prompts/Commands + Scripts/Tests (parallel, depend on summaries)
+- **Phase 11 (Pipeline Enforcement):** TypeScript opencode plugin for deterministic process
+  enforcement. 7 stories in 3 waves:
+  - Wave 1 (11-01): Plugin scaffold — infrastructure, guard registry
+  - Wave 2 (11-02, 11-03, 11-04, 11-05, 11-07): All 5 guards parallel — isolated modules
+  - Wave 3 (11-06): Prompt integration — documentation updates
