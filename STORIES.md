@@ -23,12 +23,12 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **06-01-feature-hierarchy** | **Feature→Story file structure + migration** | **Done (QA PASS, bf492fc)** | **REQ-009 → Design §9** |
 | **06-02-pipeline-dir-intent** | **.pipeline/ directory + intent tracking script** | **Done (QA PASS, 578be32)** | **REQ-011 → Design §11** |
 | **06-03-release-branch** | **Release branch setup + promote script** | **Done (QA PASS, 3ce3a89)** | **REQ-001a → Design §1** |
-| **06-04-worktree-setup** | **Deterministic worktree/branch setup script** | **Planned** | **REQ-013.1 → Design §13** |
-| **06-05-pipeline-status** | **Pipeline status aggregation script** | **Planned** | **REQ-013.2 → Design §13** |
-| **06-06-story-management** | **Story resolve/create/status-update scripts** | **Planned** | **REQ-013.6,7,10 → Design §13** |
-| **06-07-scaffold-project** | **Deterministic project scaffolding script** | **Planned** | **REQ-013.3 → Design §13** |
-| **06-08-session-recovery** | **Session recovery script (full state scan)** | **Planned** | **REQ-011 → Design §11** |
-| **06-09-feature-claim** | **Feature claim/release script (multi-user)** | **Planned** | **REQ-010 → Design §10** |
+| **06-04-worktree-setup** | **Deterministic worktree/branch setup script** | **Done (QA PASS, 1544279)** | **REQ-013.1 → Design §13** |
+| **06-05-pipeline-status** | **Pipeline status aggregation script** | **Done (QA PASS, 17cf54d)** | **REQ-013.2 → Design §13** |
+| **06-06-story-management** | **Story resolve/create/status-update scripts** | **Done (QA PASS, 80338ff)** | **REQ-013.6,7,10 → Design §13** |
+| **06-07-scaffold-project** | **Deterministic project scaffolding script** | **Done (QA PASS, 2e0586b)** | **REQ-013.3 → Design §13** |
+| **06-08-session-recovery** | **Session recovery script (full state scan)** | **Done (QA PASS, 762411d)** | **REQ-011 → Design §11** |
+| **06-09-feature-claim** | **Feature claim/release script (multi-user)** | **Done (QA PASS, b85e49c)** | **REQ-010 → Design §10** |
 | **06-10-documenter-agent** | **Documenter agent + /document command** | **Planned** | **REQ-012 → Design §12** |
 | **06-11-qa-scripts** | **QA routing, commit metadata, merge validation** | **Planned** | **REQ-013.5,8,9 → Design §13** |
 | **06-12-prompt-updates** | **Agent prompts: script integration + recovery** | **Planned** | **REQ-013, NFR-004 → Design §13** |
