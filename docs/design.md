@@ -2,22 +2,33 @@
 
 **Status:** Draft for review · Traceability: REQ-IDs referenced per section.
 
-## 1. Two-clone topology (REQ-001, REQ-005)
+## 1. Two-clone topology (REQ-001, REQ-001a, REQ-005)
 
 ```
 github.com:bachmarc/opencode-pipeline.git
         │
+        ├── main branch                              development line
+        │     - features merge here after QA-PASS
+        │     - may be unstable between milestones
+        │
+        ├── release branch                           stable / deployable
+        │     - promoted from main (conscious step)
+        │     - always a known-good state
+        │
         ├── /mnt/content_main/Development/opencode-pipeline   DEV clone
         │     - full pipeline workflow: stories, branches, worktrees, QA gate
         │     - pytest self-checks run here
+        │     - tracks main (and feature branches)
         │
         └── ~/.config/opencode                                 LIVE clone
-              - read-only: git pull (main, after QA-PASS merges) + opencode restart
+              - read-only: git pull release + opencode restart
               - gitignored local state stays untouched: opencode.jsonc, cron.db
 ```
 
-Deployment is manual and staged: after a QA-PASS merge to `main`, the user pulls in the
-live clone and restarts opencode. The live clone's working tree must never be edited.
+Deployment is manual and staged: after promoting `main` → `release`, the user pulls
+`release` in the live clone and restarts opencode. The live clone's working tree must
+never be edited. The promotion `main` → `release` is a fast-forward merge or reset,
+only done when the user considers `main` stable enough for production use.
 
 ## 2. Retro traceability (REQ-002)
 
@@ -67,9 +78,14 @@ deletion or restructuring fails QA.
 | # | Decision | Reason |
 |---|---|---|
 | D1 | No CI yet | local pytest + QA gate is the contract; CI later |
-| D2 | Live clone stays manual | the framework steers the running agent — staged rollout beats automation |
+| D2 | Live clone pulls `release`, not `main` | `main` is dev line (may be unstable); `release` = conscious stable promotion |
 | D3 | All portable files English | international team; dialogue language per project |
 | D4 | Self-checks read the repo only | zero infra, deterministic, cheap-model-evaluable |
+| D5 | Scripts over LLM free-hand | Anything requiring atomicity, state, format consistency, or concurrency → deterministic script; LLM calls script + interprets result |
+| D6 | Feature = work unit per user/session | Stories are implementation slices; features are the planning/claiming/merging unit |
+| D7 | Claim = script + branch + status file | No LLM-managed concurrency; `feature_claim.py` handles atomic claim/release |
+| D8 | Intent file for session recovery | `.pipeline/intent.json` is the single re-entry point after crash/disconnect |
+| D9 | Documenter on cheap model | Documentation consistency is repetitive reconciliation, not creative reasoning |
 
 ## 8. English-first portable files (REQ-007, NFR-001)
 
@@ -98,3 +114,262 @@ code examples, and JSON structures verbatim. Only natural-language prose is tran
 **Test impact:** `test_framework.py` check 3 already accepts English section markers
 (`## Languages`, `## Prohibitions`). No test changes needed for the translation itself.
 The self-check for model names (check 2) scans the translated files identically.
+
+## 9. Feature → Story hierarchy (REQ-009)
+
+### File-system layout
+
+```
+docs/
+  features/
+    <feature-name>/
+      feature.md          # scope, status, traceability (REQ-ID), claim info
+      stories/
+        <phase>-<id>-<slug>.md   # individual story (same format as today)
+FEATURES.md               # top-level index: feature | status | owner | stories
+```
+
+**`feature.md` fields:**
+
+```yaml
+---
+id: F-001
+title: Session Resilience
+status: planned | claimed | in-progress | qa-pending | done
+owner: ""                    # user@host when claimed
+req: [REQ-011]
+---
+## Scope
+...
+## Stories
+- 06-01-intent-tracking (planned)
+- 06-02-recovery-script (planned)
+```
+
+**`FEATURES.md`** is a flat index (like today's `STORIES.md`) for quick overview:
+
+```
+| Feature | Title | Status | Owner | Stories | Traceability |
+|---------|-------|--------|-------|---------|--------------|
+| F-001   | ...   | planned | —    | 06-01, 06-02 | REQ-011 |
+```
+
+**Status derivation:** A feature's status is the minimum of its stories' statuses
+(all done → feature done; any in-progress → feature in-progress; any planned → not done).
+
+**Migration:** Existing `STORIES.md` entries and `docs/stories/` files are migrated into
+the new hierarchy. `STORIES.md` becomes `FEATURES.md`. Old story paths redirect or are
+moved.
+
+### Machine access pattern
+
+Agents resolve state by:
+1. Read `FEATURES.md` for overview (O(1) file read)
+2. Read `docs/features/<name>/feature.md` for detail (O(1))
+3. Read `docs/features/<name>/stories/<id>.md` for story specifics (O(1))
+
+No parsing of large aggregated files; each level is a single predictable path.
+
+## 10. Multi-user feature isolation (REQ-010)
+
+### Claim lifecycle
+
+```
+planned ──claim──► claimed (user@host, timestamp)
+                      │
+                      ├──work──► in-progress
+                      │              │
+                      │              ├──qa-pass──► done
+                      │              └──release──► planned (stale/abort)
+                      │
+                      └──release──► planned
+```
+
+### `scripts/feature_claim.py`
+
+```
+feature_claim.py claim <feature-name>     # pull → check → write status → commit → push
+feature_claim.py release <feature-name>   # reset status → commit → push
+feature_claim.py status                   # list all features with claim state (JSON)
+feature_claim.py check-stale [--hours 24] # find claims older than threshold
+```
+
+**Atomicity:** The script does `git pull --rebase` before writing, then `commit + push`.
+If push fails (concurrent edit), it retries (pull + re-check + push, max 3 attempts).
+If the feature is already claimed by someone else, exit code 1 + error JSON.
+
+**Branch signal:** `feature_claim.py claim` also creates the `feature/<name>` branch
+if it doesn't exist. The branch's existence on the remote is a secondary claim signal
+visible in GitHub.
+
+### Agent integration
+
+- Architect calls `feature_claim.py status` to see what's available.
+- Developer calls `feature_claim.py claim <name>` before starting work.
+- On merge or abort: `feature_claim.py release <name>`.
+- Agents never edit `feature.md` status fields directly.
+
+## 11. Session resilience / recovery (REQ-011)
+
+### Intent tracking
+
+`.pipeline/intent.json`:
+```json
+{
+  "story_id": "06-01",
+  "feature": "session-resilience",
+  "agent": "developer",
+  "step": "implement tests for intent tracking",
+  "worktree": ".worktrees/06-01-intent-tracking",
+  "branch": "feature/06-01-intent-tracking",
+  "started_at": "2026-09-18T10:30:00Z",
+  "done": false
+}
+```
+
+**Write discipline:** The responsible agent writes the intent BEFORE starting the action.
+On completion, sets `"done": true`. History is appended (JSON-lines or array) so the full
+trail is visible.
+
+### `scripts/session_recovery.py`
+
+Runs at session start (triggered by agent prompt instruction). Collects:
+
+```json
+{
+  "open_intents": [...],
+  "worktrees": [
+    {
+      "path": ".worktrees/06-01-intent-tracking",
+      "branch": "feature/06-01-intent-tracking",
+      "uncommitted_files": ["tests/test_intent.py"],
+      "staged_files": [],
+      "merge_conflicts": false,
+      "detached_head": false
+    }
+  ],
+  "main_state": {
+    "ahead": 0, "behind": 2, "dirty": false
+  },
+  "qa_state": {
+    "06-01": {"last_verdict": "FAIL", "fail_count": 1, "design_fix_count": 0}
+  },
+  "feature_claims": [
+    {"feature": "session-resilience", "owner": "user@host", "since": "..."}
+  ]
+}
+```
+
+The agent prompt for architect/developer/qa-manager includes an instruction:
+> "At session start, run `scripts/session_recovery.py`. If open intents or dirty worktrees
+> exist, present the recovery summary to the user BEFORE doing anything else."
+
+### Worktree recovery
+
+The recovery script specifically handles the scenario described in the requirements
+discussion: developer subagents created worktrees with half-finished changes, then the
+session died. The script:
+1. Lists all `.worktrees/` entries
+2. For each: checks `git status`, `git log --oneline -3`, staged/unstaged changes
+3. Reports whether the worktree's branch was pushed to remote
+4. The agent can then offer: continue work, stash + park, or discard
+
+## 12. Documenter agent (REQ-012)
+
+### Role definition
+
+```yaml
+# agent/documenter.md (frontmatter)
+---
+description: "Documentation consistency agent on cheap model. Reconciles docs, README,
+  docstrings, and comments against actual code state. Runs after QA-PASS (before merge)
+  and on manual /document command."
+mode: subagent
+temperature: 0.2
+---
+```
+
+### Trigger integration
+
+**Automatic (after QA-PASS):**
+The QA-Manager prompt includes: "On PASS verdict, before signaling merge-ready to
+Architect, spawn `documenter` with the feature branch diff as context."
+
+**Manual:**
+`command/document.md` — user invokes `/document [feature-name|story-id]`.
+
+### Documenter workflow
+
+1. Receive git diff (from QA-Manager or `/document` command)
+2. Read affected source files + current `docs/` state
+3. Check and update:
+   - README sections that reference changed functionality
+   - `docs/design.md` sections affected by the change
+   - Docstrings / method headers in changed files
+   - Remove stale comments that reference old behavior
+   - Feature/story docs: ensure status fields are current
+4. Commit documentation changes on the same branch
+5. Report what was updated (compact summary)
+
+### Boundary: what the Documenter does NOT do
+
+- Does not make architecture decisions (that's the Architect)
+- Does not write new code (that's the Developer)
+- Does not judge correctness (that's QA)
+- Does not invent documentation for unchanged code
+- Relies on Architect/Developer/QA having done their work — synthesizes, doesn't create
+
+## 13. Deterministic pipeline scripts (REQ-013, NFR-004)
+
+### Design principle
+
+```
+┌─────────────┐     calls      ┌──────────────────┐     reads/writes     ┌──────────┐
+│  LLM Agent  │ ──────────────►│  scripts/*.py     │ ───────────────────► │ Git / FS │
+│  (reasoning,│     exit code  │  (deterministic,  │                      │          │
+│   dialogue) │ ◄──────────────│   atomic, tested) │ ◄─────────────────── │          │
+└─────────────┘     + JSON     └──────────────────┘      file state       └──────────┘
+```
+
+**Agents call scripts via shell.** Scripts output JSON to stdout (machine-readable) and
+human-readable summaries to stderr. Exit code 0 = success, non-zero = specific error.
+Agents parse stdout JSON; they never grep/sed/awk the repo state themselves.
+
+### Script inventory
+
+| Script | REQ | Input | Output | Called by |
+|--------|-----|-------|--------|----------|
+| `worktree_setup.py` | REQ-013.1 | story-id | worktree path (JSON) | Architect |
+| `pipeline_status.py` | REQ-013.2 | — | full state JSON | QA-Manager, Architect |
+| `scaffold_project.py` | REQ-013.3 | target-path | created files list | Architect |
+| `feature_claim.py` | REQ-010 | claim/release/status | claim state JSON | All agents |
+| `session_recovery.py` | REQ-011 | — | recovery state JSON | All agents (session start) |
+| `prepare_commit_metadata.py` | REQ-013.5 | — (reads git diff) | commit msg template | Developer |
+| `resolve_story.py` | REQ-013.6 | story-id or branch | story metadata JSON | All agents |
+| `story_status.py` | REQ-013.7 | story-id, new-status | updated file path | Architect, QA |
+| `qa_route.py` | REQ-013.8 | story-id, verdict | next agent + context JSON | QA-Manager |
+| `merge_if_passed.py` | REQ-013.9 | branch | merge result | Architect |
+| `create_story.py` | REQ-013.10 | phase, slug, req-id | story file path | Architect |
+| `check_template_constancy.py` | REQ-013.11 | project AGENTS.md path | diff/PASS/FAIL | QA-Manager |
+
+### `.pipeline/` directory
+
+All mutable pipeline state lives under `.pipeline/` (gitignored for local-only state,
+or tracked for shared state):
+
+```
+.pipeline/
+  intent.json          # current/last intent (REQ-011) — tracked in git
+  qa-state/            # per-story QA verdict history — tracked in git
+    <story-id>.json
+  config.json          # pipeline config overrides (optional) — gitignored
+```
+
+**Tracked vs. gitignored:** `intent.json` and `qa-state/` are committed so other sessions
+(multi-user) can see the pipeline state. `config.json` is local.
+
+### Testing
+
+All scripts are tested in `tests/` with pytest. Tests use the repo's own files or
+`tmp_path` fixtures. Scripts are pure (no network calls except git push/pull, which is
+mocked in tests). This extends the existing self-check pattern (REQ-003, REQ-004).
