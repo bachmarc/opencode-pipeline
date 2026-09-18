@@ -59,7 +59,7 @@ Documented in README (§ Deployment): `git pull` in `~/.config/opencode` + resta
 
 **Reference:** F-001 Foundation
 
-`templates/AGENTS.md` sections Workflow / Git conventions / Languages / Prohibitions are the binding interface. The self-check (§ Self-Check Architecture, check 3) asserts their presence so accidental deletion or restructuring fails QA.
+`templates/AGENTS.md` sections Workflow / Git conventions / Languages / Prohibitions are the binding interface. The constant sections are **runner-agnostic**: they reference "the configured test suite / configured checkers" instead of concrete runner names (**BREAKING**, accepted — existing projects must re-sync their AGENTS.md via the 12-09 migration tool). The self-check (§ Self-Check Architecture, check 3) asserts their presence so accidental deletion or restructuring fails QA. See story 12-08-template-scaffold-config.
 
 ### Versioning
 
@@ -298,7 +298,7 @@ The QA-Manager prompt includes: "On PASS verdict, before signaling merge-ready t
 |--------|---------|-------|--------|----------|
 | `worktree_setup.py` | F-004 | story-id | worktree path (JSON) | Architect |
 | `pipeline_status.py` | F-004 | — | full state JSON | QA-Manager, Architect |
-| `scaffold_project.py` | F-004 | target-path | created files list | Architect |
+| `scaffold_project.py` | F-004 | target-path, `--stack` | created files list (incl. `qa_config.json`) | Architect |
 | `feature_claim.py` | F-004 | claim/release/status | claim state JSON | All agents |
 | `session_recovery.py` | F-004 | — | recovery state JSON | All agents (session start) |
 | `prepare_commit_metadata.py` | F-004 | — (reads git diff, `qa_config.json`) | commit msg template | Developer |
@@ -322,6 +322,8 @@ All mutable pipeline state lives under `.pipeline/` (gitignored for local-only s
 ```
 
 **Tracked vs. gitignored:** `intent.json` and `qa-state/` are committed so other sessions (multi-user) can see the pipeline state. `config.json` is local.
+
+**Project check config:** Each project declares its checker stack in a root-level `qa_config.json` (e.g. this repo dogfoods `{"checkers": ["pytest", "yaml"]}`); `scaffold_project.py` creates it via the `--stack` flag and the qa_compress checker registry resolves the declared checkers. See story 12-08-template-scaffold-config.
 
 #### Testing
 

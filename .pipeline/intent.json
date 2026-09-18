@@ -33,6 +33,15 @@
       "done": true,
       "worktree": ".worktrees/12-07-prompt-genericization",
       "branch": "feature/12-07-prompt-genericization"
+    },
+    {
+      "story_id": "12-08",
+      "agent": "developer",
+      "step": "writing tests (red-first)",
+      "started_at": "2026-09-18T19:36:18.662087+00:00",
+      "done": true,
+      "worktree": ".worktrees/12-08-template-scaffold-config",
+      "branch": "feature/12-08-template-scaffold-config"
     }
   ]
 }

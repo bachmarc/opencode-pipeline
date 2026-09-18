@@ -12,12 +12,14 @@ import sys
 from pathlib import Path
 
 
-def scaffold_project(target_path: str, project_name: str | None = None) -> int:
+def scaffold_project(target_path: str, project_name: str | None = None, stack: str = "python") -> int:
     """Scaffold a new project at target_path.
     
     Args:
         target_path: Path where to create the project
         project_name: Optional project name (defaults to directory name)
+        stack: Stack hint (python|ruby|javascript|java|mixed) — determines
+               the created directory set (deterministic, no stack guessing)
     
     Returns:
         0 on success
@@ -54,16 +56,17 @@ def scaffold_project(target_path: str, project_name: str | None = None) -> int:
             check=False  # May fail if already on main
         )
     
-    # Create directories
-    directories = [
-        "docs",
-        "docs/features",
-        "tests",
-        "tests/fakes",
-        "src/core",
-        "src/adapters",
-        ".pipeline"
-    ]
+    # Create directories — stack-aware, deterministic (no stack guessing)
+    stack_dirs = {
+        "python": ["docs", "docs/features", "tests", "tests/fakes", "src/core", "src/adapters"],
+        "ruby": ["docs", "docs/features", "spec", "src"],
+        "javascript": ["docs", "docs/features", "test", "src"],
+        "java": ["docs", "docs/features", "src/test", "src/main"],
+        "mixed": ["docs", "docs/features", "src", "tests"],
+    }
+    if stack not in stack_dirs:
+        raise ValueError(f"unknown stack: {stack} (expected one of {sorted(stack_dirs)})")
+    directories = stack_dirs[stack] + [".pipeline"]
     
     created_files = []
     
@@ -107,6 +110,13 @@ def scaffold_project(target_path: str, project_name: str | None = None) -> int:
             file_path.write_text(content)
             created_files.append(str(file_path.relative_to(target)))
     
+    # Create qa_config.json (default checkers — architect/user adapts per project stack)
+    qa_config_file = target / "qa_config.json"
+    if not qa_config_file.exists():
+        qa_config = {"checkers": ["pytest"]}
+        qa_config_file.write_text(json.dumps(qa_config, indent=2) + "\n")
+        created_files.append(str(qa_config_file.relative_to(target)))
+
     # Create .pipeline/intent.json
     intent_file = target / ".pipeline" / "intent.json"
     intent_file.parent.mkdir(parents=True, exist_ok=True)
@@ -140,10 +150,16 @@ def main():
         "--name",
         help="Project name (defaults to directory name)"
     )
+    parser.add_argument(
+        "--stack",
+        choices=["python", "ruby", "javascript", "java", "mixed"],
+        default="python",
+        help="Stack hint deciding the directory layout (default: python)"
+    )
     
     args = parser.parse_args()
     
-    exit_code = scaffold_project(args.target_path, args.name)
+    exit_code = scaffold_project(args.target_path, args.name, args.stack)
     sys.exit(exit_code)
 
 

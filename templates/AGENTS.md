@@ -8,7 +8,7 @@
 ## This project: <Name, one-liner>
 
 - **What:** <1-2 sentences: problem, target audience, scope — from `docs/requirements.md`>
-- **Stack:** <e.g. Python 3.12, FastAPI + uvicorn, static HTML/JS frontend, Docker>
+- **Stack:** `<...>`, test stack: `<runner>` — declared in qa_config.json (checkers list)
 - **Versioning:** `APP_VERSION = "0.1.0"` (in `src/<version>.py` or similar) — bump on every merge
 
 ## Core rules (project source of truth: feature files + story files)
@@ -16,6 +16,7 @@
 - <Core rule 1 — e.g. "`src/core/board.py` (`PostBoard`) knows nothing of FastAPI, HTTP, or clocks. Time comes as a parameter (`now`).">
 - <Core rule 2 — e.g. "RAM-only: no persistence, no auto-clear timers.">
 - <… more, taken from `docs/design.md` § core decisions>
+- The project's `qa_config.json` declares the QA checkers; missing file → pytest default.
 - **Fake requirement:** For EVERY external dependency (`<API>`, `<DB>`, `<HA>`, …) there exists a fake in `tests/fakes/` — tests run without real systems.
 
 ## Architecture: function vs connectivity
@@ -50,11 +51,11 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 - **No direct push to `main`.** Merge only after QA gate (PASS).
 - **Merge lock without QA:** Architect may execute `git merge` on `main`/`master` **exclusively**
   when the QA manager has returned an explicit `PASS` for exactly this branch. Use `scripts/merge_if_passed.py`.
-  No merge on "tests are green" alone — QA checks more than pytest (architecture, targets, commit metadata).
+  No merge on "tests are green" alone — QA checks more than the test suite (architecture, targets, commit metadata).
   If QA was skipped, the merge is invalid.
 - Commit body contains metadata for QA requeue:
    ```
-   symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <pytest result>
+   symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <test suite result>
    ```
 
 ## Workflow
@@ -74,7 +75,7 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
    Every story is self-contained (context, requirements, acceptance criteria, targets, tests) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
 3. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
-   Write tests first, `pytest` must be green.
+   Write tests first, the project's configured test suite must be green.
 4. **QA gate (MANDATORY before every merge)**: Architect spawns `qa-manager` for every
    feature branch **before** merging. QA checks: requirements, tests, architecture separation,
    fake usage, commit metadata. Result:
