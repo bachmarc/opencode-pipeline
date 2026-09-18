@@ -330,7 +330,7 @@ def build_status_json(
             "title": feature.get("title", ""),
             "status": feature_status,
             "owner": feature.get("owner", ""),
-            "req": feature.get("req", []),
+            "req": feature.get("req", []),  # Empty list if req: field is missing
             "story_count": len(stories),
         }
         

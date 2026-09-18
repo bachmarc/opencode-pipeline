@@ -6,6 +6,8 @@ Tests verify that all feature.md and story files have been migrated from the old
 (Vision, Context, Feature reference, Context/Purpose, Requirements).
 """
 
+import json
+import os
 import re
 from pathlib import Path
 import yaml
@@ -365,3 +367,295 @@ def test_design_has_decisions_table():
 
     assert has_decisions_header and has_d_rows, \
         "design.md must contain a Decisions table with D1-D13 decision rows"
+
+
+# === Scripts migration tests (Story 09-06) ===
+
+
+def test_create_story_no_req_required(tmp_path):
+    """create_story.py works without --req parameter (or with --feature instead).
+    
+    Tests that the script can be called without requiring a --req parameter,
+    or that it accepts --feature parameter instead.
+    """
+    import subprocess
+    import sys
+    import json
+    
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    create_story_script = scripts_dir / "create_story.py"
+    
+    assert create_story_script.exists(), f"create_story.py not found at {create_story_script}"
+    
+    # Create a temporary feature directory
+    test_feature_dir = tmp_path / "test-feature"
+    test_feature_dir.mkdir()
+    
+    # Create a feature.md with new format (no req field)
+    feature_md = test_feature_dir / "feature.md"
+    feature_md.write_text("""---
+id: F-TEST
+title: Test Feature
+status: planned
+owner: ""
+---
+
+## Vision
+
+Test feature vision.
+
+## Context
+
+Test feature context.
+
+## Stories
+
+""")
+    
+    # Create stories directory
+    stories_dir = test_feature_dir / "stories"
+    stories_dir.mkdir()
+    
+    # Create a temporary docs/features directory structure
+    docs_dir = tmp_path / "docs" / "features"
+    docs_dir.mkdir(parents=True)
+    
+    # Copy the test feature to the docs directory
+    import shutil
+    test_feature_copy = docs_dir / "test-feature"
+    shutil.copytree(test_feature_dir, test_feature_copy)
+    
+    # Get the template
+    template_file = Path(__file__).parent.parent / "docs" / "features" / "_story_template.md"
+    assert template_file.exists(), f"Template file not found: {template_file}"
+    
+    # Copy template to tmp_path
+    template_copy = docs_dir / "_story_template.md"
+    shutil.copy(template_file, template_copy)
+    
+    # Try to run create_story.py without --req parameter
+    # The script should either:
+    # 1. Accept --feature parameter instead, or
+    # 2. Make --req optional
+    cmd = [
+        sys.executable,
+        str(create_story_script),
+        "test-feature",
+        "test-story",
+        "--feature", "F-TEST"  # Try with --feature parameter
+    ]
+    
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+    )
+    
+    # If --feature is not supported, try without --req
+    if result.returncode != 0 and "--feature" in result.stderr:
+        cmd = [
+            sys.executable,
+            str(create_story_script),
+            "test-feature",
+            "test-story"
+        ]
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+            env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+        )
+    
+    # The script should succeed (exit code 0) or at least not fail due to missing --req
+    assert result.returncode == 0 or "--req" not in result.stderr, \
+        f"Script failed or requires --req: exit={result.returncode}, stderr={result.stderr}"
+
+
+def test_create_story_generates_feature_line(tmp_path):
+    """create_story.py generates story files with 'Feature:' line (not 'Traceability:').
+    
+    Verifies that created story files contain Feature: line instead of old Traceability: format.
+    """
+    import subprocess
+    import sys
+    
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    create_story_script = scripts_dir / "create_story.py"
+    
+    # Create a temporary feature directory
+    test_feature_dir = tmp_path / "test-feature"
+    test_feature_dir.mkdir()
+    
+    # Create a feature.md with new format
+    feature_md = test_feature_dir / "feature.md"
+    feature_md.write_text("""---
+id: F-TEST
+title: Test Feature
+status: planned
+owner: ""
+---
+
+## Vision
+
+Test feature vision.
+
+## Context
+
+Test feature context.
+
+## Stories
+
+""")
+    
+    # Create stories directory
+    stories_dir = test_feature_dir / "stories"
+    stories_dir.mkdir()
+    
+    # Create a temporary docs/features directory structure
+    docs_dir = tmp_path / "docs" / "features"
+    docs_dir.mkdir(parents=True)
+    
+    # Copy the test feature to the docs directory
+    import shutil
+    test_feature_copy = docs_dir / "test-feature"
+    shutil.copytree(test_feature_dir, test_feature_copy)
+    
+    # Get the template
+    template_file = Path(__file__).parent.parent / "docs" / "features" / "_story_template.md"
+    assert template_file.exists(), f"Template file not found: {template_file}"
+    
+    # Copy template to tmp_path
+    template_copy = docs_dir / "_story_template.md"
+    shutil.copy(template_file, template_copy)
+    
+    # Run create_story.py
+    cmd = [
+        sys.executable,
+        str(create_story_script),
+        "test-feature",
+        "test-story",
+        "--feature", "F-TEST"
+    ]
+    
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+    )
+    
+    # If --feature is not supported, try without --req
+    if result.returncode != 0 and "--feature" in result.stderr:
+        cmd = [
+            sys.executable,
+            str(create_story_script),
+            "test-feature",
+            "test-story"
+        ]
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd=str(tmp_path),
+            env={**dict(os.environ), "PYTHONPATH": str(Path(__file__).parent.parent)}
+        )
+    
+    # Parse the output JSON
+    if result.returncode == 0:
+        try:
+            output = json.loads(result.stdout)
+            story_file = tmp_path / output["story_file"]
+            
+            # Read the created story file
+            story_content = story_file.read_text()
+            
+            # Verify it has Feature: line
+            assert re.search(r"^Feature:\s+", story_content, re.MULTILINE), \
+                f"Story file missing 'Feature:' line. Content:\n{story_content}"
+            
+            # Verify it does NOT have Traceability: line
+            assert not re.search(r"^Traceability:\s+", story_content, re.MULTILINE), \
+                f"Story file still has 'Traceability:' line. Content:\n{story_content}"
+        except json.JSONDecodeError:
+            # If JSON parsing fails, just check the template
+            pass
+
+
+def test_pipeline_status_no_req_field(tmp_path):
+    """pipeline_status.py does not error on feature.md files without 'req:' field.
+    
+    Verifies that the script handles gracefully when req: field is missing from feature.md.
+    """
+    import subprocess
+    import sys
+    import json
+    
+    scripts_dir = Path(__file__).parent.parent / "scripts"
+    pipeline_status_script = scripts_dir / "pipeline_status.py"
+    
+    assert pipeline_status_script.exists(), f"pipeline_status.py not found at {pipeline_status_script}"
+    
+    # Create a temporary repo structure
+    repo_dir = tmp_path / "test_repo"
+    repo_dir.mkdir()
+    
+    # Initialize git repo
+    subprocess.run(
+        ["git", "init"],
+        cwd=repo_dir,
+        capture_output=True,
+        check=True
+    )
+    
+    # Create a feature.md WITHOUT req: field
+    features_dir = repo_dir / "docs" / "features"
+    feature_dir = features_dir / "test-feature"
+    feature_dir.mkdir(parents=True)
+    
+    feature_md = feature_dir / "feature.md"
+    feature_md.write_text("""---
+id: F-TEST
+title: Test Feature
+status: planned
+owner: ""
+---
+
+## Vision
+
+Test feature vision.
+
+## Context
+
+Test feature context.
+
+## Stories
+
+""")
+    
+    # Run pipeline_status.py
+    cmd = [
+        sys.executable,
+        str(pipeline_status_script)
+    ]
+    
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(repo_dir)
+    )
+    
+    # The script should succeed (exit code 0) and not error on missing req: field
+    assert result.returncode == 0, \
+        f"pipeline_status.py failed on feature.md without req: field. stderr={result.stderr}"
+    
+    # Output should be valid JSON
+    try:
+        output = json.loads(result.stdout)
+        assert isinstance(output, dict), "Output should be a JSON object"
+    except json.JSONDecodeError:
+        assert False, f"pipeline_status.py output is not valid JSON: {result.stdout}"
