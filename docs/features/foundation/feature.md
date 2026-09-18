@@ -3,17 +3,20 @@ id: F-001
 title: Foundation
 status: done
 owner: ""
-req: [REQ-001, REQ-002, REQ-003, REQ-004, REQ-005]
+req: []
 ---
 
-## Scope
+## Vision
 
-Repository hygiene, documentation, and self-check framework:
-- Dev-repo AGENTS.md + docs + story index
-- Retroactive traceability in STORIES.md
-- Framework self-checks (test_framework.py)
-- Deployment procedure documentation
-- Versioning (APP_VERSION.py)
+The repository has AGENTS.md, comprehensive docs structure, self-checks, deployment
+procedure, and versioning in place. The pipeline repo is fully dogfooted with its own
+documentation model and framework.
+
+## Context
+
+The pipeline repo needed its own dogfooted structure to serve as a reference implementation.
+Foundation establishes the repository hygiene, documentation framework, and self-check
+infrastructure that the pipeline itself uses.
 
 ## Stories
 
