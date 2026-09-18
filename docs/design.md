@@ -298,7 +298,7 @@ The QA-Manager prompt includes: "On PASS verdict, before signaling merge-ready t
 | `scaffold_project.py` | F-004 | target-path | created files list | Architect |
 | `feature_claim.py` | F-004 | claim/release/status | claim state JSON | All agents |
 | `session_recovery.py` | F-004 | — | recovery state JSON | All agents (session start) |
-| `prepare_commit_metadata.py` | F-004 | — (reads git diff) | commit msg template | Developer |
+| `prepare_commit_metadata.py` | F-004 | — (reads git diff, `qa_config.json`) | commit msg template | Developer |
 | `resolve_story.py` | F-004 | story-id or branch | story metadata JSON | All agents |
 | `story_status.py` | F-004 | story-id, new-status | updated file path | Architect, QA |
 | `qa_route.py` | F-004 | story-id, verdict | next agent + context JSON | QA-Manager |
@@ -323,6 +323,16 @@ All mutable pipeline state lives under `.pipeline/` (gitignored for local-only s
 #### Testing
 
 All scripts are tested in `tests/` with pytest. Tests use the repo's own files or `tmp_path` fixtures. Scripts are pure (no network calls except git push/pull, which is mocked in tests). This extends the existing self-check pattern (F-001 Foundation).
+
+#### Commit metadata runner abstraction
+
+**Reference:** F-004 Pipeline Evolution, story 12-06-commit-metadata-polyglot
+
+`scripts/prepare_commit_metadata.py` is runner-agnostic (config-driven, mirroring the qa_compress checker-registry contract):
+
+- **Test command:** Read from `qa_config.json` (`checkers` list → resolved via the checker registry); no hardcoded runner name.
+- **Language-aware extraction:** `symbols:` and `affects:` are extracted per file suffix — Python (def/class), JS/TS (function/class/export), Bash (function defs), Ruby (def), Java (class/interface). Dependent-file detection uses per-language import/include patterns.
+- Unknown suffixes fall back to filename-only extraction.
 
 ### Orchestration Principles
 
