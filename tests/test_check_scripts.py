@@ -116,7 +116,7 @@ def test_template_constancy_fail(tmp_path):
       user go** ("passt"/"go"). Feedback flows back into planning (loop).
    3. **Only then:** dev + QA per approved plan.
    - Applies to "small" changes and bugfix loops too — no implicit starts.
-2. **Stories**: `STORIES.md` (index) + `docs/stories/<phase>-<id>-<slug>.md`.
+2. **Stories**: `STORIES.md` (index) + `docs/features/<name>/stories/<id>-<slug>.md`.
    Every story links traceability (`REQ-XXX` + design section) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
 3. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
