@@ -70,7 +70,7 @@ documented per-machine configuration, with the reasoning-budget rationale per ro
 - `docs/design.md` README-Structure section mentions the reasoning depth axis.
 - `pytest tests/` fully green (especially `test_readme_structure.py` — no model names,
   section order intact — and `test_framework.py`).
-- No file outside `README.md` and `docs/design.md` modified.
+- No file outside `README.md`, `docs/design.md`, and `tests/test_readme_structure.py` modified.
 
 ## Test criteria (must exist BEFORE implementation)
 
