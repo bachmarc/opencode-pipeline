@@ -20,9 +20,9 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | 04-03-translate-template | Translate templates/AGENTS.md to English | Done (QA PASS, 6f98276→f80825f) | REQ-007, NFR-001 → Design §8 |
 | 04-04-translate-repo-docs | Translate AGENTS.md + STORIES.md to English | Done (QA PASS, 50d2412→51c0919) | REQ-007, NFR-001 → Design §8 |
 | 05-01-readme-workflow-how | README: step-by-step workflow explanation (how, not just why) | Done (1706150) | REQ-008 → Design §4 |
-| **06-01-feature-hierarchy** | **Feature→Story file structure + migration** | **Planned** | **REQ-009 → Design §9** |
-| **06-02-pipeline-dir-intent** | **.pipeline/ directory + intent tracking script** | **Planned** | **REQ-011 → Design §11** |
-| **06-03-release-branch** | **Release branch setup + promote script** | **Planned** | **REQ-001a → Design §1** |
+| **06-01-feature-hierarchy** | **Feature→Story file structure + migration** | **Done (QA PASS, bf492fc)** | **REQ-009 → Design §9** |
+| **06-02-pipeline-dir-intent** | **.pipeline/ directory + intent tracking script** | **Done (QA PASS, 578be32)** | **REQ-011 → Design §11** |
+| **06-03-release-branch** | **Release branch setup + promote script** | **Done (QA PASS, 3ce3a89)** | **REQ-001a → Design §1** |
 | **06-04-worktree-setup** | **Deterministic worktree/branch setup script** | **Planned** | **REQ-013.1 → Design §13** |
 | **06-05-pipeline-status** | **Pipeline status aggregation script** | **Planned** | **REQ-013.2 → Design §13** |
 | **06-06-story-management** | **Story resolve/create/status-update scripts** | **Planned** | **REQ-013.6,7,10 → Design §13** |
