@@ -1,7 +1,7 @@
 ---
 id: F-003
 title: Documentation
-status: done
+status: in-progress
 owner: ""
 req: []
 ---
@@ -9,7 +9,9 @@ req: []
 ## Vision
 
 README explains the full workflow in user-oriented terms (pitch → process → install → reference),
-with step-by-step "how" guidance alongside the "why."
+with step-by-step "how" guidance alongside the "why." The local model configuration is fully
+documented: not only which model runs per agent, but also how deep each agent reasons
+(`reasoningEffort` per agent in the local `opencode.jsonc`).
 
 ## Context
 
@@ -21,3 +23,4 @@ accessible to new teams.
 
 - 05-01-readme-workflow-how (done)
 - 07-01-readme-restructure (done)
+- 07-02-document-reasoning-effort (planned)

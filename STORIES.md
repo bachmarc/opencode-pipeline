@@ -35,6 +35,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | **06-13-check-scripts** | **Template constancy + architecture check scripts** | **Done (QA PASS, 46e054a)** | **F-004 pipeline-evolution** |
 | **06-14-orchestration-rules** | **Orchestration rules + QA self-enforcement** | **Done (QA PASS, 571287d)** | **F-004 pipeline-evolution** |
 | **07-01-readme-restructure** | **README restructure (user-oriented documentation)** | **Done (QA PASS, 0bad86f)** | **F-003 docs** |
+| **07-02-document-reasoning-effort** | **README + design.md: per-agent reasoning depth (`reasoningEffort`)** | **Planned** | **F-003 docs** |
 | **08-01-templates-reform** | **Story + Feature templates with new sections** | **Done (QA PASS, 346bf12)** | **F-005 doc-model-reform** |
 | **08-02-architect-prompt** | **Architect prompt: features/stories as primary source** | **Done (QA PASS, f901fa6)** | **F-005 doc-model-reform** |
 | **08-03-documenter-prompt** | **Documenter prompt: generate summaries + consistency** | **Done (QA PASS, a56dc8b)** | **F-005 doc-model-reform** |

@@ -7,7 +7,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-RETRO | Retroactive Traceability | done | — | RETRO-01, RETRO-02, RETRO-03, RETRO-04, RETRO-05 |
 | F-001 | Foundation | done | — | 01-03, 01-04, 01-05 |
 | F-002 | Internationalization (English) | done | — | 04-01, 04-02, 04-03, 04-04 |
-| F-003 | Documentation | in-progress | — | 05-01, 07-01 |
+| F-003 | Documentation | in-progress | — | 05-01, 07-01, 07-02 |
 | F-004 | Pipeline Evolution | done | — | 06-01, 06-02, 06-03, 06-04, 06-05, 06-06, 06-07, 06-08, 06-09, 06-10, 06-11, 06-12, 06-13 |
 | F-005 | Doc Model Reform | done | — | 08-01, 08-02, 08-03 |
 | F-006 | Doc Model Migration | in-progress | — | 09-01, 09-02, 09-03, 09-04, 09-05, 09-06 |
