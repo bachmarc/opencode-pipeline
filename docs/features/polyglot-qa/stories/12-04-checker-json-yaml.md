@@ -1,6 +1,6 @@
 # Story 12-04 — Checker plugins: JSON + YAML syntax validation
 
-Status: Planned
+Status: Done (QA PASS, e316058)
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

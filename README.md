@@ -321,7 +321,7 @@ git -C ~/.config/opencode checkout <tag-or-hash>
 
 ### Extending: new test processes (`qa_compress.sh` is modular)
 
-`qa_compress.sh` uses a **checker-registry pattern with plugin files**. Each test process (pytest, ruff, mypy, …) lives in its own file in `scripts/qa_checkers/` and registers itself.
+`qa_compress.sh` uses a **checker-registry pattern with plugin files**. Each test process (pytest, ruff, mypy, json, yaml, …) lives in its own file in `scripts/qa_checkers/` and registers itself.
 
 ```bash
 # scripts/qa_checkers/mypy.sh — one file per checker
