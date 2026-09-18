@@ -1,6 +1,6 @@
 # Story 12-05 — Checker plugin: HTML
 
-Status: Planned
+Status: Done (QA PASS, 374ad8f)
 Feature: polyglot-qa (F-008)
 
 ## Requirement: simple syntax check only
