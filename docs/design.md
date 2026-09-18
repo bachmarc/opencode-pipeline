@@ -42,6 +42,7 @@ This repo's "product" is configuration; its invariants are checkable by reading 
 - **`tests/test_framework.py`** — pytest, stdlib only. Checks:
   1. `agent/*.md` frontmatter: parseable YAML block, no `model:` key (models live in the local `opencode.jsonc` only), required keys present (`description`, `mode`)
   2. No concrete model/provider names in portable files (`agent/`, `command/`, `skills/`, `templates/`, `scripts/`): regex over known patterns (e.g. `glm-`, `deepseek`, `qwen`, `haiku`, `claude-`, `ollama-docker`, `:cloud`), with an explicit allowlist for legitimate references (e.g. `CLAUDE.md` filename mentions)
+  2b. No runner names in portable prompts (`agent/*.md`, `command/*.md`): `tests/test_no_runner_names_in_prompts.py` asserts prompts reference "the configured test suite / configured checkers" rather than concrete runners (see story 12-07-prompt-genericization)
   3. `templates/AGENTS.md` exists and contains the constant section markers (Workflow, Git conventions, Languages, Prohibitions) plus `<...>` placeholders
   4. `scripts/qa_compress.sh` passes `bash -n` (syntax) and has the exec bit
 
@@ -71,6 +72,8 @@ Documented in README (§ Deployment): `git pull` in `~/.config/opencode` + resta
 **Reference:** F-002 Internationalization (English)
 
 All portable files (`agent/`, `command/`, `templates/`, `scripts/`) are written in English: prose, section headers, frontmatter descriptions, inline comments.
+
+**Portable prompts are runner-agnostic.** Agent prompts (`agent/*.md`) and commands (`command/*.md`) never name a concrete test runner; they speak of "the configured test suite" and "the configured checkers" (resolved per project via `qa_config.json`). This keeps the portable layer runner-agnostic, mirroring the role-abstraction rule (no model names). Enforced by the invariant test `tests/test_no_runner_names_in_prompts.py`. See story 12-07-prompt-genericization.
 
 **Dialogue language is decoupled from prompt language.** The `templates/AGENTS.md` section "Languages" configures the user-facing dialogue language per project. The framework default is: "Respond in the user's language." This allows English prompts to drive German, English, or any other dialogue — the prompt instructs the agent *what* to do, the Languages section tells it *which language* to use with the user.
 
