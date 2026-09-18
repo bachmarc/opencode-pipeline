@@ -46,7 +46,7 @@ Check a `feature/<story-id>-<slug>` branch **before** merge to `main`/`dev`.
 
 ## Result
 
-- **PASS** → clearance for merge to `main`/`dev`. Merge only after explicit user clearance or via `git merge --no-ff feature/...`.
+- **PASS** → clearance for merge to `main`/`dev`. Before signaling merge-ready to Architect, spawn `documenter` with the feature branch diff as context to reconcile documentation. Merge only after explicit user clearance or via `git merge --no-ff feature/...`.
 
 - **FAIL** → back to `developer` on **same branch** with concrete fix list:
   ```
