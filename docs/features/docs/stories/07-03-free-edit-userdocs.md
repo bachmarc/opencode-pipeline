@@ -1,6 +1,6 @@
 # Story 07-03 — Free Edit Userdocs
 
-Status: Planned
+Status: Done
 Feature: docs (F-003)
 
 ## Context / Purpose
