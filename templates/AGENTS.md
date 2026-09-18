@@ -43,21 +43,25 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 
 - Every story = its own branch: `feature/<story-id>-<slug>` (e.g. `feature/01-02-<slug>`).
 - **Worktree requirement:** Every developer session works in its own Git worktree
-  `.worktrees/<story-id>-<slug>/` (created by architect). The main directory stays
+  `.worktrees/<story-id>-<slug>/` (created by architect via `scripts/worktree_setup.py`). The main directory stays
   **always on `main`** (merges, hygiene). Two agents never share a working directory.
+- **Pipeline state directory:** `.pipeline/` contains deterministic state files (intents, verdicts, recovery data).
+  Committed to git for audit trail and session recovery.
 - **No direct push to `main`.** Merge only after QA gate (PASS).
 - **Merge lock without QA:** Architect may execute `git merge` on `main`/`master` **exclusively**
-  when the QA manager has returned an explicit `PASS` for exactly this branch. No merge on
-  "tests are green" alone — QA checks more than pytest (architecture, targets, commit metadata).
+  when the QA manager has returned an explicit `PASS` for exactly this branch. Use `scripts/merge_if_passed.py`.
+  No merge on "tests are green" alone — QA checks more than pytest (architecture, targets, commit metadata).
   If QA was skipped, the merge is invalid.
 - Commit body contains metadata for QA requeue:
-  ```
-  symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <pytest result>
-  ```
+   ```
+   symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <pytest result>
+   ```
 
 ## Workflow
 
-0. **Planning checkpoint (MANDATORY before every dev/QA start)** — sequence for every
+0. **Session start (MANDATORY)** — Before any work: Run `scripts/session_recovery.py` to scan the full state (branches, stories, QA status, open FAILs/BLOCKEDs). This ensures you have current context and don't miss ongoing work.
+
+1. **Planning checkpoint (MANDATORY before every dev/QA start)** — sequence for every
    requirement/change (including replanning!):
    1. **Planning phase (architect):** design requirements/design/stories, update docs
       (REQ-IDs, design sections, story files).
@@ -67,12 +71,12 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
       user go** ("passt"/"go"). Feedback flows back into planning (loop).
    3. **Only then:** dev + QA per approved plan.
    - Applies to "small" changes and bugfix loops too — no implicit starts.
-1. **Stories**: `STORIES.md` (index) + `docs/stories/<phase>-<id>-<slug>.md`.
+2. **Stories**: `STORIES.md` (index) + `docs/stories/<phase>-<id>-<slug>.md`.
    Every story links traceability (`REQ-XXX` + design section) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
-2. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
+3. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
    Write tests first, `pytest` must be green.
-3. **QA gate (MANDATORY before every merge)**: Architect spawns `qa-manager` for every
+4. **QA gate (MANDATORY before every merge)**: Architect spawns `qa-manager` for every
    feature branch **before** merging. QA checks: requirements, tests, architecture separation,
    fake usage, commit metadata. Result:
    - PASS → Architect may merge.

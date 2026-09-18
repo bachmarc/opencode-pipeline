@@ -17,12 +17,15 @@ The architect has already created the worktree — you work **exclusively** in i
 
 1. Read `docs/stories/<id>.md` → **Developer Targets** + **Test Criteria**
 2. Read `docs/design.md` → observe **function vs connectivity** + **fake interfaces**
-3. **Tests first** — write/extend `tests/test_<core>.py` per test criteria. Use fakes from `tests/fakes/` or `tests/raum_simulation.py` pattern (like `FakeModbus`, `Raum`). Tests must run without external systems (no real Modbus/HA/API/Ollama).
-4. Implement **only** the developer targets — no more, no less. No unrequested features.
+3. Use `scripts/resolve_story.py` to find the story context and verify you're on the correct branch
+4. Track your current step via `scripts/intent.py` (e.g., "writing tests", "implementing core", "running pytest")
+5. **Tests first** — write/extend `tests/test_<core>.py` per test criteria. Use fakes from `tests/fakes/` or `tests/raum_simulation.py` pattern (like `FakeModbus`, `Raum`). Tests must run without external systems (no real Modbus/HA/API/Ollama).
+6. Implement **only** the developer targets — no more, no less. No unrequested features.
    - `src/core/` first (pure logic, zero IO imports)
    - then `src/adapters/` (thin wrapper, delegates to core)
-5. Run: `pytest`, `ruff check`, `mypy` (depending on project) — everything must be green.
-6. `git add` + `git commit` with mandatory metadata in body (see below) — do NOT push to main.
+7. Run: `pytest`, `ruff check`, `mypy` (depending on project) — everything must be green.
+8. Use `scripts/prepare_commit_metadata.py` to generate commit message with required metadata
+9. `git add` + `git commit` with mandatory metadata in body (see below) — do NOT push to main.
 
 ## Rules
 
