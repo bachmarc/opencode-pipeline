@@ -29,10 +29,10 @@ Index and status per story. Template: `docs/stories/_template.md`.
 | **06-07-scaffold-project** | **Deterministic project scaffolding script** | **Done (QA PASS, 2e0586b)** | **REQ-013.3 → Design §13** |
 | **06-08-session-recovery** | **Session recovery script (full state scan)** | **Done (QA PASS, 762411d)** | **REQ-011 → Design §11** |
 | **06-09-feature-claim** | **Feature claim/release script (multi-user)** | **Done (QA PASS, b85e49c)** | **REQ-010 → Design §10** |
-| **06-10-documenter-agent** | **Documenter agent + /document command** | **Planned** | **REQ-012 → Design §12** |
-| **06-11-qa-scripts** | **QA routing, commit metadata, merge validation** | **Planned** | **REQ-013.5,8,9 → Design §13** |
-| **06-12-prompt-updates** | **Agent prompts: script integration + recovery** | **Planned** | **REQ-013, NFR-004 → Design §13** |
-| **06-13-check-scripts** | **Template constancy + architecture check scripts** | **Planned** | **REQ-013.4,11 → Design §13** |
+| **06-10-documenter-agent** | **Documenter agent + /document command** | **Done (QA PASS, 97bd5f1)** | **REQ-012 → Design §12** |
+| **06-11-qa-scripts** | **QA routing, commit metadata, merge validation** | **Done (QA PASS, 18b3907)** | **REQ-013.5,8,9 → Design §13** |
+| **06-12-prompt-updates** | **Agent prompts: script integration + recovery** | **Done (QA PASS, 7108618)** | **REQ-013, NFR-004 → Design §13** |
+| **06-13-check-scripts** | **Template constancy + architecture check scripts** | **Done (QA PASS, 46e054a)** | **REQ-013.4,11 → Design §13** |
 
 ## Phase comments
 
