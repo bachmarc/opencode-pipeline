@@ -1,7 +1,7 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
 **Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution
-Index and status per story. Template: `docs/stories/_template.md`.
+Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
 |---|---|---|---|

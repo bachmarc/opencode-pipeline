@@ -23,7 +23,7 @@ from pathlib import Path
 
 
 def find_story_file(story_id: str, repo_root: Path) -> Path | None:
-    """Find story file by ID in docs/features/*/stories/ or docs/stories/.
+    """Find story file by ID in docs/features/*/stories/.
     
     Returns: Path to story file, or None if not found.
     """
@@ -36,12 +36,6 @@ def find_story_file(story_id: str, repo_root: Path) -> Path | None:
                 if stories_dir.exists():
                     for story_file in stories_dir.glob(f"{story_id}-*.md"):
                         return story_file
-    
-    # Try backward compat: docs/stories/<id>-*.md
-    stories_dir = repo_root / "docs" / "stories"
-    if stories_dir.exists():
-        for story_file in stories_dir.glob(f"{story_id}-*.md"):
-            return story_file
     
     return None
 
@@ -93,7 +87,7 @@ def cmd_create(args: argparse.Namespace, repo_root: Path) -> int:
     if story_file is None:
         output = {
             "error": "story_not_found",
-            "message": f"Story {story_id} not found in docs/features/*/stories/ or docs/stories/",
+            "message": f"Story {story_id} not found in docs/features/*/stories/",
         }
         print(json.dumps(output))
         return 1

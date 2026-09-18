@@ -77,19 +77,3 @@ def test_feature_template_has_frontmatter():
     required_fields = ["id:", "title:", "status:", "owner:"]
     for field in required_fields:
         assert field in frontmatter, f"Feature template frontmatter missing '{field}'"
-
-
-def test_story_templates_in_sync():
-    """Test that docs/stories/_template.md and docs/features/_story_template.md are identical."""
-    stories_template = Path("docs/stories/_template.md")
-    features_template = Path("docs/features/_story_template.md")
-    
-    assert stories_template.exists(), f"{stories_template} does not exist"
-    assert features_template.exists(), f"{features_template} does not exist"
-    
-    stories_content = stories_template.read_text()
-    features_content = features_template.read_text()
-    
-    assert stories_content == features_content, (
-        "docs/stories/_template.md and docs/features/_story_template.md are not identical"
-    )

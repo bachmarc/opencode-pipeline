@@ -121,18 +121,21 @@ def test_story_files_in_features() -> None:
     feature_story_files = list(features_dir.glob("*/stories/*.md"))
     assert feature_story_files, "No story files found in docs/features/*/stories/"
     
-    # Check that old docs/stories/ only has _template.md (or is empty)
-    if stories_dir.is_dir():
-        old_story_files = [
-            f for f in stories_dir.glob("*.md")
-            if f.name != "_template.md"
-        ]
-        assert not old_story_files, (
-            f"Old story files still in docs/stories/: {[f.name for f in old_story_files]}"
-        )
+    # Check that old docs/stories/ directory does not exist
+    assert not stories_dir.exists(), (
+        f"Legacy docs/stories/ directory should not exist"
+    )
 
 
 def test_story_template_exists() -> None:
     """docs/features/_story_template.md exists."""
     template_path = REPO_ROOT / "docs" / "features" / "_story_template.md"
     assert template_path.is_file(), f"Story template not found at {template_path}"
+
+
+def test_no_legacy_stories_dir() -> None:
+    """docs/stories/ directory does not exist (legacy directory removed)."""
+    stories_dir = REPO_ROOT / "docs" / "stories"
+    assert not stories_dir.exists(), (
+        f"Legacy docs/stories/ directory should not exist, but found at {stories_dir}"
+    )
