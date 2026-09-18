@@ -18,12 +18,12 @@ The architect has already created the worktree — you work **exclusively** in i
 1. Read your story file (found via `scripts/resolve_story.py`) → **Developer Targets** + **Test Criteria**
 2. Optionally read `docs/design.md` (Documenter-generated architecture summary) for broader context. Your story file contains all requirements and targets you need.
 3. Use `scripts/resolve_story.py` to find the story context and verify you're on the correct branch
-4. Track your current step via `scripts/intent.py` (e.g., "writing tests", "implementing core", "running pytest")
+4. Track your current step via `scripts/intent.py` (e.g., "writing tests", "implementing core", "running the test suite")
 5. **Tests first** — write/extend `tests/test_<core>.py` per test criteria. Use fakes from `tests/fakes/` or `tests/raum_simulation.py` pattern (like `FakeModbus`, `Raum`). Tests must run without external systems (no real Modbus/HA/API/Ollama).
 6. Implement **only** the developer targets — no more, no less. No unrequested features.
    - `src/core/` first (pure logic, zero IO imports)
    - then `src/adapters/` (thin wrapper, delegates to core)
-7. Run: `pytest`, `ruff check`, `mypy` (depending on project) — everything must be green.
+7. Run the project's configured test suite via `scripts/qa_compress.sh` (plus project-specific linters if configured) — everything must be green.
 8. Use `scripts/prepare_commit_metadata.py` to generate commit message with required metadata
 9. `git add` + `git commit` with mandatory metadata in body (see below) — do NOT push to main.
 
@@ -38,11 +38,11 @@ The architect has already created the worktree — you work **exclusively** in i
 - **Integration tests:** If story requires integration tests, call **real orchestration code** (e.g., `Scheduler._run_cycle()` with fakes). Do NOT manually reconstruct cycle — that bypasses wiring bugs.
 - Commit body MUST contain metadata:
   ```
-  symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <pytest result>
+  symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <test suite result>
   ```
 
 ## On QA-FAIL
 
 - Stay on same branch in same worktree
 - Fix only what QA complains about (acceptance criteria / test coverage)
-- Run `pytest` green again, then back to QA — loop until PASS or BLOCKED (question to user)
+- Run the configured test suite green again, then back to QA — loop until PASS or BLOCKED (question to user)

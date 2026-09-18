@@ -28,12 +28,12 @@ def test_architect_no_batch_qa_rule():
         "architect.md missing 'Do NOT batch' rule"
 
 
-def test_architect_no_own_pytest_rule():
-    """Architect.md contains 'Do NOT run pytest yourself' rule."""
+def test_architect_no_own_testsuite_run_rule():
+    """Architect.md contains 'Do NOT run the test suite yourself' rule."""
     architect_path = Path(__file__).parent.parent / "agent" / "architect.md"
     content = architect_path.read_text(encoding="utf-8")
-    assert "Do NOT run pytest yourself" in content, \
-        "architect.md missing 'Do NOT run pytest yourself' rule"
+    assert "Do NOT run the test suite yourself" in content, \
+        "architect.md missing 'Do NOT run the test suite yourself' rule"
 
 
 def test_qa_single_story_enforcement():

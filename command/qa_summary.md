@@ -1,5 +1,5 @@
 ---
-description: Compact QA test report — runs pytest and delivers only exit code, error/test names and assertions (compressed, no log spam). For qa-manager and user.
+description: Compact QA test report — runs the configured checkers and delivers only exit code, error/test names and assertions (compressed, no log spam). For qa-manager and user.
 ---
 
 Execute the QA test summary and pass the result compactly.

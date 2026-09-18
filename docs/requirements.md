@@ -27,13 +27,14 @@ The opencode-pipeline project is organized into 7 features, each representing a 
 ### F-001: Foundation
 - **Two-clone topology:** Development in dev clone (`~/Development/opencode-pipeline`), live clone (`~/.config/opencode`) is read-only (pull + restart)
 - **Release branch strategy:** `main` is development line, `release` is stable/deployable; live clone pulls `release`
-- **Self-checks:** Deterministic pytest checks validate repo invariants (frontmatter, no model names in portable files, template constancy, script syntax)
+- **Self-checks:** Deterministic pytest checks validate repo invariants (frontmatter, no model names in portable files, no runner names in portable prompts, template constancy, script syntax)
 - **Deploy procedure:** Documented procedure to pull QA-passed changes from dev repo to live clone
 - **Template constancy:** `templates/AGENTS.md` constant sections are the binding framework-project interface
 - **Versioning:** `APP_VERSION` tracked for releases
 
 ### F-002: Internationalization (English)
 - All portable files (`agent/`, `command/`, `templates/`, `scripts/`) are written in English
+- Portable prompts (`agent/*.md`, `command/*.md`) are runner-agnostic: they reference "the configured test suite / configured checkers" instead of concrete runner names; enforced by the invariant test `tests/test_no_runner_names_in_prompts.py` (see story 12-07-prompt-genericization)
 - Dialogue language is decoupled from code/identifier language and configured per project in `AGENTS.md`
 - Framework default: respond in the user's language
 
