@@ -6,6 +6,7 @@ agent: architect
 Decompose based on `docs/requirements.md` + `docs/design.md` for: $ARGUMENTS
 
 - Create `STORIES.md` (phase index like vocabulary) + `docs/stories/<phase>-<id>-<slug>.md` per story with definition, developer targets, acceptance and test criteria
+- Use `scripts/create_story.py` to generate story files from template
 - Cut stories so that the locally configured cheap mass model (`agent.developer.model`) can implement them isolated per feature/<id>-<slug> branch
 - Test criteria must be fulfillable BEFORE implementation (fakes!)
 

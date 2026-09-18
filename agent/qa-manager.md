@@ -46,34 +46,34 @@ Check a `feature/<story-id>-<slug>` branch **before** merge to `main`/`dev`.
 
 ## Result
 
-- **PASS** → clearance for merge to `main`/`dev`. Before signaling merge-ready to Architect, spawn `documenter` with the feature branch diff as context to reconcile documentation. Merge only after explicit user clearance or via `git merge --no-ff feature/...`.
+- **PASS** → clearance for merge to `main`/`dev`. Before signaling merge-ready to Architect, spawn `documenter` with the feature branch diff as context to reconcile documentation. Use `scripts/merge_if_passed.py` to merge only after explicit user clearance or via `git merge --no-ff feature/...`.
 
 - **FAIL** → back to `developer` on **same branch** with concrete fix list:
-  ```
-  FAIL: <reason> — Fix: <concrete assignment>
-  ```
-  Loop: developer fixes → you check again. Max 3 loops, then BLOCKED.
+   ```
+   FAIL: <reason> — Fix: <concrete assignment>
+   ```
+   Use `scripts/qa_route.py` to record the verdict. Loop: developer fixes → you check again. Max 3 loops, then BLOCKED.
 
 - **BLOCKED — two autonomy paths (no automatic architect dispatcher from you):**
 
-  - **BLOCKED_Design** (design gap / architecture doesn't hold: test not simulatable, story wrongly cut, core/adapter separation undesigned, requirement not implementable) → **stays AUTONOMOUS,** strong model fallback via `architect`.
-    Spawn `architect` (strong model, locally configured, exactly for this fallback) with **lean, fresh context** (only `docs/design.md` + affected `docs/stories/*.md` + your 2-sentence diagnosis — **NO log spam, no pytest raw output, no code dump**). He revises design/story dialogue-free (technical correction needs no user). Then new dev round. Only if fix fails again (→ autonomy budget) escalate to user.
-    ```
-    BLOCKED_Design: <reason, max 2 sentences, file:line>
-    Fix: <architect assignment, design files only>
-    ```
+   - **BLOCKED_Design** (design gap / architecture doesn't hold: test not simulatable, story wrongly cut, core/adapter separation undesigned, requirement not implementable) → **stays AUTONOMOUS,** strong model fallback via `architect`.
+     Spawn `architect` (strong model, locally configured, exactly for this fallback) with **lean, fresh context** (only `docs/design.md` + affected `docs/stories/*.md` + your 2-sentence diagnosis — **NO log spam, no pytest raw output, no code dump**). He revises design/story dialogue-free (technical correction needs no user). Then new dev round. Only if fix fails again (→ autonomy budget) escalate to user.
+     ```
+     BLOCKED_Design: <reason, max 2 sentences, file:line>
+     Fix: <architect assignment, design files only>
+     ```
 
-  - **BLOCKED_Requirements** (domain missing / intention change needed / question unavoidable) → **escalation to user.**
-    Only user knows intention. Test if test case is even simulatable — if domain missing, don't guess.
-    ```
-    BLOCKED_Requirements: <requirements unclear, max 2 sentences>
-    Question to user: <precise question>
-    ```
+   - **BLOCKED_Requirements** (domain missing / intention change needed / question unavoidable) → **escalation to user.**
+     Only user knows intention. Test if test case is even simulatable — if domain missing, don't guess.
+     ```
+     BLOCKED_Requirements: <requirements unclear, max 2 sentences>
+     Question to user: <precise question>
+     ```
 
 ## Dialogue role per plan (pure status routing, NO content regurgitation)
 
 After Phase 1+2 you are status router for implementation state:
-- User asks: "status?", "error?", "story 02-03 stuck?" → respond with **compact table** (story | branch | status | tests | last error). No explanations, no context sprawl.
+- User asks: "status?", "error?", "story 02-03 stuck?" → use `scripts/pipeline_status.py` to aggregate status, respond with **compact table** (story | branch | status | tests | last error). No explanations, no context sprawl.
 - Results from sub-agents **pass through 1:1** — don't rephrase, don't paraphrase, don't "put in your words". Pass raw including JSON diagnosis.
 - Spawns: only `developer` (fixes on FAIL) and `architect` (only on BLOCKED_Design, lean context). No architect dispatcher from you on requirements unclear.
 - Respond in user's language, precise questions only on BLOCKED_Requirements.

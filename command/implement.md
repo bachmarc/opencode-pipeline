@@ -6,8 +6,9 @@ agent: developer
 Implement story: $ARGUMENTS
 
 - Expect story ID like `01-01`, `02-03` or `feature/01-01-slug`
-- Create branch `feature/<story-id>-<slug>` (if not existing)
+- Use `scripts/resolve_story.py` to find the story and verify branch
+- Use `scripts/intent.py` to track your progress
 - Implement exactly the developer targets from `docs/stories/<id>.md`, tests first according to test criteria, use fakes
-- Check `pytest` green, then handoff to qa-manager
+- Check `pytest` green, then use `scripts/prepare_commit_metadata.py` for commit message, then handoff to qa-manager
 
 If $ARGUMENTS empty: list open stories from STORIES.md and ask which one.
