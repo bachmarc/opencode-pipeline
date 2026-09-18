@@ -45,7 +45,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | **09-05-migrate-prompts-commands** | **Update QA/dev prompts + commands + AGENTS.md template** | **Done (QA PASS, 2394a20)** | **F-006 doc-model-migration** |
 | **09-06-migrate-scripts-tests** | **Update scripts + tests for new model** | **Done (QA PASS, 4e285f2)** | **F-006 doc-model-migration** |
 | **10-01-remove-legacy-stories-dir** | **Remove legacy `docs/stories/` directory** | **Done (QA PASS, 5230bd1)** | **F-004 pipeline-evolution** |
-| 11-01-plugin-scaffold | Plugin scaffold and infrastructure | Planned | F-007 pipeline-enforcement |
+| 11-01-plugin-scaffold | Plugin scaffold and infrastructure | **Done (QA PASS, 6f17eed)** | F-007 pipeline-enforcement |
 | 11-02-merge-guard | Merge guard (block without QA-PASS) | Planned | F-007 pipeline-enforcement |
 | 11-03-dev-start-guard | Dev-start guard (warn without story) | Planned | F-007 pipeline-enforcement |
 | 11-04-architect-code-guard | Architect code guard (interactive housekeeping) | Planned | F-007 pipeline-enforcement |
