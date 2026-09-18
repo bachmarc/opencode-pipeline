@@ -47,6 +47,10 @@ TypeScript plugin that lives in the repo's `plugins/` directory and deploys to
    worktrees) → hard block until addressed. Prevents starting fresh work while previous
    session state is dangling. Fires once per session.
 
+6. **Documenter Guard** — `bash` tool calls containing `git merge` on main: plugin checks
+   the feature branch's commit history for a `docs: reconcile` commit (Documenter output).
+   No documenter commit → block. Enforces the QA-PASS → Documenter → Merge sequence.
+
 ### Architecture
 
 - **Plugin file:** `plugins/pipeline-enforcement.ts` — single entry point, multiple guards
@@ -76,3 +80,4 @@ TypeScript plugin that lives in the repo's `plugins/` directory and deploys to
 - 11-05-story-status-guard (planned)
 - 11-06-prompt-integration (planned)
 - 11-07-session-recovery-guard (planned)
+- 11-08-documenter-guard (planned)

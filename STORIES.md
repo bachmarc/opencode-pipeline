@@ -52,6 +52,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 11-05-story-status-guard | Story status guard (warn after merge) | Planned | F-007 pipeline-enforcement |
 | 11-06-prompt-integration | Prompt integration and documentation | Planned | F-007 pipeline-enforcement |
 | 11-07-session-recovery-guard | Session recovery guard (block on session start) | Planned | F-007 pipeline-enforcement |
+| 11-08-documenter-guard | Documenter guard (block merge without documenter) | Planned | F-007 pipeline-enforcement |
 
 ## Phase comments
 
@@ -84,5 +85,5 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 - **Phase 11 (Pipeline Enforcement):** TypeScript opencode plugin for deterministic process
   enforcement. 7 stories in 3 waves:
   - Wave 1 (11-01): Plugin scaffold — infrastructure, guard registry
-  - Wave 2 (11-02, 11-03, 11-04, 11-05, 11-07): All 5 guards parallel — isolated modules
+  - Wave 2 (11-02, 11-03, 11-04, 11-05, 11-07, 11-08): All 6 guards parallel — isolated modules
   - Wave 3 (11-06): Prompt integration — documentation updates
