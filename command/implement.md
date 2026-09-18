@@ -9,6 +9,6 @@ Implement story: $ARGUMENTS
 - Use `scripts/resolve_story.py` to find the story and verify branch
 - Use `scripts/intent.py` to track your progress
 - Implement exactly the developer targets from your story file (found via resolve_story.py), tests first according to test criteria, use fakes
-- Check `pytest` green, then use `scripts/prepare_commit_metadata.py` for commit message, then handoff to qa-manager
+- Check the configured test suite green (qa_compress.sh), then use `scripts/prepare_commit_metadata.py` for commit message, then handoff to qa-manager
 
 If $ARGUMENTS empty: list open stories from feature directories and ask which one.
