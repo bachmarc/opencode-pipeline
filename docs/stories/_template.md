@@ -1,24 +1,24 @@
 # Story <ID> — <Title>
 
 Status: Planned | In Progress | Done
-Traceability: <REQ-XXX> → Design §<n>
+Feature: <feature-name> (<feature-id>)
 
-## Definition
+## Context / Purpose
 
-<What is the story, why does it exist>
+<Why does this story exist? What problem does it solve? Self-contained — no external references needed>
 
-## Development goal
+## Requirements
 
-<What is it about, what is different afterwards>
+<What must be true when this story is done? Functional requirements in the story's own words>
 
 ## Developer Targets (exactly, no more / no less)
 
-- <Concrete, completed changes — file by file>
+- <Concrete changes — file by file>
 
 ## Acceptance criteria (checked by qa-manager)
 
 - <Deterministically verifiable criteria>
 
-## Test criteria (must exist BEFORE implementation — deterministic, no external systems)
+## Test criteria (must exist BEFORE implementation)
 
-- <Tests that are written first — file, test name, expected behavior>
+- <Tests written first — file, test name, expected behavior>
