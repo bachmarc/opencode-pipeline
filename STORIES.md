@@ -65,6 +65,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 12-08-template-scaffold-config | Template config sections + scaffold + own qa_config.json | Planned | F-008 polyglot-qa |
 | 12-09-template-migration-tool | Template migration tool for existing projects | Planned | F-008 polyglot-qa |
 | 12-10-check-architecture-polyglot | check_architecture.py: polyglot import checking (JS/Ruby/Java) | Planned | F-008 polyglot-qa |
+| 12-11-test-suite-green | Fix pre-existing test failures blocking QA gate | Done (QA PASS, 8308e6d→5f1a8bb) | F-008 polyglot-qa |
+| 12-12-dev-start-guard-slug | Dev-start-guard: strip story slug when parsing STORIES.md | Done (QA PASS, 45049b2→f020a99) | F-008 polyglot-qa |
 
 ## Phase comments
 
