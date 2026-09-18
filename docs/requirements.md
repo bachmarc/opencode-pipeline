@@ -29,7 +29,8 @@ The opencode-pipeline project is organized into 7 features, each representing a 
 - **Release branch strategy:** `main` is development line, `release` is stable/deployable; live clone pulls `release`
 - **Self-checks:** Deterministic pytest checks validate repo invariants (frontmatter, no model names in portable files, template constancy, script syntax)
 - **Deploy procedure:** Documented procedure to pull QA-passed changes from dev repo to live clone
-- **Template constancy:** `templates/AGENTS.md` constant sections are the binding framework-project interface
+- **Template constancy:** `templates/AGENTS.md` constant sections are the binding framework-project interface; constant sections are runner-agnostic (BREAKING: existing projects re-sync their AGENTS.md via the 12-09 migration tool) — see story 12-08-template-scaffold-config
+- **Scaffold config:** `scaffold_project.py` accepts a `--stack` flag and creates `qa_config.json` in the scaffolded project; this repo dogfoods `qa_config.json` with `["pytest", "yaml"]`
 - **Versioning:** `APP_VERSION` tracked for releases
 
 ### F-002: Internationalization (English)
