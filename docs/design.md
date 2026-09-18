@@ -373,3 +373,43 @@ or tracked for shared state):
 All scripts are tested in `tests/` with pytest. Tests use the repo's own files or
 `tmp_path` fixtures. Scripts are pure (no network calls except git push/pull, which is
 mocked in tests). This extends the existing self-check pattern (REQ-003, REQ-004).
+
+## 14. Orchestration principles (NFR-004)
+
+### Phase 3 token optimization
+
+The architect's role in Phase 3 (implementation) is decision-making and dialogue, not
+mechanical orchestration. All deterministic work (worktree setup, status queries, merge
+decisions) is delegated to scripts. This minimizes architect token usage on the expensive
+model and allows cheap models to handle the repetitive parts (developer, QA-Manager).
+
+**Principle:** Architect calls scripts for state queries and atomic operations; scripts
+return JSON; architect interprets and decides. No free-hand LLM orchestration.
+
+### Pipeline streaming
+
+QA does not wait for all developers to finish before starting. Each story's QA runs
+independently as soon as its developer reports completion. This enables parallel
+development and QA, reducing total pipeline latency.
+
+**Principle:** Start QA per story, not per wave. No batch-QA (multiple stories in one
+QA invocation).
+
+### QA self-enforcement
+
+The QA-Manager enforces a single-story rule: if a prompt contains multiple stories,
+QA checks only the first and returns FAIL with reason "Batch-QA forbidden — invoke
+separately per story." This prevents context degradation on cheap models and ensures
+deterministic, focused evaluation.
+
+**Principle:** One story per QA invocation. Cheap models work best with focused scope.
+
+### Determinism boundary
+
+Operations requiring atomicity, state consistency, or format determinism (concurrency,
+merge conflicts, file state) must use scripts, not LLM free-hand. The architect
+proactively recommends script-based solutions and does not accept LLM-only approaches
+for operations that need determinism.
+
+**Principle:** If it needs to be atomic or deterministic, use a script. LLM handles
+reasoning and dialogue; scripts handle state.

@@ -84,6 +84,22 @@ Then: **Review checkpoint with user** (present implementation overview WHAT/HOW,
 await explicit user go) — only after go handoff to `developer` (per branch)
 and `qa-manager` (gate).
 
+## Phase 3 Orchestration (MANDATORY)
+
+1. Start QA for each story individually as soon as its developer is done. Do NOT wait
+   for other developers to finish. Do NOT batch multiple stories into one QA agent.
+
+2. Do NOT run pytest yourself in worktrees. Pytest is exclusively the QA-Manager's job.
+   Your only verification before QA is checking that the developer reported success.
+
+3. Minimize your own token usage in Phase 3. Use scripts for all deterministic work
+   (worktree_setup, story_status, merge_if_passed). Your value in Phase 3 is decision-making
+   on BLOCKED situations and user dialogue — not mechanical orchestration.
+
+4. When a technical decision requires determinism (concurrency, state management, format
+   consistency), proactively recommend script-based solutions. Do not accept LLM-only
+   approaches for operations that need atomicity.
+
 ## Merge Discipline (MANDATORY)
 
 - **Architect may execute `git merge` on `main`/`master` ONLY if the
