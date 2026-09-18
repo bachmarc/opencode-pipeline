@@ -67,17 +67,20 @@ def test_feature_dirs_exist() -> None:
     features_dir = REPO_ROOT / "docs" / "features"
     assert features_dir.is_dir(), f"docs/features/ directory not found"
     
-    # Map feature IDs to directory names
-    # F-RETRO -> retro, F-001 -> foundation, F-002 -> i18n, F-003 -> docs, F-004 -> pipeline-evolution
-    id_to_dir = {
-        "F-RETRO": "retro",
-        "F-001": "foundation",
-        "F-002": "i18n",
-        "F-003": "docs",
-        "F-004": "pipeline-evolution",
-        "F-005": "doc-model-reform",
-        "F-006": "doc-model-migration",
-    }
+    # Map feature IDs to directory names, derived from each feature.md
+    # frontmatter (id: field) instead of a hardcoded dict — new features
+    # need no test update.
+    id_to_dir: dict[str, str] = {}
+    for feature_md in features_dir.glob("*/feature.md"):
+        md_content = feature_md.read_text(encoding="utf-8")
+        fm_match = re.match(r"^---\s*\n(.*?)\n---", md_content, re.DOTALL)
+        if not fm_match:
+            continue
+        id_match = re.search(
+            r"^id:\s*(\S+)\s*$", fm_match.group(1), re.MULTILINE | re.IGNORECASE
+        )
+        if id_match:
+            id_to_dir[id_match.group(1)] = feature_md.parent.name
     
     for feature_id in feature_ids:
         dir_name = id_to_dir.get(feature_id, feature_id.lower())

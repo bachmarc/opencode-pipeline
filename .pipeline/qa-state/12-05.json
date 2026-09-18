@@ -1,0 +1,11 @@
+{
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "timestamp": "2026-09-18T21:45:00+02:00",
+      "commit": "374ad8f",
+      "tests": "207 passed",
+      "notes": "Targets met exactly (html.sh, test_qa_checker_html.py); qa_compress.sh + existing plugins untouched; bash -n OK; no model names; commit metadata complete. Spec reconciliation accepted: deeper close tag = implicit close reported 'unclosed <tag>', close matching nothing in stack = 'mismatch'."
+    }
+  ]
+}

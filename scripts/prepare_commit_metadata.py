@@ -116,7 +116,7 @@ def find_dependents(changed_files: list[str], repo_root: Path) -> list[str]:
 def run_pytest() -> str:
     """Run pytest and return result summary."""
     result = subprocess.run(
-        ["python", "-m", "pytest", "--tb=no", "-q"],
+        [sys.executable, "-m", "pytest", "--tb=no", "-q"],
         capture_output=True,
         text=True,
         check=False,
