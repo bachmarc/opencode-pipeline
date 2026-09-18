@@ -12,11 +12,12 @@ Multi-agent development pipeline for folder projects: **Requirements → Design 
 
 | Folder | Contents | Why |
 |---|---|---|
-| `agent/` | `architect`, `developer`, `qa-manager` | The three pipeline roles as opencode agents |
-| `skills/dev-workflow/` | `SKILL.md` | The complete, reusable development workflow |
-| `templates/` | `AGENTS.md` | Skeleton for the per-project `AGENTS.md` (project knowledge injected into every session) |
-| `scripts/` | `qa_compress.sh` | Deterministic pytest compression for the QA gate |
-| `command/` | `qa_summary`, `qa-check`, `status`, `new-project`, `requirements`, `decompose`, `implement` | Invokable commands that orchestrate the flow |
+| `agent/` | `architect`, `developer`, `qa-manager`, `documenter` | The four pipeline roles as opencode agents |
+| `templates/` | `AGENTS.md`, `.gitignore` | Skeletons for new projects (AGENTS.md + gitignore) |
+| `scripts/` | 15 deterministic Python scripts + `qa_compress.sh` | Pipeline automation: worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks |
+| `command/` | `qa_summary`, `qa-check`, `status`, `new-project`, `requirements`, `decompose`, `implement`, `document` | Invokable commands that orchestrate the flow |
+| `docs/features/` | Feature → Story hierarchy | Hierarchical planning structure (features contain stories) |
+| `.pipeline/` | `intent.json`, `qa-state/` | Persistent pipeline state (intent tracking, QA verdicts) |
 
 The goal is a **lean, cheap, autonomously running multi-agent system** — no nested LLM cascades that burn tokens.
 
@@ -24,11 +25,12 @@ The goal is a **lean, cheap, autonomously running multi-agent system** — no ne
 
 ## Design decisions behind it (the "why")
 
-### 1. Separation of functions: Architect thinks, Developer writes, QA checks
+### 1. Separation of functions: Architect thinks, Developer writes, QA checks, Documenter reconciles
 
 - **architect** (strong) — talks Requirements/Design/Stories out in dialogue. Pure reasoning.
 - **developer** (cheap bulk model) — implements **exactly one story** isolated per branch. Many in parallel.
 - **qa-manager** (cheap model) — **deterministic judge**, not a thinker. Strong model only as **fallback** via `architect` for unclear error/design causes.
+- **documenter** (cheap model) — reconciles documentation after QA-PASS: README, design docs, docstrings, stale comments. Does not invent — synthesizes what exists.
 
 ### 2. The three efficiency levers (core of the "why")
 
@@ -69,13 +71,13 @@ Therefore: **tests exist BEFORE the code**, each story has its own fake-based te
 ## Installation on another machine
 
 ```bash
-# 1. Clone the repo to where opencode expects its config
+# 1. Clone the repo (release branch = stable, default)
 #    (if ~/.config/opencode already exists: back it up / empty it first)
 git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode
 
-# 2. Create LOCKALLY per machine (not in the repo!): opencode.jsonc
-#    with provider endpoint (e.g. Ollama baseURL) + model selection.
-#    Template below under "Local configuration".
+# The default branch is 'release' (stable). If you want to contribute
+# to development, switch to main:
+#   git checkout main
 ```
 
 Then restart `opencode` — agents, skills, commands are active.
@@ -90,13 +92,14 @@ Create `~/.config/opencode/opencode.jsonc` (e.g.):
   "provider": { /* your model provider, e.g. Ollama via openai-compatible */ },
   "model": "provider/model",            // primary/dialogue model
   "small_model": "provider/model",      // lean model (titles, summaries)
-  "agent": {                            // model per agent (architect/developer/qa-manager)
+  "agent": {                            // model per agent (architect/developer/qa-manager/documenter)
     "architect": {
       "model": "provider/strong",
       "permission": { "task": { "developer": "ask", "qa-manager": "ask" } }
     },
     "developer":   { "model": "provider/cheap"   },
-    "qa-manager":  { "model": "provider/cheap"   }
+    "qa-manager":  { "model": "provider/cheap"   },
+    "documenter":  { "model": "provider/cheap"   }
   },
   "skills": { "paths": ["~/.config/opencode/skills"] }
 }
@@ -106,7 +109,7 @@ Create `~/.config/opencode/opencode.jsonc` (e.g.):
 
 ### How model assignment works ("the JSON procedure")
 
-The three role files (`agent/architect.md`, `developer.md`, `qa-manager.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
+The four role files (`agent/architect.md`, `developer.md`, `qa-manager.md`, `documenter.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
 
 - **Role (portable, in Git):** *who does what* — mode, temperature, prompt, rules. In `agent/*.md`.
 - **Machine (local, gitignored):** *which model* for *what*. In `~/.config/opencode/opencode.jsonc` under `agent`.
@@ -296,19 +299,20 @@ If the failure is a **domain/intention question** (requirement unclear, behavior
 | `/qa-check <branch>` | QA-Manager | Run QA gate → JSON verdict (PASS/FAIL/BLOCKED) |
 | `/status` | QA-Manager | Show implementation status (table: story, branch, tests, QA, error) |
 | `/qa_summary` | — | Run `qa_compress.sh` and show compact test report |
+| `/document [scope]` | Documenter | Reconcile documentation against code state |
 
 ---
 
-## The three agents in detail
+## The four agents in detail
 
-| | architect | developer | qa-manager |
-|---|---|---|---|
-| **Role** | Requirements-/Design-/Story partner, dialogue | Cheap story implementer | Deterministic gatekeeper |
-| **Model** | strong | cheap bulk | cheap (+ strong fallback via architect) |
-| **Model source** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` |
-| **Mode** | `all` (dialogue) | `subagent` | `all` |
-| **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) |
-| **Budget** | — | 1 story = 1 branch | max. 3 FAIL loops, then escalation |
+| | architect | developer | qa-manager | documenter |
+|---|---|---|---|---|
+| **Role** | Requirements-/Design-/Story partner, dialogue | Cheap story implementer | Deterministic gatekeeper | Documentation consistency |
+| **Model** | strong | cheap bulk | cheap (+ strong fallback via architect) | cheap |
+| **Model source** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` | `opencode.jsonc` → `agent.documenter.model` |
+| **Mode** | `all` (dialogue) | `subagent` | `all` | `subagent` |
+| **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) | Updated docs + docstrings |
+| **Budget** | — | 1 story = 1 branch | max. 3 FAIL loops, then escalation | after QA-PASS, before merge |
 
 ---
 
