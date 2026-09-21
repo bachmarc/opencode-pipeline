@@ -1,9 +1,8 @@
-"""Tests for free-edit rule on user-facing docs (Story 07-03).
+"""Tests for free-edit rule on user-facing docs (Story 07-03, updated for 14-01).
 
 Validates:
-1. The free-edit rule is documented in docs/design.md
-2. README-content prose tests have been removed from the test suite
-3. Internal/derived docs remain governed
+1. README-content prose tests have been removed from the test suite
+2. Internal/derived docs remain governed
 
 This test suite ensures that user-facing docs (README.md) are free-edit
 (no story/test criteria required), while internal/derived docs stay governed.
@@ -14,42 +13,6 @@ from __future__ import annotations
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-
-
-def test_design_md_documents_free_edit_rule() -> None:
-    """docs/design.md contains the free-edit rule for user-facing docs."""
-    design_path = REPO_ROOT / "docs" / "design.md"
-    assert design_path.is_file(), f"design.md not found at {design_path}"
-
-    content = design_path.read_text(encoding="utf-8")
-
-    # Find README Structure section
-    readme_structure_start = content.lower().find("readme structure")
-    assert readme_structure_start != -1, "README Structure section not found in design.md"
-
-    # Find next top-level section (##)
-    next_section = content.find("\n## ", readme_structure_start + 1)
-    if next_section == -1:
-        readme_structure_section = content[readme_structure_start:]
-    else:
-        readme_structure_section = content[readme_structure_start:next_section]
-
-    # Check for free-edit mention
-    assert "free-edit" in readme_structure_section.lower(), (
-        "design.md README Structure section does not mention 'free-edit'"
-    )
-
-    # Check for user-facing vs governed split
-    section_lower = readme_structure_section.lower()
-    has_user_facing = "user-facing" in section_lower or "user facing" in section_lower
-    has_governed = "governed" in section_lower
-
-    assert has_user_facing, (
-        "design.md README Structure section does not mention 'user-facing' docs"
-    )
-    assert has_governed, (
-        "design.md README Structure section does not mention 'governed' docs"
-    )
 
 
 def test_readme_structure_test_removed() -> None:

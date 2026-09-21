@@ -90,8 +90,6 @@ This repo's "product" is configuration and deterministic tooling, not a service:
 
 ## References
 
-- `docs/requirements.md` — Documenter-generated feature overview (derived summary)
-- `docs/design.md` — Documenter-generated architecture summary (derived)
 - `STORIES.md` — story index (status per story)
 - `templates/AGENTS.md` — the skeleton every project fills in
 - `netclip/AGENTS.md`, `intesis_modbus/CLAUDE.md` — reference projects

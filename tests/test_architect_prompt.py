@@ -1,11 +1,11 @@
-"""Tests for architect prompt refactor (Story 08-02).
+"""Tests for architect prompt refactor (Story 08-02, updated for 14-01).
 
 Checks:
 1. agent/architect.md does NOT contain instructions to write docs/requirements.md as primary source
 2. agent/architect.md does NOT contain instructions to write docs/design.md as primary source
 3. agent/architect.md references _feature_template.md
 4. agent/architect.md references _story_template.md
-5. agent/architect.md instructs reading docs/requirements.md as Documenter-generated summary
+5. agent/architect.md instructs reading FEATURES.md (not requirements.md)
 6. agent/architect.md preserves architecture guidance (function vs connectivity, fakes, integration tests)
 7. "Output after Phase 1+2" section lists feature files and story files (not requirements.md + design.md)
 8. agent/architect.md has valid frontmatter without model: key
@@ -123,33 +123,21 @@ def test_references_story_template() -> None:
     )
 
 
-def test_instructs_read_requirements_summary() -> None:
-    """agent/architect.md instructs reading docs/requirements.md as Documenter-generated summary."""
+def test_instructs_read_features_md() -> None:
+    """agent/architect.md instructs reading FEATURES.md (not requirements.md)."""
     architect_path = REPO_ROOT / "agent" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
 
-    # Should contain instruction to read requirements.md as summary
-    assert "docs/requirements.md" in content, (
-        "architect.md: does not reference docs/requirements.md"
+    # Should contain instruction to read FEATURES.md
+    assert "FEATURES.md" in content, (
+        "architect.md: does not reference FEATURES.md"
     )
 
-    # Should mention it as Documenter-generated or summary
-    summary_indicators = [
-        "Documenter-generated",
-        "summary",
-        "quick",
-    ]
-
-    found_summary_indicator = False
-    for indicator in summary_indicators:
-        if indicator.lower() in content.lower():
-            found_summary_indicator = True
-            break
-
-    assert found_summary_indicator, (
-        "architect.md: does not indicate reading requirements.md as summary/quick-start"
+    # Should NOT reference requirements.md as something to read
+    assert "docs/requirements.md" not in content, (
+        "architect.md: should not reference docs/requirements.md (use FEATURES.md instead)"
     )
 
 

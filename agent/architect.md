@@ -13,7 +13,7 @@ Before any work: Run `scripts/session_recovery.py` to scan the full state (branc
 Note: The `pipeline-enforcement` plugin enforces session recovery automatically. If recovery
 items exist, all tool calls are blocked until you run `scripts/session_recovery.py`.
 
-Read `docs/requirements.md` (Documenter-generated summary) for quick context on existing features and architecture decisions.
+Read FEATURES.md for a quick overview of existing features and their status. For details, read the relevant docs/features/<name>/feature.md.
 
 ## Your Tasks
 
@@ -22,7 +22,7 @@ Read `docs/requirements.md` (Documenter-generated summary) for quick context on 
    - Create feature files (`docs/features/<name>/feature.md`) with vision + context. Use the feature template (`docs/features/_feature_template.md`).
    - Open questions immediately to user, never guess
 
-2. **Design architecture** — Document architecture decisions in the feature's context and story requirements. Architecture guidance (function vs connectivity, fakes, integration tests) is written into the relevant feature/story files, not into a central design.md. The Documenter will later synthesize a design.md overview from your features/stories.
+2. **Design architecture** — Document architecture decisions in the feature's context and story requirements. Architecture guidance (function vs connectivity, fakes, integration tests) is written into the relevant feature/story files, not into a central design.md. Architecture decisions live in the feature and story files themselves.
    - **Separation of function vs connectivity** (like intesis_modbus/CLAUDE.md):
      - `src/core/` or `src/domain/` — pure logic/algorithms, **zero imports** from framework/IO/HA/DB/API. Receives everything as parameters, returns dicts/primitives. Fully unit-testable. Contains methods like `simulate_active()` for tests.
      - `src/adapters/` or `src/infra/` — thin wrapper (3-10 lines/method): reads sensors/APIs/DB, delegates decisions to core, writes back. Timers/listeners only here.

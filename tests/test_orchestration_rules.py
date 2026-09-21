@@ -47,11 +47,11 @@ def test_qa_single_story_enforcement():
 
 
 def test_design_orchestration_section():
-    """Design.md contains 'Orchestration Principles' section."""
-    design_path = Path(__file__).parent.parent / "docs" / "design.md"
-    content = design_path.read_text(encoding="utf-8")
-    assert "### Orchestration Principles" in content, \
-        "design.md missing '### Orchestration Principles' section"
+    """Orchestration Principles are documented in agent/architect.md."""
+    architect_path = Path(__file__).parent.parent / "agent" / "architect.md"
+    content = architect_path.read_text(encoding="utf-8")
+    assert "## Phase 3 Orchestration" in content, \
+        "architect.md missing '## Phase 3 Orchestration' section (orchestration principles)"
 
 
 def test_no_model_names():
@@ -98,17 +98,3 @@ def test_no_model_names():
                 match_text = match.group()
                 assert False, \
                     f"Concrete model name '{match_text}' found in Single-story enforcement section"
-    
-    # Check design.md orchestration principles section
-    design_path = Path(__file__).parent.parent / "docs" / "design.md"
-    design_content = design_path.read_text(encoding="utf-8")
-    if "### Orchestration Principles" in design_content:
-        orch_start = design_content.find("### Orchestration Principles")
-        orch_section = design_content[orch_start:]  # to end of file
-        
-        for pattern in model_patterns:
-            matches = re.finditer(pattern, orch_section, re.IGNORECASE)
-            for match in matches:
-                match_text = match.group()
-                assert False, \
-                    f"Concrete model name '{match_text}' found in Orchestration Principles section"

@@ -28,7 +28,7 @@ on cheap models.
 ## Checklist (all must be green for PASS)
 
 1. **Requirements met?**
-   - Check against story **acceptance criteria** (the story file is the primary source). `docs/requirements.md` is a derived summary for context. Any deviation = FAIL.
+   - Check against story **acceptance criteria** (the story file is the primary source). Any deviation = FAIL.
 
 2. **Tests green & complete? (deterministic, no log interpretation)**
    - Check via the project's configured checkers (`qa_config.json`) / `qa_compress.sh` — it delivers `exit_code` + error/test names + assertions (compressed, no raw logs).

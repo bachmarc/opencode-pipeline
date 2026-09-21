@@ -98,8 +98,6 @@ def scaffold_project(target_path: str, project_name: str | None = None, stack: s
     # Create starter files
     starter_files = {
         "FEATURES.md": "# Features\n\n",
-        "docs/requirements.md": "# Requirements\n\n",
-        "docs/design.md": "# Design\n\n",
         "README.md": f"# {project_name}\n\n",
     }
     

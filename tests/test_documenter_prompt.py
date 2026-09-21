@@ -1,15 +1,13 @@
 """
-Tests for Story 08-03: Documenter prompt enhancements.
+Tests for Story 08-03: Documenter prompt enhancements (updated for 14-01).
 
-Verifies that agent/documenter.md contains:
-1. Instructions to generate docs/requirements.md as derived summary
-2. Instructions to generate docs/design.md as derived summary
-3. Consistency check instructions
-4. Explanation that summaries serve as Architect quick-start
-5. Clarification that summaries are derived (not primary sources)
-6. Preservation of existing reconciliation duties
-7. Boundary section with "do not invent" clarification
-8. Valid YAML frontmatter without model: key
+Verifies that agent/documenter.md:
+1. Does NOT contain instructions to generate docs/requirements.md
+2. Does NOT contain instructions to generate docs/design.md
+3. Contains consistency check instructions
+4. Preserves existing reconciliation duties (README, docstrings, stale comments)
+5. Has a Boundary section with "do not invent" clarification
+6. Has valid YAML frontmatter without model: key
 """
 
 import re
@@ -37,27 +35,19 @@ def extract_frontmatter(content):
 class TestDocumenterPrompt:
     """Test suite for documenter.md enhancements."""
 
-    def test_instructs_generate_requirements_summary(self):
-        """Asserts documenter.md contains instruction to generate/update docs/requirements.md as derived summary."""
+    def test_no_requirements_generation(self):
+        """Asserts documenter.md does NOT contain instruction to generate docs/requirements.md."""
         content = read_documenter_md()
-        # Should mention generating/updating docs/requirements.md
-        assert "docs/requirements.md" in content, "Missing instruction for docs/requirements.md"
-        # Should indicate it's a feature overview or derived summary
-        assert (
-            "feature overview" in content.lower()
-            or "derived" in content.lower()
-        ), "Missing indication that requirements.md is a feature overview or derived summary"
+        # Should NOT mention generating/updating docs/requirements.md
+        assert "generate requirements.md" not in content.lower(), "documenter.md should not generate requirements.md"
+        assert "generate docs/requirements.md" not in content.lower(), "documenter.md should not generate docs/requirements.md"
 
-    def test_instructs_generate_design_summary(self):
-        """Asserts documenter.md contains instruction to generate/update docs/design.md as derived summary."""
+    def test_no_design_generation(self):
+        """Asserts documenter.md does NOT contain instruction to generate docs/design.md."""
         content = read_documenter_md()
-        # Should mention generating/updating docs/design.md
-        assert "docs/design.md" in content, "Missing instruction for docs/design.md"
-        # Should indicate it's an architecture summary or derived
-        assert (
-            "architecture summary" in content.lower()
-            or "derived" in content.lower()
-        ), "Missing indication that design.md is an architecture summary or derived"
+        # Should NOT mention generating/updating docs/design.md
+        assert "generate design.md" not in content.lower(), "documenter.md should not generate design.md"
+        assert "generate docs/design.md" not in content.lower(), "documenter.md should not generate docs/design.md"
 
     def test_has_consistency_checks(self):
         """Asserts documenter.md contains consistency check instructions (orphaned references, stale status)."""
@@ -72,28 +62,6 @@ class TestDocumenterPrompt:
             "orphaned" in content.lower()
             or "stale" in content.lower()
         ), "Missing orphaned references or stale status checks"
-
-    def test_summaries_as_architect_quickstart(self):
-        """Asserts documenter.md mentions summaries serving as Architect quick-start (or equivalent phrasing)."""
-        content = read_documenter_md()
-        # Should mention architect quick-start or similar
-        assert (
-            "quick-start" in content.lower()
-            or "quick start" in content.lower()
-            or "architect" in content.lower()
-        ), "Missing reference to Architect quick-start"
-
-    def test_summaries_are_derived(self):
-        """Asserts documenter.md contains 'derived' or equivalent language clarifying summaries are not primary sources."""
-        content = read_documenter_md()
-        # Should explicitly state summaries are derived
-        assert "derived" in content.lower(), "Missing 'derived' language"
-        # Should clarify they are not primary sources
-        assert (
-            "not a primary" in content.lower()
-            or "not primary" in content.lower()
-            or "derived from" in content.lower()
-        ), "Missing clarification that summaries are not primary sources"
 
     def test_existing_duties_preserved(self):
         """Asserts documenter.md still mentions README, docstrings, stale comments reconciliation."""

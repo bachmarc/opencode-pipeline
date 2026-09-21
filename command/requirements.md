@@ -7,5 +7,5 @@ Execute phase 1 of dev-workflow skill for: $ARGUMENTS
 
 - Create folder + git if not present
 - Execute iterative requirements interview (strong reasoning, in German)
-- Create feature files (`docs/features/<name>/feature.md`) with vision + context, and story files with self-contained requirements, `docs/design.md` (with function vs connectivity + fake interfaces requirement), `AGENTS.md`
+- Create feature files (`docs/features/<name>/feature.md`) with vision + context, and story files with self-contained requirements, `AGENTS.md`
 - If $ARGUMENTS empty: ask for project idea
