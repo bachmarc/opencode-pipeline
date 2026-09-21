@@ -13,6 +13,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-006 | Doc Model Migration | in-progress | — | 09-01, 09-02, 09-03, 09-04, 09-05, 09-06 |
 | F-007 | Pipeline Enforcement Plugin | done | — | 11-01, 11-02, 11-03, 11-04, 11-05, 11-06, 11-07, 11-08 |
 | F-008 | Polyglot QA Gate | planned | — | 12-01, 12-02, 12-03, 12-04, 12-05, 12-06, 12-07, 12-08, 12-09, 12-10 |
+| F-009 | Project Migration | planned | — | 13-01, 13-02, 13-03, 13-04, 13-05, 13-06 |
 
 ## Feature status derivation
 
