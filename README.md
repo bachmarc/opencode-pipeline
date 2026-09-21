@@ -20,8 +20,8 @@ The pipeline orchestrates four specialized agents:
 The repository contains:
 
 - **`agent/`** — The four role definitions (architect, developer, qa-manager, documenter). Each is a Markdown file with frontmatter (description, mode, rules) and a prompt. Roles are portable; model assignment is local.
-- **`scripts/`** — 15+ deterministic Python scripts + `qa_compress.sh` (Bash). Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks.
-- **`plugins/`** — Pipeline enforcement plugin (TypeScript). Deterministic guards that block process violations: merge without QA-PASS, architect editing code, merge without documenter, session start without recovery. Deploys to `~/.config/opencode/plugins/` via release branch.
+- **`scripts/`** — 15+ deterministic Python scripts + `qa_compress.sh` (Bash) with modular checker plugins in `scripts/qa_checkers/`. Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks, template migration, and polyglot commit metadata.
+- **`plugins/`** — Pipeline enforcement plugin (TypeScript, `plugins/pipeline-enforcement.ts`). Six deterministic guards that block process violations at the tool-call level: merge without QA-PASS, dev-start without story, architect editing code, story status after merge, session start without recovery, merge without documenter. Deploys to `~/.config/opencode/plugins/` via release branch.
 - **`templates/`** — Skeletons for new projects: `AGENTS.md` (project knowledge template) and `.gitignore`.
 - **`command/`** — Invokable commands that orchestrate the flow: `/new-project`, `/requirements`, `/decompose`, `/implement`, `/qa-check`, `/status`, `/qa_summary`, `/document`.
 - **`docs/features/`** — Hierarchical planning structure: features contain stories, stories contain developer targets and test criteria.
@@ -319,9 +319,34 @@ git -C ~/.config/opencode checkout <tag-or-hash>
 
 **No deploy script — by design:** deployment stays deliberately manual (staged rollout; the framework steers the running agent). Optional convenience later, manual is the default.
 
-### Extending: new test processes (`qa_compress.sh` is modular)
+### Pipeline Enforcement Plugin
 
-`qa_compress.sh` uses a **checker-registry pattern with plugin files**. Each test process lives in its own file in `scripts/qa_checkers/` and registers itself. Available checkers: `pytest` (default), `rspec` (Ruby), `jest` (JavaScript), `gradle` / `maven` (Java), `json` / `yaml` (syntax validation), `html` (simple syntax check).
+The pipeline's process rules are enforced **deterministically at the tool-call level** via an opencode plugin (`plugins/pipeline-enforcement.ts`), not just recommended in prompts. The plugin intercepts tool calls (`tool.execute.before`) and blocks or redirects violations before they happen.
+
+**Six guards, each a composable function:**
+
+| Guard | Trigger | What it enforces |
+|---|---|---|
+| **Merge Guard** | `git merge` on main | Checks `.pipeline/qa-state/` for a PASS verdict matching the branch. No PASS → block. |
+| **Dev-Start Guard** | `task` spawning developer/QA | Verifies a story file exists and is in an appropriate state. Reinforces `permission.task`. |
+| **Architect Code Guard** | `edit`/`write` on code files | Detects architect editing `src/`, `tests/`, `*.py`, `*.ts`. Asks interactively: housekeeping or pipeline? Never silently allowed. |
+| **Story Status Guard** | `git merge` on main | After successful merge, checks whether STORIES.md was updated. If not → warning. |
+| **Session Recovery Guard** | First tool call of session | Runs `session_recovery.py --check`. Open intents or dirty worktrees → hard block until addressed. Fires once per session. |
+| **Documenter Guard** | `git merge` on main | Checks the feature branch for a `docs: reconcile` commit (Documenter output). No documenter commit → block. |
+
+**Architecture:** Single entry point, guard registry pattern. Guards read `.pipeline/` and `STORIES.md` for state. Agent detection via `context.agent`. Deployment follows the standard release branch workflow.
+
+**Relationship to prompt rules:** Prompts stay as behavioral training (the LLM "wants" to follow the rules). The plugin adds hard technical gates (the LLM "cannot" violate them even if it tries). Both layers complement each other.
+
+### Polyglot QA Gate
+
+The QA gate works with **any language** — not just Python/pytest. Projects declare their test stack once in a committed `qa_config.json`; the framework resolves the rest.
+
+**How it works:**
+
+1. **Project declares its stack:** `qa_config.json` in the project root: `{"checkers": ["rspec", "gradle", "json"]}`. Missing file → default `["pytest"]` (backward compatible). Empty list → explicit opt-out (data-only repos). Invalid JSON or unknown checker → loud FAIL.
+
+2. **Checker plugins** live in `scripts/qa_checkers/`, one file per runner. Each registers itself:
 
 ```bash
 # scripts/qa_checkers/mypy.sh — one file per checker
@@ -329,7 +354,35 @@ mypy_check() { mypy "$@" >/dev/null 2>&1; return $?; }
 register_check mypy mypy_check
 ```
 
-Which checkers actually run is declared per project in `qa_config.json` (in the project cwd): `{"checkers": ["pytest", "mypy"]}`. Missing file → default `["pytest"]`; invalid JSON → loud fail; unknown checker name → loud FAIL; empty list → explicit opt-out (PASS). Aggregation (overall FAIL as soon as one checker is non-zero) and exit code happen automatically. New checkers = one plugin file + registration line. See feature: polyglot-qa, stories: 12-01-qa-config-contract, 12-02-checker-rspec-jest, 12-03-checker-gradle-maven, 12-04-checker-json-yaml.
+3. **`qa_compress.sh` dispatches** the declared checkers serially with AND semantics (all must pass). Aggregation and exit code happen automatically.
+
+**Available checkers:** `pytest` (Python, default), `rspec` (Ruby), `jest` (JavaScript/TypeScript), `gradle` (Java/Kotlin), `maven` (Java), `json` (JSON syntax validation), `yaml` (YAML syntax validation), `html` (HTML syntax check — tag matching, attribute quoting, void element validation).
+
+**Runner abstraction extends everywhere:**
+- **Portable prompts** (`agent/*.md`, `command/*.md`) reference "the configured test suite / configured checkers" — never a concrete runner name. Enforced by `tests/test_no_runner_names_in_prompts.py`.
+- **Template constant sections** (`templates/AGENTS.md`) are runner-agnostic. Existing projects re-sync via `scripts/migrate_template_sections.py`.
+- **Commit metadata** (`prepare_commit_metadata.py`) derives the test command from `qa_config.json` and extracts symbols/affects in a language-aware way (Python, JS/TS, Bash, Ruby, Java).
+- **Architecture checking** (`check_architecture.py`) validates import boundaries across languages — Python, JS/TS, Ruby, Java — with per-language allowlists.
+
+New checkers = one plugin file + registration line. No shared-file edits, no merge conflicts.
+
+### Documentation Model
+
+The pipeline uses a **feature/story-primary documentation model**: features and stories are the source of truth, while `docs/requirements.md` and `docs/design.md` are derived summaries generated by the Documenter.
+
+**Hierarchy:**
+```
+docs/features/<feature-name>/
+  feature.md              # Vision, context, story list
+  stories/
+    <phase>-<id>-<slug>.md  # Self-contained: purpose, requirements, acceptance criteria, developer targets, test criteria
+```
+
+**Key properties:**
+- **Stories are self-contained** — each carries its own purpose, requirements, and acceptance criteria. No external REQ-ID references needed to understand "why."
+- **Features carry vision and context** — they describe what all their stories together create, not just a folder grouping.
+- **Derived docs stay current** — the Documenter generates `requirements.md` and `design.md` as summaries with feature/story references after each QA-PASS cycle.
+- **Templates enforce structure** — `docs/features/_feature_template.md` and `_story_template.md` ensure consistency across all features and stories.
 
 ### Per-project AGENTS.md (project knowledge, per repo)
 
@@ -354,5 +407,7 @@ Therefore: **tests exist BEFORE the code**, each story has its own fake-based te
 
 ## Open points / outlook
 
+- **Project Migration (F-009, planned):** Interactive `/migrate-project` command for onboarding existing projects into the pipeline. Analyzes the project (stack detection, structure scan), generates a correct `AGENTS.md` from the template, creates missing infrastructure (`.pipeline/`, `qa_config.json`, directory structure), and optionally documents pre-pipeline work as retro stories. 6 stories planned.
 - `qa_compress.sh` is verified against **pytest 9** (PASS: `78 passed`; FAIL: `2 failed, 1 passed`); for older pytest versions check one line in the summary grep if needed.
 - Optional: merge into a shared `~/dotfiles` repo with other tools (then via symlink instead of a direct clone).
+- Optional: CI (GitHub Actions) — can be added later; local pytest + QA gate is the current contract.
