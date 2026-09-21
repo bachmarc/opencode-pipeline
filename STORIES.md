@@ -73,6 +73,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 13-04-structure-provisioning | Missing directory/file provisioning | Done (172537a) | F-009 project-migration |
 | 13-05-retro-story-generator | Optional retro story creation for pre-pipeline work | Done (172537a) | F-009 project-migration |
 | 13-06-migration-validation | Post-migration validation (structure + template constancy) | Done (172537a) | F-009 project-migration |
+| 14-01-remove-derived-docs | Remove requirements.md + design.md from entire framework | Planned | F-010 eliminate-derived-docs |
 
 ## Phase comments
 
@@ -122,3 +123,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   - Wave 1 (13-01, 13-02): Command/Skill scaffold + Project analyzer (parallel)
   - Wave 2 (13-03, 13-04, 13-05): AGENTS.md generator + Structure provisioning + Retro stories (parallel)
   - Wave 3 (13-06): Migration validation (depends on all prior scripts)
+- **Phase 14 (Eliminate Derived Docs):** Remove `docs/requirements.md` and `docs/design.md`
+  from the entire framework. Single source of truth: features + stories + AGENTS.md.
+  Architect quick-start via `session_recovery.py` + `FEATURES.md`. 1 story:
+  - 14-01: Remove all references, tests, scaffold targets, delete files
