@@ -1,6 +1,6 @@
 # Story 09-04 — Rewrite requirements.md + design.md as Documenter-style summaries
 
-Status: Planned
+Status: Done
 Feature: doc-model-migration (F-006)
 
 ## Context / Purpose

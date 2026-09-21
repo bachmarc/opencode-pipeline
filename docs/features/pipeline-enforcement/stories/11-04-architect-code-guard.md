@@ -1,6 +1,6 @@
 # Story 11-04 — Architect Code Guard
 
-Status: Planned
+Status: Done
 Feature: pipeline-enforcement (F-007)
 
 ## Context / Purpose

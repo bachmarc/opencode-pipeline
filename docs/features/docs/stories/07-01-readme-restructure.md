@@ -1,6 +1,6 @@
 # Story 07-01 — README restructure (user-oriented documentation)
 
-Status: Planned
+Status: Done
 Feature: docs (F-003)
 
 ## Context / Purpose

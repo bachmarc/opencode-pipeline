@@ -1,6 +1,6 @@
 # Story 06-02 — .pipeline directory and intent tracking
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

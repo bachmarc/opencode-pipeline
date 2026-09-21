@@ -1,6 +1,6 @@
 # Story 09-01 — Migrate feature.md files to new format
 
-Status: Planned
+Status: Done
 Feature: doc-model-migration (F-006)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 09-05 — Update QA-manager, developer prompts + commands + AGENTS.md template
 
-Status: Planned
+Status: Done
 Feature: doc-model-migration (F-006)
 
 ## Context / Purpose

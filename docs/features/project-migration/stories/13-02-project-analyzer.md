@@ -1,6 +1,6 @@
 # Story 13-02 — Project Analyzer Script
 
-Status: Planned
+Status: Done (172537a)
 Feature: project-migration (F-009)
 
 ## Context / Purpose

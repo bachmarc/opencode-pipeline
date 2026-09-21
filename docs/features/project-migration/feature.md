@@ -1,7 +1,7 @@
 ---
 id: F-009
 title: Project Migration
-status: planned
+status: done
 owner: ""
 ---
 
@@ -25,9 +25,9 @@ A deterministic script cannot solve this: it requires understanding which parts 
 
 ## Stories
 
-- 13-01-migrate-command (planned) — `/migrate-project` command + `migrate-project` skill scaffold
-- 13-02-project-analyzer (planned) — Project analysis script (stack detection, structure scan, existing agent file parsing)
-- 13-03-agents-md-generator (planned) — AGENTS.md generation: template + project-specific content via LLM dialogue
-- 13-04-structure-provisioning (planned) — Missing directory/file provisioning (`.pipeline/`, `qa_config.json`, templates, `.gitignore`)
-- 13-05-retro-story-generator (planned) — Optional retro story generation for pre-pipeline work
-- 13-06-migration-validation (planned) — Post-migration validation (template constancy, structure completeness, qa_config)
+- 13-01-migrate-command (done) — `/migrate-project` command + `migrate-project` skill scaffold
+- 13-02-project-analyzer (done) — Project analysis script (stack detection, structure scan, existing agent file parsing)
+- 13-03-agents-md-generator (done) — AGENTS.md generation: template + project-specific content via LLM dialogue
+- 13-04-structure-provisioning (done) — Missing directory/file provisioning (`.pipeline/`, `qa_config.json`, templates, `.gitignore`)
+- 13-05-retro-story-generator (done) — Optional retro story generation for pre-pipeline work
+- 13-06-migration-validation (done) — Post-migration validation (template constancy, structure completeness, qa_config)

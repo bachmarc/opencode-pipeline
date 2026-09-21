@@ -1,6 +1,6 @@
 # Story 04-02 — Translate command/*.md to English
 
-Status: Planned
+Status: Done
 Feature: i18n (F-002)
 
 ## Context / Purpose

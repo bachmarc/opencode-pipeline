@@ -1,6 +1,6 @@
 # Story 06-08 — Session recovery script
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

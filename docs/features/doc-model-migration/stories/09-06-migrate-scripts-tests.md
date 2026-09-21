@@ -1,6 +1,6 @@
 # Story 09-06 — Update scripts + tests that reference REQ-IDs
 
-Status: Planned
+Status: Done
 Feature: doc-model-migration (F-006)
 
 ## Context / Purpose

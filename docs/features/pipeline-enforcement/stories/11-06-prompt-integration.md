@@ -1,6 +1,6 @@
 # Story 11-06 — Prompt Integration and Documentation
 
-Status: Planned
+Status: Done
 Feature: pipeline-enforcement (F-007)
 
 ## Context / Purpose

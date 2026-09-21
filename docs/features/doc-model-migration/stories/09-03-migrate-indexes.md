@@ -1,6 +1,6 @@
 # Story 09-03 — Migrate STORIES.md + FEATURES.md to feature-references
 
-Status: Planned
+Status: Done
 Feature: doc-model-migration (F-006)
 
 ## Context / Purpose

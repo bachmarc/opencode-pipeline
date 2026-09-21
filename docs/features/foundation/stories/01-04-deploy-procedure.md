@@ -1,6 +1,6 @@
 # Story 01-04 — Deploy Procedure (Pull in Live-Clone + Restart)
 
-Status: Geplant
+Status: Done
 Feature: foundation (F-001)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 06-10 — Documenter agent and /document command
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

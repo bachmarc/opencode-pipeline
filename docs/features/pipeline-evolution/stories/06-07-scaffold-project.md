@@ -1,6 +1,6 @@
 # Story 06-07 — Project scaffolding script
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

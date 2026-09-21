@@ -1,6 +1,6 @@
 # Story 06-11 — QA routing and commit metadata scripts
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

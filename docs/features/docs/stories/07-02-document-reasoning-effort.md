@@ -1,6 +1,6 @@
 # Story 07-02 — Document Reasoning Effort
 
-Status: Planned
+Status: Done
 Feature: docs (F-003)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 13-06 — Migration Validation Script
 
-Status: Planned
+Status: Done (172537a)
 Feature: project-migration (F-009)
 
 ## Context / Purpose

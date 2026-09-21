@@ -1,6 +1,6 @@
 # Story 06-04 — Worktree setup script
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

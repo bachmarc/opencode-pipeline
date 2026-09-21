@@ -1,6 +1,6 @@
 # Story 06-06 — Story management scripts (resolve, create, status-update)
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

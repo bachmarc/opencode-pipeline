@@ -1,6 +1,6 @@
 # Story 12-08 — Template config sections + scaffold + own qa_config.json
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

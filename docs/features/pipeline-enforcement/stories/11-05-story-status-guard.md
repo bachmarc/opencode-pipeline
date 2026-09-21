@@ -1,6 +1,6 @@
 # Story 11-05 — Story Status Guard
 
-Status: Planned
+Status: Done
 Feature: pipeline-enforcement (F-007)
 
 ## Context / Purpose

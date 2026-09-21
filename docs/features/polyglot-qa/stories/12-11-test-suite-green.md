@@ -1,6 +1,6 @@
 # Story 12-11 — Test-suite green: fix pre-existing failures on main
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

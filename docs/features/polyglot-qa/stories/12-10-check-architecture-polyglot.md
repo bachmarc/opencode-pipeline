@@ -1,6 +1,6 @@
 # Story 12-10 — check_architecture.py: polyglot import checking
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

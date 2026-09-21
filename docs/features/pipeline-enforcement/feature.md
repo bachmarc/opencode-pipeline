@@ -1,7 +1,7 @@
 ---
 id: F-007
 title: Pipeline Enforcement Plugin
-status: planned
+status: done
 owner: ""
 req: []
 ---
@@ -74,11 +74,11 @@ TypeScript plugin that lives in the repo's `plugins/` directory and deploys to
 
 ## Stories
 
-- 11-01-plugin-scaffold (planned)
-- 11-02-merge-guard (planned)
-- 11-03-dev-start-guard (planned)
-- 11-04-architect-code-guard (planned)
-- 11-05-story-status-guard (planned)
-- 11-06-prompt-integration (planned)
-- 11-07-session-recovery-guard (planned)
-- 11-08-documenter-guard (planned)
+- 11-01-plugin-scaffold (done)
+- 11-02-merge-guard (done)
+- 11-03-dev-start-guard (done)
+- 11-04-architect-code-guard (done)
+- 11-05-story-status-guard (done)
+- 11-06-prompt-integration (done)
+- 11-07-session-recovery-guard (done)
+- 11-08-documenter-guard (done)

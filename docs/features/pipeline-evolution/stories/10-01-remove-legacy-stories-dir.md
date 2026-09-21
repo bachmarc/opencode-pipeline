@@ -1,6 +1,6 @@
 # Story 10-01 — Remove legacy docs/stories/ directory
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

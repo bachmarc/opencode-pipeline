@@ -1,6 +1,6 @@
 # Story 08-02 — Architect prompt: features/stories as primary source
 
-Status: Planned
+Status: Done
 Feature: doc-model-reform (F-005)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 12-12 — Dev-start-guard: strip story slug when parsing STORIES.md
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008) — pipeline-enforcement bugfix, discovered during
 Phase 12 orchestration
 

@@ -1,6 +1,6 @@
 # Story 06-03 — Release branch setup
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

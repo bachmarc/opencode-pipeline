@@ -1,6 +1,6 @@
 # Story 12-02 — Checker plugins: rspec (Ruby) + jest (JavaScript)
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

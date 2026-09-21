@@ -1,6 +1,6 @@
 # Story 12-07 — Genericize portable prompts: no runner names
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

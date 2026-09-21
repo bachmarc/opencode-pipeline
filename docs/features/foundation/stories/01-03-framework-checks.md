@@ -1,6 +1,6 @@
 # Story 01-03 — Framework Self-Checks (tests-first)
 
-Status: Geplant
+Status: Done
 Feature: foundation (F-001)
 
 ## Context / Purpose

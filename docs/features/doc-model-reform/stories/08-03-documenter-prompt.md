@@ -1,6 +1,6 @@
 # Story 08-03 — Documenter prompt: generate summaries + consistency checks
 
-Status: Planned
+Status: Done
 Feature: doc-model-reform (F-005)
 
 ## Context / Purpose

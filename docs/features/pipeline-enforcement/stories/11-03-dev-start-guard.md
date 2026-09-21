@@ -1,6 +1,6 @@
 # Story 11-03 — Dev-Start Guard
 
-Status: Planned
+Status: Done
 Feature: pipeline-enforcement (F-007)
 
 ## Context / Purpose

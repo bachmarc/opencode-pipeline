@@ -1,6 +1,6 @@
 # Story 06-05 — Pipeline status aggregation script
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

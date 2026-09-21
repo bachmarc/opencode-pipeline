@@ -1,6 +1,6 @@
 # Story 01-05 — APP_VERSION + Bump Rule
 
-Status: Geplant
+Status: Done
 Feature: foundation (F-001)
 
 ## Context / Purpose

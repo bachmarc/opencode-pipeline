@@ -1,6 +1,6 @@
 # Story 06-14 — Orchestration rules and QA self-enforcement
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

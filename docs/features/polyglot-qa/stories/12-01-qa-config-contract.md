@@ -1,6 +1,6 @@
 # Story 12-01 — QA config contract + config-driven checker dispatch
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

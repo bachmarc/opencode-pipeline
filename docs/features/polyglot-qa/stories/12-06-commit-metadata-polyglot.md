@@ -1,6 +1,6 @@
 # Story 12-06 — Polyglot commit metadata
 
-Status: Planned
+Status: Done
 Feature: polyglot-qa (F-008)
 
 ## Context / Purpose

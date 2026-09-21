@@ -67,12 +67,12 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 12-10-check-architecture-polyglot | check_architecture.py: polyglot import checking (JS/Ruby/Java) | Done (QA PASS, e28fac5→813549d) | F-008 polyglot-qa |
 | 12-11-test-suite-green | Fix pre-existing test failures blocking QA gate | Done (QA PASS, 8308e6d→5f1a8bb) | F-008 polyglot-qa |
 | 12-12-dev-start-guard-slug | Dev-start-guard: strip story slug when parsing STORIES.md | Done (QA PASS, 45049b2→f020a99) | F-008 polyglot-qa |
-| 13-01-migrate-command | /migrate-project command + migrate-project skill scaffold | Planned | F-009 project-migration |
-| 13-02-project-analyzer | Project analysis script (stack detection, structure scan) | Planned | F-009 project-migration |
-| 13-03-agents-md-generator | AGENTS.md draft generation (template + project extraction) | Planned | F-009 project-migration |
-| 13-04-structure-provisioning | Missing directory/file provisioning | Planned | F-009 project-migration |
-| 13-05-retro-story-generator | Optional retro story creation for pre-pipeline work | Planned | F-009 project-migration |
-| 13-06-migration-validation | Post-migration validation (structure + template constancy) | Planned | F-009 project-migration |
+| 13-01-migrate-command | /migrate-project command + migrate-project skill scaffold | Done (172537a) | F-009 project-migration |
+| 13-02-project-analyzer | Project analysis script (stack detection, structure scan) | Done (172537a) | F-009 project-migration |
+| 13-03-agents-md-generator | AGENTS.md draft generation (template + project extraction) | Done (172537a) | F-009 project-migration |
+| 13-04-structure-provisioning | Missing directory/file provisioning | Done (172537a) | F-009 project-migration |
+| 13-05-retro-story-generator | Optional retro story creation for pre-pipeline work | Done (172537a) | F-009 project-migration |
+| 13-06-migration-validation | Post-migration validation (structure + template constancy) | Done (172537a) | F-009 project-migration |
 
 ## Phase comments
 

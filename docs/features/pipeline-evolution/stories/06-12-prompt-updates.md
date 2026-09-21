@@ -1,6 +1,6 @@
 # Story 06-12 — Agent prompt updates for script integration
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

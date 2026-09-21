@@ -1,6 +1,6 @@
 # Story 06-01 — Feature-hierarchy file structure
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

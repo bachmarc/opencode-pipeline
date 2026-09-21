@@ -1,6 +1,6 @@
 # Story 09-02 — Migrate story files to new 5-section format
 
-Status: Planned
+Status: Done
 Feature: doc-model-migration (F-006)
 
 ## Context / Purpose

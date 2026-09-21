@@ -384,6 +384,26 @@ docs/features/<feature-name>/
 - **Derived docs stay current** — the Documenter generates `requirements.md` and `design.md` as summaries with feature/story references after each QA-PASS cycle.
 - **Templates enforce structure** — `docs/features/_feature_template.md` and `_story_template.md` ensure consistency across all features and stories.
 
+### Project Migration (`/migrate-project`)
+
+Existing projects that were not started with the pipeline can be onboarded interactively via `/migrate-project`. The command triggers the Architect, which loads the `migrate-project` skill and guides the user through a 6-phase migration dialogue.
+
+**The six phases:**
+
+1. **Analyze** — `scripts/analyze_project.py` scans the project: stack detection (Python, JS, Ruby, Java, mixed, unknown), existing agent file (`AGENTS.md`, `CLAUDE.md`, or none), directory structure, git state. Output: structured JSON.
+
+2. **Dialogue** — The Architect presents the analysis and asks the user to confirm/correct: stack, project name, core rules, architecture decisions. Interactive, not automated.
+
+3. **Generate AGENTS.md** — `scripts/prepare_agents_md.py` combines the template's constant sections (verbatim) with project-specific data from the analysis. `<TODO>` markers for undetermined fields. Existing agent file content preserved as comment block.
+
+4. **Provision structure** — `scripts/provision_structure.py` creates only what's missing: `.pipeline/`, `docs/features/`, `qa_config.json` (stack-aware), `.gitignore` merge. Never overwrites existing files.
+
+5. **Retro stories (optional)** — `scripts/create_retro_stories.py` documents pre-pipeline work as retro stories. Creates feature directory, feature.md, story files with "Retro-Done" status. Appends to FEATURES.md and STORIES.md.
+
+6. **Validate** — `scripts/validate_migration.py` runs 8 checks: AGENTS.md exists, template constancy, required dirs, qa_config, FEATURES.md, STORIES.md, pipeline intent, git initialized. JSON output with per-check results.
+
+After migration, the project works with all pipeline features (worktrees, QA gate, session recovery, documenter) without manual setup.
+
 ### Per-project AGENTS.md (project knowledge, per repo)
 
 Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agent/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
@@ -407,7 +427,6 @@ Therefore: **tests exist BEFORE the code**, each story has its own fake-based te
 
 ## Open points / outlook
 
-- **Project Migration (F-009, planned):** Interactive `/migrate-project` command for onboarding existing projects into the pipeline. Analyzes the project (stack detection, structure scan), generates a correct `AGENTS.md` from the template, creates missing infrastructure (`.pipeline/`, `qa_config.json`, directory structure), and optionally documents pre-pipeline work as retro stories. 6 stories planned.
 - `qa_compress.sh` is verified against **pytest 9** (PASS: `78 passed`; FAIL: `2 failed, 1 passed`); for older pytest versions check one line in the summary grep if needed.
 - Optional: merge into a shared `~/dotfiles` repo with other tools (then via symlink instead of a direct clone).
 - Optional: CI (GitHub Actions) — can be added later; local pytest + QA gate is the current contract.

@@ -1,6 +1,6 @@
 # Story 13-03 — AGENTS.md Generator (LLM-Assisted via Skill Dialogue)
 
-Status: Planned
+Status: Done (172537a)
 Feature: project-migration (F-009)
 
 ## Context / Purpose

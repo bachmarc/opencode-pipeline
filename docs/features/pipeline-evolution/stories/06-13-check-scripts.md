@@ -1,6 +1,6 @@
 # Story 06-13 — Template constancy and architecture check scripts
 
-Status: Planned
+Status: Done
 Feature: pipeline-evolution (F-004)
 
 ## Context / Purpose

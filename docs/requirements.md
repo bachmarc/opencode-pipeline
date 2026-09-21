@@ -6,17 +6,20 @@ This document is a **derived summary** generated from the feature and story hier
 
 ## Feature Overview
 
-The opencode-pipeline project is organized into 7 features, each representing a major capability or phase:
+The opencode-pipeline project is organized into 10 features, each representing a major capability or phase:
 
 | Feature ID | Title | Vision (1-line) | Status | Stories |
 |---|---|---|---|---|
 | F-RETRO | Retroactive Traceability | Pre-pipeline changes documented retroactively | Done | RETRO-01 through RETRO-05 |
 | F-001 | Foundation | Repository structure, docs, self-checks, deployment, versioning | Done | 01-01 through 01-05 |
 | F-002 | Internationalization (English) | Portable files in English, dialogue language decoupled | Done | 04-01 through 04-04 |
-| F-003 | Documentation | README restructured for user orientation and workflow guidance | In-progress | 05-01, 07-01 |
-| F-004 | Pipeline Evolution | Deterministic scripts, session recovery, multi-user support, documenter agent | Planned | 06-01 through 06-08 |
-| F-005 | Documentation Model Reform | Features/stories as primary source, requirements/design as derived summaries | Done | 02-01 through 02-04 |
-| F-006 | Documentation Model Migration | Migrate all repo data to new documentation model | Planned | 09-01 through 09-06 |
+| F-003 | Documentation | README restructured for user orientation and workflow guidance | Done | 05-01, 07-01, 07-02, 07-03 |
+| F-004 | Pipeline Evolution | Deterministic scripts, session recovery, multi-user support, documenter agent | Done | 06-01 through 06-14 |
+| F-005 | Documentation Model Reform | Features/stories as primary source, requirements/design as derived summaries | Done | 08-01 through 08-03 |
+| F-006 | Documentation Model Migration | Migrate all repo data to new documentation model | Done | 09-01 through 09-06 |
+| F-007 | Pipeline Enforcement Plugin | Deterministic process enforcement via opencode plugin (6 guards) | Done | 11-01 through 11-08 |
+| F-008 | Polyglot QA Gate | Any-language QA gate via checker plugins and qa_config.json | Done | 12-01 through 12-12 |
+| F-009 | Project Migration | Interactive onboarding of existing projects into the pipeline | Done | 13-01 through 13-06 |
 
 ## Functional Requirements (by Feature)
 
@@ -65,9 +68,29 @@ The opencode-pipeline project is organized into 7 features, each representing a 
 - Rewrite requirements.md and design.md as Documenter-style summaries
 - Update commands, prompts, templates, scripts, and tests to reference new model
 
+### F-007: Pipeline Enforcement Plugin
+- **TypeScript opencode plugin** (`plugins/pipeline-enforcement.ts`) enforces process rules at the tool-call level via `tool.execute.before` interception
+- **Merge Guard:** Blocks `git merge` on main without QA-PASS verdict in `.pipeline/qa-state/`
+- **Dev-Start Guard:** Verifies story file exists before spawning developer/QA subagents
+- **Architect Code Guard:** Blocks architect from editing code files (`src/`, `tests/`, `*.py`, `*.ts`); interactive housekeeping path
+- **Story Status Guard:** Warns after merge if STORIES.md was not updated
+- **Session Recovery Guard:** Blocks first tool call of session if open intents or dirty worktrees exist
+- **Documenter Guard:** Blocks merge without a `docs: reconcile` commit on the feature branch
+
 ### F-008: Polyglot QA Gate
+- **Config-driven checker dispatch:** Projects declare their test stack in `qa_config.json`; `qa_compress.sh` dispatches the declared checkers serially with AND semantics
+- **Checker plugins:** `pytest`, `rspec`, `jest`, `gradle`, `maven`, `json`, `yaml`, `html` — each a self-registering file in `scripts/qa_checkers/`
+- **Runner-agnostic portable layer:** Prompts, templates, commit metadata, and architecture checks never name a concrete runner
 - **Legacy project adoption runbook:** When adopting this pipeline version in an existing project: run `scripts/migrate_template_sections.py` once, then verify with `check_template_constancy.py`, then adapt `qa_config.json` to the project stack — see story 12-09-template-migration-tool
 - **Template migration tool:** `scripts/migrate_template_sections.py` re-syncs the 4 constant sections (Workflow, Git conventions, Languages, Prohibitions) of an existing project AGENTS.md with the current `templates/AGENTS.md` (after 12-08's runner-agnostic change) — the supported path for existing projects to adopt the updated template; project-specific content is preserved byte-identical and the tool is idempotent
+
+### F-009: Project Migration
+- **`/migrate-project` command** triggers the Architect with the `migrate-project` skill for interactive onboarding
+- **Project analysis:** `scripts/analyze_project.py` detects stack (Python, JS, Ruby, Java, mixed, unknown), existing agent files, directory structure, git state
+- **AGENTS.md generation:** `scripts/prepare_agents_md.py` combines template constant sections with project-specific data; `<TODO>` markers for undetermined fields
+- **Structure provisioning:** `scripts/provision_structure.py` creates only missing infrastructure (`.pipeline/`, `qa_config.json`, `.gitignore` merge); never overwrites existing files
+- **Retro stories (optional):** `scripts/create_retro_stories.py` documents pre-pipeline work as retro stories with "Retro-Done" status
+- **Migration validation:** `scripts/validate_migration.py` runs 8 checks (AGENTS.md, template constancy, required dirs, qa_config, indexes, git state)
 
 ## Non-Functional Requirements
 

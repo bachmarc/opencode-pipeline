@@ -1,6 +1,6 @@
 # Story 11-01 — Plugin Scaffold and Infrastructure
 
-Status: Planned
+Status: Done
 Feature: pipeline-enforcement (F-007)
 
 ## Context / Purpose

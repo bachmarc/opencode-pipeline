@@ -1,6 +1,6 @@
 # Story 11-02 — Merge Guard
 
-Status: Planned
+Status: Done
 Feature: pipeline-enforcement (F-007)
 
 ## Context / Purpose

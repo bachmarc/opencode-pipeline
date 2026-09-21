@@ -1,6 +1,6 @@
 # Story 13-01 — /migrate-project Command + migrate-project Skill Scaffold
 
-Status: Planned
+Status: Done (172537a)
 Feature: project-migration (F-009)
 
 ## Context / Purpose

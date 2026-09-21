@@ -1,7 +1,7 @@
 ---
 id: F-004
 title: Pipeline Evolution
-status: planned
+status: done
 owner: ""
 req: []
 ---
@@ -20,16 +20,16 @@ resilience, and automated documentation generation to scale beyond single-user w
 
 ## Stories
 
-- 06-01-feature-hierarchy (planned)
-- 06-02-pipeline-dir-intent (planned)
-- 06-03-release-branch (planned)
-- 06-04-worktree-setup (planned)
-- 06-05-pipeline-status (planned)
-- 06-06-story-management (planned)
-- 06-07-scaffold-project (planned)
-- 06-08-session-recovery (planned)
-- 06-09-feature-claim (planned)
-- 06-10-documenter-agent (planned)
-- 06-11-qa-scripts (planned)
-- 06-12-prompt-updates (planned)
-- 06-13-check-scripts (planned)
+- 06-01-feature-hierarchy (done)
+- 06-02-pipeline-dir-intent (done)
+- 06-03-release-branch (done)
+- 06-04-worktree-setup (done)
+- 06-05-pipeline-status (done)
+- 06-06-story-management (done)
+- 06-07-scaffold-project (done)
+- 06-08-session-recovery (done)
+- 06-09-feature-claim (done)
+- 06-10-documenter-agent (done)
+- 06-11-qa-scripts (done)
+- 06-12-prompt-updates (done)
+- 06-13-check-scripts (done)

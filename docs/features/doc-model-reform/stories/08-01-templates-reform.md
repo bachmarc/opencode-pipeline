@@ -1,6 +1,6 @@
 # Story 08-01 — Templates reform (self-contained stories + enriched features)
 
-Status: Planned
+Status: Done
 Feature: doc-model-reform (F-005)
 
 ## Context / Purpose
