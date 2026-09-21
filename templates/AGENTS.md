@@ -7,7 +7,7 @@
 
 ## This project: <Name, one-liner>
 
-- **What:** <1-2 sentences: problem, target audience, scope — from `docs/requirements.md`>
+- **What:** <1-2 sentences: problem, target audience, scope — from `docs/features/*/feature.md`>
 - **Stack:** `<...>`, test stack: `<runner>` — declared in qa_config.json (checkers list)
 - **Versioning:** `APP_VERSION = "0.1.0"` (in `src/<version>.py` or similar) — bump on every merge
 
@@ -15,7 +15,7 @@
 
 - <Core rule 1 — e.g. "`src/core/board.py` (`PostBoard`) knows nothing of FastAPI, HTTP, or clocks. Time comes as a parameter (`now`).">
 - <Core rule 2 — e.g. "RAM-only: no persistence, no auto-clear timers.">
-- <… more, taken from `docs/design.md` § core decisions>
+- <… more, taken from feature.md Context sections>
 - The project's `qa_config.json` declares the QA checkers; missing file → pytest default.
 - **Fake requirement:** For EVERY external dependency (`<API>`, `<DB>`, `<HA>`, …) there exists a fake in `tests/fakes/` — tests run without real systems.
 
@@ -106,7 +106,5 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 
 ## References
 
-- `docs/requirements.md` — Documenter-generated feature overview (derived summary)
-- `docs/design.md` — Documenter-generated architecture summary (derived)
 - `STORIES.md` — story index (status per story)
 - <Project-specific: `intesis_modbus/CLAUDE.md`, `vokabel/STORIES.md`, …>

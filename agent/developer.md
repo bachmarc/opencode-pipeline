@@ -16,7 +16,7 @@ The architect has already created the worktree — you work **exclusively** in i
 ## Workflow (strict)
 
 1. Read your story file (found via `scripts/resolve_story.py`) → **Developer Targets** + **Test Criteria**
-2. Optionally read `docs/design.md` (Documenter-generated architecture summary) for broader context. Your story file contains all requirements and targets you need.
+2. Your story file contains all requirements and targets you need.
 3. Use `scripts/resolve_story.py` to find the story context and verify you're on the correct branch
 4. Track your current step via `scripts/intent.py` (e.g., "writing tests", "implementing core", "running the test suite")
 5. **Tests first** — write/extend `tests/test_<core>.py` per test criteria. Use fakes from `tests/fakes/` or `tests/raum_simulation.py` pattern (like `FakeModbus`, `Raum`). Tests must run without external systems (no real Modbus/HA/API/Ollama).

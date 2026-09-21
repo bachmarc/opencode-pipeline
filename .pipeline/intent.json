@@ -60,6 +60,13 @@
       "done": true,
       "worktree": ".worktrees/12-09-template-migration-tool",
       "branch": "feature/12-09-template-migration-tool"
+    },
+    {
+      "story_id": "14-01",
+      "agent": "developer",
+      "step": "writing tests",
+      "started_at": "2026-09-21T09:46:14.038606+00:00",
+      "done": false
     }
   ]
 }

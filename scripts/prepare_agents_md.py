@@ -137,8 +137,6 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
     
     # Build references section
     references_lines = ["## References", ""]
-    references_lines.append("- `docs/requirements.md` — Documenter-generated feature overview (derived summary)")
-    references_lines.append("- `docs/design.md` — Documenter-generated architecture summary (derived)")
     references_lines.append("- `STORIES.md` — story index (status per story)")
     
     # Add detected doc files
@@ -151,7 +149,7 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
     core_rules_lines = ["## Core rules (project source of truth: feature files + story files)", ""]
     core_rules_lines.append("- <TODO: core rule 1>")
     core_rules_lines.append("- <TODO: core rule 2>")
-    core_rules_lines.append("- <… more, taken from `docs/design.md` § core decisions>")
+    core_rules_lines.append("- <… more, taken from feature.md Context sections>")
     core_rules_lines.append("- **Fake requirement:** For EVERY external dependency (`<API>`, `<DB>`, `<HA>`, …) there exists a fake in `tests/fakes/` — tests run without real systems.")
     core_rules_section = "\n".join(core_rules_lines)
     
