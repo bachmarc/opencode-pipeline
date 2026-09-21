@@ -1,0 +1,12 @@
+{
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "branch": "feature/14-01-remove-derived-docs",
+      "commit": "7a000ae",
+      "tests": "20 passed",
+      "timestamp": "2026-09-21T12:09:26+02:00",
+      "notes": "All acceptance criteria met. docs/requirements.md and docs/design.md deleted, all references removed."
+    }
+  ]
+}
