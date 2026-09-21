@@ -1,7 +1,7 @@
 ---
 id: F-010
 title: Eliminate Derived Docs
-status: planned
+status: done
 owner: ""
 req: []
 ---

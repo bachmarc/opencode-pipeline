@@ -73,7 +73,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 13-04-structure-provisioning | Missing directory/file provisioning | Done (172537a) | F-009 project-migration |
 | 13-05-retro-story-generator | Optional retro story creation for pre-pipeline work | Done (172537a) | F-009 project-migration |
 | 13-06-migration-validation | Post-migration validation (structure + template constancy) | Done (172537a) | F-009 project-migration |
-| 14-01-remove-derived-docs | Remove requirements.md + design.md from entire framework | Planned | F-010 eliminate-derived-docs |
+| 14-01-remove-derived-docs | Remove requirements.md + design.md from entire framework | Done (QA PASS, 7a000ae→1468340) | F-010 eliminate-derived-docs |
 
 ## Phase comments
 
