@@ -1,0 +1,12 @@
+{
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "branch": "feature/15-00-numbered-feature-folders",
+      "commit": "aef58d6",
+      "tests": "288 passed (27 pre-existing failures unrelated to story)",
+      "timestamp": "2026-09-22T13:30:00+02:00",
+      "notes": "All acceptance criteria met. 12 folders renamed to F-<ID>-<slug>, no old folders remain, scripts/tests updated, Feature: lines unchanged, no model names."
+    }
+  ]
+}
