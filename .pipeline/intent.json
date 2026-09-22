@@ -87,7 +87,7 @@
       "agent": "architect",
       "step": "planning bugfix: dev-start-guard explicit story marker",
       "started_at": "2026-09-22T13:26:01.481006+00:00",
-      "done": false
+      "done": true
     }
   ]
 }
