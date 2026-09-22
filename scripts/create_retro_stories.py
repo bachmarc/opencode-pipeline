@@ -3,6 +3,7 @@
 
 Creates retro feature and story files from a JSON definition.
 Used during project migration to document pre-pipeline development.
+Retro feature folder uses F-RETRO-retro naming convention.
 
 Usage: create_retro_stories.py <target_path> <retro_definition.json>
 
@@ -50,7 +51,7 @@ def create_retro_stories(target_path: str, retro_def: dict) -> dict:
     }
     
     # Create feature directory structure
-    features_dir = target / "docs" / "features" / "retro"
+    features_dir = target / "docs" / "features" / "F-RETRO-retro"
     stories_dir = features_dir / "stories"
     
     # Create directories
@@ -141,7 +142,7 @@ def _generate_story_md(story_id: str, title: str, summary: str, feature_id: str)
     content = f"""# Story {story_id} — {title}
 
 Status: Retro-Done
-Feature: retro ({feature_id})
+Feature: F-RETRO-retro ({feature_id})
 
 ## Context / Purpose
 
