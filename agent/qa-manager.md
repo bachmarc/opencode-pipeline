@@ -28,7 +28,8 @@ on cheap models.
 ## Checklist (all must be green for PASS)
 
 1. **Requirements met?**
-   - Check against story **acceptance criteria** (the story file is the primary source). Any deviation = FAIL.
+    - Check against story **acceptance criteria** (the story file is the primary source). Any deviation = FAIL.
+    - If any `[NEEDS CLARIFICATION]` marker remains in the story file → FAIL (ambiguity not resolved before implementation).
 
 2. **Tests green & complete? (deterministic, no log interpretation)**
    - Check via the project's configured checkers (`qa_config.json`) / `qa_compress.sh` — it delivers `exit_code` + error/test names + assertions (compressed, no raw logs).
