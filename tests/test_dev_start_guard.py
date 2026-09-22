@@ -91,3 +91,46 @@ def test_dev_start_guard_stories_rows_with_slugs():
             checked += 1
 
     assert checked > 0, "No STORIES.md table rows found to check"
+
+
+def test_explicit_marker_pattern_in_guard():
+    """Guard file contains [story: pattern for explicit marker parsing.
+    
+    The guard should look for explicit [story: XX-YY] markers in prompts
+    to avoid false positives from other XX-YY patterns in the text.
+    """
+    repo_root = Path(__file__).resolve().parent.parent
+    guard_file = repo_root / "plugins" / "guards" / "dev-start-guard.ts"
+    content = guard_file.read_text()
+
+    # Check for explicit marker pattern (case-insensitive, allows whitespace)
+    assert "[story:" in content or "[story :" in content, \
+        "Explicit [story: marker pattern not found in guard file"
+
+
+def test_guard_has_fallback_warning():
+    """Guard file contains fallback warning text.
+    
+    When no explicit marker is found, the guard should warn about using
+    fallback pattern matching.
+    """
+    repo_root = Path(__file__).resolve().parent.parent
+    guard_file = repo_root / "plugins" / "guards" / "dev-start-guard.ts"
+    content = guard_file.read_text()
+
+    assert "fallback" in content.lower(), \
+        "Fallback warning text not found in guard file"
+
+
+def test_guard_has_parse_explicit_function():
+    """Guard file contains parseExplicitStoryId function.
+    
+    The guard should have a dedicated function to parse explicit [story: XX-YY]
+    markers from prompts.
+    """
+    repo_root = Path(__file__).resolve().parent.parent
+    guard_file = repo_root / "plugins" / "guards" / "dev-start-guard.ts"
+    content = guard_file.read_text()
+
+    assert "parseExplicitStoryId" in content, \
+        "parseExplicitStoryId function not found in guard file"

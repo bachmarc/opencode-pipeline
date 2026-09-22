@@ -94,17 +94,23 @@ and `qa-manager` (gate).
 
 ## Phase 3 Orchestration (MANDATORY)
 
-1. Start QA for each story individually as soon as its developer is done. Do NOT wait
+1. **Explicit story marker in spawned prompts:** When spawning developer or QA-manager agents,
+   include an explicit `[story: XX-YY]` marker at the start of the prompt (e.g., `[story: 15-02]`).
+   This ensures the dev-start guard correctly identifies the target story and avoids false positives
+   from other XX-YY patterns mentioned in the prompt text (e.g., "watermark synced_through: 14-01").
+   Example: `[story: 15-02] Implement feature X...`
+
+2. Start QA for each story individually as soon as its developer is done. Do NOT wait
    for other developers to finish. Do NOT batch multiple stories into one QA agent.
 
-2. Do NOT run the test suite yourself — not before QA, not after merge, never. The test suite
+3. Do NOT run the test suite yourself — not before QA, not after merge, never. The test suite
    runs exactly twice per story: once by the Developer (before commit) and once by the
    QA-Manager (independent verification). Your only check before QA is that the developer
    reported success. Your only check after merge is that `git merge` exited cleanly.
    Exception: merge conflicts — if a merge had conflicts you resolved manually, run
    the test suite once to verify the resolution.
 
-3. Minimize your own token usage in Phase 3. Use scripts for all deterministic work
+4. Minimize your own token usage in Phase 3. Use scripts for all deterministic work
    (worktree_setup, story_status, merge_if_passed). Your value in Phase 3 is decision-making
    on BLOCKED situations and user dialogue — not mechanical orchestration.
 

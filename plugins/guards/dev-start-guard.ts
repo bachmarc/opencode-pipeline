@@ -4,9 +4,36 @@ import * as path from "path"
 /**
  * Dev-Start Guard: warns when developer/qa-manager is spawned without referencing a known story.
  * 
+ * Explicit marker convention: prompts should start with [story: XX-YY] to identify the target story.
+ * This avoids false positives from other XX-YY patterns in the text (e.g., "watermark synced_through: 14-01").
+ * 
+ * If explicit marker is found, only that story is checked.
+ * If no marker is found, falls back to regex pattern matching (backward compatible) with a warning.
+ * 
  * Returns array of warning messages (empty if all OK).
  * This guard is ADVISORY (returns warnings), not blocking (does not throw).
  */
+
+/**
+ * Parse explicit [story: XX-YY] marker from prompt.
+ * 
+ * Looks for pattern like:
+ *   [story: 15-02]
+ *   [story:15-02]
+ *   [ story: 15-02 ]
+ * 
+ * Case-insensitive, allows whitespace variations.
+ * 
+ * @param prompt The prompt text to search
+ * @returns The story ID (e.g., "15-02") if found, null otherwise
+ */
+function parseExplicitStoryId(prompt: string): string | null {
+  // Match [story: XX-YY] with optional whitespace, case-insensitive
+  const markerRegex = /\[\s*story\s*:\s*(\d{2}-\d{2})\s*\]/i
+  const match = markerRegex.exec(prompt)
+  return match ? match[1] : null
+}
+
 export function devStartGuard(
   subagentType: string,
   prompt: string,
@@ -14,12 +41,25 @@ export function devStartGuard(
 ): string[] {
   const warnings: string[] = []
 
-  // Parse story IDs from prompt using regex pattern \b(\d{2}-\d{2})\b
-  const storyIdRegex = /\b(\d{2}-\d{2})\b/g
-  const foundStoryIds = new Set<string>()
-  let match
-  while ((match = storyIdRegex.exec(prompt)) !== null) {
-    foundStoryIds.add(match[1])
+  // Try to parse explicit [story: XX-YY] marker first
+  let explicitStoryId = parseExplicitStoryId(prompt)
+  let foundStoryIds = new Set<string>()
+
+  if (explicitStoryId) {
+    // Explicit marker found — only check this story
+    foundStoryIds.add(explicitStoryId)
+  } else {
+    // No explicit marker — fall back to regex pattern matching
+    warnings.push(
+      `No [story: XX-YY] marker found in prompt. Using fallback pattern matching.`
+    )
+    
+    // Parse story IDs from prompt using regex pattern \b(\d{2}-\d{2})\b
+    const storyIdRegex = /\b(\d{2}-\d{2})\b/g
+    let match
+    while ((match = storyIdRegex.exec(prompt)) !== null) {
+      foundStoryIds.add(match[1])
+    }
   }
 
   // If no story ID found in prompt, warn
