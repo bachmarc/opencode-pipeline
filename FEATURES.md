@@ -15,7 +15,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-008 | Polyglot QA Gate | done | — | 12-01, 12-02, 12-03, 12-04, 12-05, 12-06, 12-07, 12-08, 12-09, 12-10, 12-11, 12-12 |
 | F-009 | Project Migration | done | — | 13-01, 13-02, 13-03, 13-04, 13-05, 13-06 |
 | F-010 | Eliminate Derived Docs | done | — | 14-01 |
-| F-011 | Living Code Documentation | planned | — | 15-00, 15-01, 15-02, 15-03 |
+| F-011 | Living Code Documentation | done | — | 15-00, 15-01, 15-02, 15-03 |
 
 ## Feature status derivation
 
