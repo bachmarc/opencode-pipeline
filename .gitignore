@@ -14,5 +14,8 @@ opencode.jsonc
 cron.db
 .pipeline/config.json
 
+# optional third-party plugins (local install, not framework)
+plugins/rtk.ts
+
 # pipeline worktrees
 .worktrees/
