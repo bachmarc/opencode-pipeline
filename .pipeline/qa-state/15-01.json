@@ -1,0 +1,12 @@
+{
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "branch": "feature/15-01-code-doc-rule",
+      "commit": "f3f4675",
+      "tests": "11 passed (test_templates + test_framework)",
+      "timestamp": "2026-09-22T13:45:00+02:00",
+      "notes": "All acceptance criteria met. Story template, developer prompt, architect prompt updated with code-doc guidance. Two new tests pass."
+    }
+  ]
+}
