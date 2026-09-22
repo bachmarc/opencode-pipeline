@@ -1,0 +1,12 @@
+{
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "branch": "feature/15-04-dev-start-guard-marker",
+      "commit": "ed98c4e",
+      "tests": "9 passed (test_dev_start_guard)",
+      "timestamp": "2026-09-22T14:45:00+02:00",
+      "notes": "All acceptance criteria met. Explicit [story: XX-YY] marker parsing with fallback, architect.md documented, 9 tests pass (6 existing + 3 new)."
+    }
+  ]
+}
