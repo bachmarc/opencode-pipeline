@@ -1,0 +1,12 @@
+{
+  "verdicts": [
+    {
+      "verdict": "PASS",
+      "branch": "feature/15-02-watermark-readme",
+      "commit": "1b16589",
+      "tests": "5 passed (test_watermark)",
+      "timestamp": "2026-09-22T14:10:00+02:00",
+      "notes": "All acceptance criteria met. Watermarks on line 2 of README.md and AGENTS.md, check_watermark.py script works, all 5 tests pass."
+    }
+  ]
+}
