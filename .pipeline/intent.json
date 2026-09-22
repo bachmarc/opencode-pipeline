@@ -67,6 +67,13 @@
       "step": "writing tests",
       "started_at": "2026-09-21T09:46:14.038606+00:00",
       "done": false
+    },
+    {
+      "story_id": "F-011",
+      "agent": "architect",
+      "step": "planning feature: living-code-docs",
+      "started_at": "2026-09-22T10:52:23.231654+00:00",
+      "done": true
     }
   ]
 }
