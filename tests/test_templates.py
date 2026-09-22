@@ -77,3 +77,31 @@ def test_feature_template_has_frontmatter():
     required_fields = ["id:", "title:", "status:", "owner:"]
     for field in required_fields:
         assert field in frontmatter, f"Feature template frontmatter missing '{field}'"
+
+
+def test_story_template_has_code_doc_guidance():
+    """Test that story template contains docstring/header update guidance in Developer Targets section."""
+    template_path = Path("docs/features/_story_template.md")
+    assert template_path.exists(), f"{template_path} does not exist"
+    
+    content = template_path.read_text()
+    
+    # Find the Developer Targets section
+    assert "## Developer Targets" in content, "Story template missing '## Developer Targets' section"
+    
+    # Extract the Developer Targets section (from "## Developer Targets" to the next "##")
+    start_idx = content.find("## Developer Targets")
+    next_section_idx = content.find("\n##", start_idx + 1)
+    if next_section_idx == -1:
+        dev_targets_section = content[start_idx:]
+    else:
+        dev_targets_section = content[start_idx:next_section_idx]
+    
+    # Check for docstring or module header guidance
+    has_docstring_guidance = "docstring" in dev_targets_section.lower()
+    has_header_guidance = "module header" in dev_targets_section.lower()
+    
+    assert has_docstring_guidance or has_header_guidance, (
+        "Story template Developer Targets section missing guidance about updating "
+        "docstrings or module headers in changed files"
+    )
