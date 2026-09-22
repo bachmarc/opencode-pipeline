@@ -1,4 +1,5 @@
 # AGENTS.md — opencode-pipeline (Dev Repo)
+<!-- synced_through: 14-01 | updated: 2026-09-22 -->
 
 > Skeleton filled from `~/.config/opencode/templates/AGENTS.md`. Constant sections (workflow, git
 > conventions, languages, prohibitions) kept unchanged; project-specifics filled in dialogue.
