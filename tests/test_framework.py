@@ -200,3 +200,35 @@ def test_qa_compress_script() -> None:
         f"bash -n {rel} failed (rc={result.returncode}):\n"
         f"{result.stderr.strip()}"
     )
+
+
+# --- Check 5: developer prompt has code documentation rule ----------------------
+
+def test_developer_prompt_has_code_doc_rule() -> None:
+    """agent/developer.md contains code documentation rule in Rules section."""
+    developer_path = AGENT_DIR / "developer.md"
+    assert developer_path.is_file(), f"missing {developer_path.relative_to(REPO_ROOT)}"
+    
+    content = developer_path.read_text(encoding="utf-8")
+    
+    # Check for Rules section
+    assert "## Rules" in content, "developer.md missing '## Rules' section"
+    
+    # Extract the Rules section (from "## Rules" to the next "##" or end of file)
+    start_idx = content.find("## Rules")
+    next_section_idx = content.find("\n##", start_idx + 1)
+    if next_section_idx == -1:
+        rules_section = content[start_idx:]
+    else:
+        rules_section = content[start_idx:next_section_idx]
+    
+    # Check for both "docstring" and "source of truth" in the rules section
+    has_docstring = "docstring" in rules_section.lower()
+    has_source_of_truth = "source of truth" in rules_section.lower()
+    
+    assert has_docstring, (
+        "developer.md Rules section missing 'docstring' reference"
+    )
+    assert has_source_of_truth, (
+        "developer.md Rules section missing 'source of truth' reference"
+    )

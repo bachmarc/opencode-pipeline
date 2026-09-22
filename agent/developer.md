@@ -36,6 +36,7 @@ The architect has already created the worktree — you work **exclusively** in i
 - Tests use fakes, never real external systems. Like `intesis_modbus/tests/test_simulation.py` + `raum_simulation.py`.
 - **Fake interface parity:** If you create/change a fake, it must have **exactly the same method signatures** as the real adapter. Real orchestration code must be callable with fake, without modifications.
 - **Integration tests:** If story requires integration tests, call **real orchestration code** (e.g., `Scheduler._run_cycle()` with fakes). Do NOT manually reconstruct cycle — that bypasses wiring bugs.
+- **Update docstrings and module headers in every file you change.** Code documentation is the source of truth.
 - Commit body MUST contain metadata:
   ```
   symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <test suite result>

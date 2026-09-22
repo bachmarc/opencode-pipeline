@@ -14,6 +14,7 @@ Feature: <feature-name> (<feature-id>)
 ## Developer Targets (exactly, no more / no less)
 
 - <Concrete changes — file by file>
+- Update docstrings and module headers in every file you change — code documentation is the source of truth.
 
 ## Acceptance criteria (checked by qa-manager)
 
