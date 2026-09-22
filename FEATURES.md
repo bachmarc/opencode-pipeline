@@ -16,7 +16,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-009 | Project Migration | done | — | 13-01, 13-02, 13-03, 13-04, 13-05, 13-06 |
 | F-010 | Eliminate Derived Docs | done | — | 14-01 |
 | F-011 | Living Code Documentation | done | — | 15-00, 15-01, 15-02, 15-03, 15-04 |
-| F-012 | Clarification Markers | planned | — | 16-01 |
+| F-012 | Clarification Markers | done | — | 16-01 |
 
 ## Feature status derivation
 

@@ -80,7 +80,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 15-03-documenter-incremental | Documenter incremental update mode (watermark-based) | Done (QA PASS, 6c1f7f2→28b0c85) | F-011 living-code-docs |
 | 15-04-dev-start-guard-marker | Dev-start guard: explicit [story: XX-YY] marker | Done (QA PASS, ed98c4e→2d570ff) | F-011 living-code-docs |
 
-| 16-01-clarification-markers | Clarification markers in story template + workflow | Planned | F-012 clarification-markers |
+| 16-01-clarification-markers | Clarification markers in story template + workflow | Done (QA PASS, 5c3b1e0→79b6ad9) | F-012 clarification-markers |
 
 ## Phase comments
 
