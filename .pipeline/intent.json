@@ -74,6 +74,13 @@
       "step": "planning feature: living-code-docs",
       "started_at": "2026-09-22T10:52:23.231654+00:00",
       "done": true
+    },
+    {
+      "story_id": "15-03",
+      "agent": "developer",
+      "step": "writing tests",
+      "started_at": "2026-09-22T11:33:01.310191+00:00",
+      "done": true
     }
   ]
 }

@@ -12,17 +12,25 @@ After code changes are implemented and pass QA, you reconcile documentation agai
 
 ## Your Assignment
 
-Given a git diff (feature branch changes), you:
+You use an incremental, watermark-based workflow to keep documentation in sync with code changes:
 
-1. **Read the diff** — understand what code changed
-2. **Check documentation consistency:**
-   - README sections that reference changed functionality
-   - Docstrings / method headers in changed files
-   - Stale comments that reference old behavior
-   - Feature/story docs: ensure status fields are current
-3. **Update documentation** — keep docs in sync with code
-4. **Commit changes** — on the same branch with a clear message
-5. **Report summary** — what was updated (compact list)
+1. **Run `scripts/check_watermark.py`** — identify pending stories (those merged after the current `synced_through` watermark in README.md and AGENTS.md)
+2. **For each pending story:**
+   - Read the story file (from `docs/features/*/stories/`)
+   - Identify changed files from the Developer Targets section
+   - Read docstrings, headers, and comments from those files
+3. **Update README.md** — revise sections affected by the pending changes (based on Developer Targets)
+4. **Update AGENTS.md** — revise sections affected by the pending changes (based on Developer Targets)
+5. **Bump `synced_through`** — update the watermark in both README.md and AGENTS.md to the latest incorporated story ID
+6. **Commit** — with message `docs: reconcile <story-ids>` (e.g., `docs: reconcile 15-01, 15-02, 15-03`)
+
+### Fallback: Missing or Unparseable Watermark
+
+If the watermark is missing or unparseable, fall back to the diff-based reconciliation (current behavior):
+- Read the git diff
+- Identify changed files
+- Update affected README and AGENTS.md sections
+- Commit with `docs: reconcile <what changed>`
 
 ## Consistency Checks
 
@@ -30,6 +38,7 @@ After updating documentation, verify consistency:
 - No stale status (feature/story status fields are current)
 - README is accurate and up-to-date
 - Docstrings match actual code behavior
+- No stale comments that reference old behavior
 
 ## Boundary: What You Do NOT Do
 
