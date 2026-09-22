@@ -100,3 +100,30 @@ class TestDocumenterPrompt:
         
         # Must NOT have model key
         assert "model" not in frontmatter, "Frontmatter should not contain 'model' key"
+
+    def test_documenter_has_watermark_workflow(self):
+        """Asserts agent/documenter.md contains watermark-based workflow keywords."""
+        content = read_documenter_md()
+        # Should mention watermark
+        assert "watermark" in content.lower(), "Missing 'watermark' in documenter.md"
+        # Should mention check_watermark script
+        assert "check_watermark" in content.lower(), "Missing 'check_watermark' in documenter.md"
+        # Should mention synced_through
+        assert "synced_through" in content.lower(), "Missing 'synced_through' in documenter.md"
+
+    def test_documenter_has_incremental_steps(self):
+        """Asserts the prompt contains incremental workflow steps in the assignment section."""
+        content = read_documenter_md()
+        # Should mention pending stories
+        assert "pending stories" in content.lower(), "Missing 'pending stories' in documenter.md"
+        # Should mention bump (for bumping watermark)
+        assert "bump" in content.lower(), "Missing 'bump' in documenter.md"
+
+    def test_documenter_has_fallback(self):
+        """Asserts the prompt mentions fallback behavior when watermark is missing."""
+        content = read_documenter_md()
+        # Should mention fallback or missing watermark handling
+        assert (
+            "fallback" in content.lower()
+            or "missing" in content.lower()
+        ), "Missing fallback behavior for missing watermark"
