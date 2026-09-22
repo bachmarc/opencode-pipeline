@@ -33,6 +33,9 @@ def find_all_stories(repo_root: Path) -> list[dict]:
         if not stories_dir.exists():
             continue
         
+        # Extract feature slug from folder name (F-<ID>-<slug> or F-RETRO-retro)
+        feature_slug = _extract_feature_slug(feature_dir.name)
+        
         for story_file in stories_dir.glob("*.md"):
             # Parse filename: <phase>-<id>-<slug>.md
             name = story_file.stem
@@ -59,7 +62,7 @@ def find_all_stories(repo_root: Path) -> list[dict]:
             stories.append({
                 "id": story_id,
                 "slug": slug,
-                "feature": feature_dir.name,
+                "feature": feature_slug,
                 "branch": f"feature/{story_id}-{slug}",
                 "worktree": f".worktrees/{story_id}-{slug}",
                 "status": status,
@@ -67,6 +70,28 @@ def find_all_stories(repo_root: Path) -> list[dict]:
             })
     
     return stories
+
+
+def _extract_feature_slug(folder_name: str) -> str:
+    """Extract feature slug from folder name.
+    
+    Converts F-<ID>-<slug> to <slug>, or F-RETRO-retro to retro.
+    """
+    # Handle F-RETRO-retro case
+    if folder_name == "F-RETRO-retro":
+        return "retro"
+    
+    # Handle F-<ID>-<slug> case: split on first hyphen after F-
+    if folder_name.startswith("F-"):
+        # Remove F- prefix
+        rest = folder_name[2:]
+        # Find the next hyphen (after the ID)
+        parts = rest.split("-", 1)
+        if len(parts) == 2:
+            return parts[1]
+    
+    # Fallback: return as-is
+    return folder_name
 
 
 def resolve_story(repo_root: Path, query: str) -> tuple[int, dict | None]:

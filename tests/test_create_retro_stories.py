@@ -2,6 +2,7 @@
 
 Tests for create_retro_stories.py which creates retro feature and story files
 from a JSON definition. Uses temporary directories for all tests.
+Retro feature folder uses F-RETRO-retro naming convention.
 """
 
 from __future__ import annotations
@@ -66,19 +67,19 @@ def retro_def_multiple() -> dict:
 
 
 def test_creates_retro_feature_dir(tmp_path: Path, retro_def_single: dict) -> None:
-    """Temp dir → docs/features/retro/ created."""
+    """Temp dir → docs/features/F-RETRO-retro/ created."""
     result = create_retro_stories(str(tmp_path), retro_def_single)
     
-    retro_dir = tmp_path / "docs" / "features" / "retro"
+    retro_dir = tmp_path / "docs" / "features" / "F-RETRO-retro"
     assert retro_dir.is_dir(), f"Retro feature directory not created: {retro_dir}"
     assert result["created"], "Should have created files"
 
 
 def test_creates_feature_md(tmp_path: Path, retro_def_single: dict) -> None:
-    """Temp dir → docs/features/retro/feature.md exists with F-RETRO id."""
+    """Temp dir → docs/features/F-RETRO-retro/feature.md exists with F-RETRO id."""
     result = create_retro_stories(str(tmp_path), retro_def_single)
     
-    feature_md = tmp_path / "docs" / "features" / "retro" / "feature.md"
+    feature_md = tmp_path / "docs" / "features" / "F-RETRO-retro" / "feature.md"
     assert feature_md.is_file(), f"Feature file not created: {feature_md}"
     
     content = feature_md.read_text(encoding="utf-8")
@@ -91,7 +92,7 @@ def test_creates_single_retro_story(tmp_path: Path, retro_def_single: dict) -> N
     """Input with 1 story → one story file created with Retro-Done status."""
     result = create_retro_stories(str(tmp_path), retro_def_single)
     
-    story_file = tmp_path / "docs" / "features" / "retro" / "stories" / "RETRO-01-initial-development.md"
+    story_file = tmp_path / "docs" / "features" / "F-RETRO-retro" / "stories" / "RETRO-01-initial-development.md"
     assert story_file.is_file(), f"Story file not created: {story_file}"
     
     content = story_file.read_text(encoding="utf-8")
@@ -107,7 +108,7 @@ def test_creates_multiple_retro_stories(tmp_path: Path, retro_def_multiple: dict
     """Input with 3 stories → three story files created."""
     result = create_retro_stories(str(tmp_path), retro_def_multiple)
     
-    stories_dir = tmp_path / "docs" / "features" / "retro" / "stories"
+    stories_dir = tmp_path / "docs" / "features" / "F-RETRO-retro" / "stories"
     assert stories_dir.is_dir(), "Stories directory should be created"
     
     story_files = list(stories_dir.glob("RETRO-*.md"))
@@ -184,7 +185,7 @@ def test_creates_indexes_if_missing(tmp_path: Path, retro_def_single: dict) -> N
 def test_never_overwrites_existing_retro(tmp_path: Path, retro_def_single: dict) -> None:
     """Temp dir with existing retro story → not overwritten, in skipped list."""
     # Create existing retro story
-    stories_dir = tmp_path / "docs" / "features" / "retro" / "stories"
+    stories_dir = tmp_path / "docs" / "features" / "F-RETRO-retro" / "stories"
     stories_dir.mkdir(parents=True, exist_ok=True)
     
     story_file = stories_dir / "RETRO-01-initial-development.md"
