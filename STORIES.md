@@ -80,6 +80,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 15-03-documenter-incremental | Documenter incremental update mode (watermark-based) | Done (QA PASS, 6c1f7f2→28b0c85) | F-011 living-code-docs |
 | 15-04-dev-start-guard-marker | Dev-start guard: explicit [story: XX-YY] marker | Done (QA PASS, ed98c4e→2d570ff) | F-011 living-code-docs |
 
+| 16-01-clarification-markers | Clarification markers in story template + workflow | Planned | F-012 clarification-markers |
+
 ## Phase comments
 
 - **Retro:** Pure retroactive documentation of changes already made directly — no re-implementation.
@@ -138,4 +140,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   docs/design.md. 4 stories in 3 waves:
   - Wave 1 (15-00): Numbered feature folders (rename all existing folders)
   - Wave 2 (15-01): Code-doc rule in templates + prompts (foundation)
-  - Wave 3 (15-02, 15-03): Watermark infrastructure + Documenter update (parallel)
+   - Wave 3 (15-02, 15-03): Watermark infrastructure + Documenter update (parallel)
+- **Phase 16 (Clarification Markers):** `[NEEDS CLARIFICATION]` markers as first-class
+  concept in story templates + architect/QA prompts. Template-level change, no scripts.
+  Inspired by spec-kit's clarify pattern. 1 story:
+  - 16-01: Marker guidance in story template, architect prompt, QA prompt
