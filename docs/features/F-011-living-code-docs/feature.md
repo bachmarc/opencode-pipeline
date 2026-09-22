@@ -47,7 +47,8 @@ as the ground truth and README/AGENTS.md as human-readable / LLM-readable synthe
 
 ## Stories
 
-- 15-00-numbered-feature-folders (planned)
-- 15-01-code-doc-rule (planned)
-- 15-02-watermark-readme (planned)
-- 15-03-documenter-incremental (planned)
+- 15-00-numbered-feature-folders (done)
+- 15-01-code-doc-rule (done)
+- 15-02-watermark-readme (done)
+- 15-03-documenter-incremental (done)
+- 15-04-dev-start-guard-marker (planned)

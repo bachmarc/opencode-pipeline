@@ -78,6 +78,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 15-01-code-doc-rule | Code documentation rule in story template + developer prompt | Done (QA PASS, f3f4675→069d941) | F-011 living-code-docs |
 | 15-02-watermark-readme | Watermark in README.md and AGENTS.md + check script | Done (QA PASS, 1b16589→9e0ad89) | F-011 living-code-docs |
 | 15-03-documenter-incremental | Documenter incremental update mode (watermark-based) | Done (QA PASS, 6c1f7f2→28b0c85) | F-011 living-code-docs |
+| 15-04-dev-start-guard-marker | Dev-start guard: explicit [story: XX-YY] marker | Planned | F-011 living-code-docs |
 
 ## Phase comments
 
