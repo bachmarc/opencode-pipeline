@@ -75,7 +75,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 13-06-migration-validation | Post-migration validation (structure + template constancy) | Done (172537a) | F-009 project-migration |
 | 14-01-remove-derived-docs | Remove requirements.md + design.md from entire framework | Done (QA PASS, 7a000ae→1468340) | F-010 eliminate-derived-docs |
 | 15-00-numbered-feature-folders | Rename feature folders to F-<ID>-<slug> convention | Done (QA PASS, aef58d6→389e9c3) | F-011 living-code-docs |
-| 15-01-code-doc-rule | Code documentation rule in story template + developer prompt | Planned | F-011 living-code-docs |
+| 15-01-code-doc-rule | Code documentation rule in story template + developer prompt | Done (QA PASS, f3f4675→069d941) | F-011 living-code-docs |
 | 15-02-watermark-readme | Watermark in README.md and AGENTS.md + check script | Planned | F-011 living-code-docs |
 | 15-03-documenter-incremental | Documenter incremental update mode (watermark-based) | Planned | F-011 living-code-docs |
 
