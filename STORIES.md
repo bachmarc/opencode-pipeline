@@ -74,6 +74,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 13-05-retro-story-generator | Optional retro story creation for pre-pipeline work | Done (172537a) | F-009 project-migration |
 | 13-06-migration-validation | Post-migration validation (structure + template constancy) | Done (172537a) | F-009 project-migration |
 | 14-01-remove-derived-docs | Remove requirements.md + design.md from entire framework | Done (QA PASS, 7a000ae→1468340) | F-010 eliminate-derived-docs |
+| 15-00-numbered-feature-folders | Rename feature folders to F-<ID>-<slug> convention | Planned | F-011 living-code-docs |
+| 15-01-code-doc-rule | Code documentation rule in story template + developer prompt | Planned | F-011 living-code-docs |
+| 15-02-watermark-readme | Watermark in README.md and AGENTS.md + check script | Planned | F-011 living-code-docs |
+| 15-03-documenter-incremental | Documenter incremental update mode (watermark-based) | Planned | F-011 living-code-docs |
 
 ## Phase comments
 
@@ -127,3 +131,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   from the entire framework. Single source of truth: features + stories + AGENTS.md.
   Architect quick-start via `session_recovery.py` + `FEATURES.md`. 1 story:
   - 14-01: Remove all references, tests, scaffold targets, delete files
+- **Phase 15 (Living Code Documentation):** Code-level docs as source of truth,
+  watermark-based incremental updates for README.md and AGENTS.md. Inspired by
+  OpenSpec's living specs concept, adapted to avoid the drift that killed
+  docs/design.md. 4 stories in 3 waves:
+  - Wave 1 (15-00): Numbered feature folders (rename all existing folders)
+  - Wave 2 (15-01): Code-doc rule in templates + prompts (foundation)
+  - Wave 3 (15-02, 15-03): Watermark infrastructure + Documenter update (parallel)
