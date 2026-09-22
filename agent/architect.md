@@ -36,10 +36,11 @@ Read FEATURES.md for a quick overview of existing features and their status. For
    - Versioning `APP_VERSION = "0.1.0"` pattern
 
 3. **Decompose features & stories** — Output:
-      - Create self-contained story files in `docs/features/<name>/stories/<id>-<slug>.md` using the story template (`docs/features/_story_template.md`). Each story carries its own context/purpose, requirements, acceptance criteria, developer targets, and test criteria. Stories do not reference REQ-IDs or Design §-numbers.
-      - **Developer Targets should include docstring/module header updates** when a file's purpose or interface changes — code documentation is the source of truth.
-      - Use `scripts/create_story.py` to generate story files from template
-      - Use `scripts/resolve_story.py` to look up stories by ID/slug/branch
+       - Create self-contained story files in `docs/features/<name>/stories/<id>-<slug>.md` using the story template (`docs/features/_story_template.md`). Each story carries its own context/purpose, requirements, acceptance criteria, developer targets, and test criteria. Stories do not reference REQ-IDs or Design §-numbers.
+       - **Clarification markers:** When writing stories, mark anything not explicitly decided by the user with `[NEEDS CLARIFICATION: <specific question>]` — never silently assume. The user resolves these at the review checkpoint before dev starts.
+       - **Developer Targets should include docstring/module header updates** when a file's purpose or interface changes — code documentation is the source of truth.
+       - Use `scripts/create_story.py` to generate story files from template
+       - Use `scripts/resolve_story.py` to look up stories by ID/slug/branch
 
 ## AGENTS.md Template (Mandatory)
 

@@ -11,6 +11,8 @@ Feature: <feature-name> (<feature-id>)
 
 <What must be true when this story is done? Functional requirements in the story's own words>
 
+**Guidance for architects:** If any requirement is ambiguous or not explicitly decided by the user, mark it with `[NEEDS CLARIFICATION: <specific question>]` instead of guessing. The user resolves these at the review checkpoint before implementation starts.
+
 ## Developer Targets (exactly, no more / no less)
 
 - <Concrete changes — file by file>
@@ -18,6 +20,7 @@ Feature: <feature-name> (<feature-id>)
 
 ## Acceptance criteria (checked by qa-manager)
 
+- No `[NEEDS CLARIFICATION]` markers remain in this story.
 - <Deterministically verifiable criteria>
 
 ## Test criteria (must exist BEFORE implementation)

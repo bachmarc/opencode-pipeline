@@ -232,3 +232,38 @@ def test_developer_prompt_has_code_doc_rule() -> None:
     assert has_source_of_truth, (
         "developer.md Rules section missing 'source of truth' reference"
     )
+
+
+# --- Check 6: clarification markers in story template and workflow ----------------
+
+def test_story_template_has_clarification_guidance() -> None:
+    """docs/features/_story_template.md contains [NEEDS CLARIFICATION guidance."""
+    template_path = REPO_ROOT / "docs" / "features" / "_story_template.md"
+    assert template_path.is_file(), f"missing {template_path.relative_to(REPO_ROOT)}"
+    
+    content = template_path.read_text(encoding="utf-8")
+    assert "[NEEDS CLARIFICATION" in content, (
+        "_story_template.md must contain '[NEEDS CLARIFICATION' guidance for architects"
+    )
+
+
+def test_architect_prompt_has_clarification_rule() -> None:
+    """agent/architect.md contains NEEDS CLARIFICATION marker convention."""
+    architect_path = AGENT_DIR / "architect.md"
+    assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
+    
+    content = architect_path.read_text(encoding="utf-8")
+    assert "NEEDS CLARIFICATION" in content, (
+        "architect.md must contain 'NEEDS CLARIFICATION' marker convention in story-decomposition rules"
+    )
+
+
+def test_qa_prompt_has_clarification_check() -> None:
+    """agent/qa-manager.md checklist includes NEEDS CLARIFICATION check."""
+    qa_path = AGENT_DIR / "qa-manager.md"
+    assert qa_path.is_file(), f"missing {qa_path.relative_to(REPO_ROOT)}"
+    
+    content = qa_path.read_text(encoding="utf-8")
+    assert "NEEDS CLARIFICATION" in content, (
+        "qa-manager.md must contain 'NEEDS CLARIFICATION' check in Requirements checklist"
+    )
