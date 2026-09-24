@@ -88,6 +88,13 @@
       "step": "planning bugfix: dev-start-guard explicit story marker",
       "started_at": "2026-09-22T13:26:01.481006+00:00",
       "done": true
+    },
+    {
+      "story_id": "16-01",
+      "agent": "architect",
+      "step": "planning story: check_architecture explicit file-list support (candidate, from intesis_modbus root-layout migration)",
+      "started_at": "2026-09-24T10:12:58.105063+00:00",
+      "done": false
     }
   ]
 }

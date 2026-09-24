@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Checker Evolution
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -79,6 +79,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 15-02-watermark-readme | Watermark in README.md and AGENTS.md + check script | Done (QA PASS, 1b16589→9e0ad89) | F-011 living-code-docs |
 | 15-03-documenter-incremental | Documenter incremental update mode (watermark-based) | Done (QA PASS, 6c1f7f2→28b0c85) | F-011 living-code-docs |
 | 15-04-dev-start-guard-marker | Dev-start guard: explicit [story: XX-YY] marker | Done (QA PASS, ed98c4e→2d570ff) | F-011 living-code-docs |
+| 16-01-check-architecture-file-mode | check_architecture.py: explicit file-list mode (root-layout projects) | Planned | F-012 architecture-checker-evolution |
 
 ## Phase comments
 
@@ -139,3 +140,9 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   - Wave 1 (15-00): Numbered feature folders (rename all existing folders)
   - Wave 2 (15-01): Code-doc rule in templates + prompts (foundation)
   - Wave 3 (15-02, 15-03): Watermark infrastructure + Documenter update (parallel)
+- **Phase 16 (Architecture Checker Evolution):** check_architecture.py file-list mode —
+  first-class support for root-layout projects (core/adapter separation in root files
+  instead of src/core/). Surfaced during intesis_modbus onboarding (F-009 case):
+  directory-only invocation cannot express "check these core files" without also
+  checking the adapter. 1 story (candidate, not scheduled):
+  - 16-01: `--files` mode, byte-identical directory mode, shared per-file check unit
