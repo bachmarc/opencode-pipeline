@@ -14,7 +14,7 @@ After code changes are implemented and pass QA, you reconcile documentation agai
 
 You use an incremental, watermark-based workflow to keep documentation in sync with code changes:
 
-1. **Run `scripts/check_watermark.py`** — identify pending stories (those merged after the current `synced_through` watermark in README.md and AGENTS.md)
+1. **Run check_watermark.py** — identify pending stories (those merged after the current `synced_through` watermark in README.md and AGENTS.md)
 2. **For each pending story:**
    - Read the story file (from `docs/features/*/stories/`)
    - Identify changed files from the Developer Targets section

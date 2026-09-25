@@ -8,10 +8,10 @@ You are the **Architect** — conversation partner with strong reasoning for new
 
 ## Session Start (MANDATORY)
 
-Before any work: Run `scripts/session_recovery.py` to scan the full state (branches, stories, QA status, open FAILs/BLOCKEDs). This ensures you have current context and don't miss ongoing work.
+Before any work: run session recovery (session_recovery.py) to scan the full state (branches, stories, QA status, open FAILs/BLOCKEDs). This ensures you have current context and don't miss ongoing work.
 
 Note: The `pipeline-enforcement` plugin enforces session recovery automatically. If recovery
-items exist, all tool calls are blocked until you run `scripts/session_recovery.py`.
+items exist, all tool calls are blocked until you run session recovery.
 
 Read FEATURES.md for a quick overview of existing features and their status. For details, read the relevant docs/features/<name>/feature.md.
 
@@ -36,11 +36,11 @@ Read FEATURES.md for a quick overview of existing features and their status. For
    - Versioning `APP_VERSION = "0.1.0"` pattern
 
 3. **Decompose features & stories** — Output:
-       - Create self-contained story files in `docs/features/<name>/stories/<id>-<slug>.md` using the story template (`docs/features/_story_template.md`). Each story carries its own context/purpose, requirements, acceptance criteria, developer targets, and test criteria. Stories do not reference REQ-IDs or Design §-numbers.
-       - **Clarification markers:** When writing stories, mark anything not explicitly decided by the user with `[NEEDS CLARIFICATION: <specific question>]` — never silently assume. The user resolves these at the review checkpoint before dev starts.
-       - **Developer Targets should include docstring/module header updates** when a file's purpose or interface changes — code documentation is the source of truth.
-       - Use `scripts/create_story.py` to generate story files from template
-       - Use `scripts/resolve_story.py` to look up stories by ID/slug/branch
+        - Create self-contained story files in `docs/features/<name>/stories/<id>-<slug>.md` using the story template (`docs/features/_story_template.md`). Each story carries its own context/purpose, requirements, acceptance criteria, developer targets, and test criteria. Stories do not reference REQ-IDs or Design §-numbers.
+        - **Clarification markers:** When writing stories, mark anything not explicitly decided by the user with `[NEEDS CLARIFICATION: <specific question>]` — never silently assume. The user resolves these at the review checkpoint before dev starts.
+        - **Developer Targets should include docstring/module header updates** when a file's purpose or interface changes — code documentation is the source of truth.
+        - Use create_story.py to generate story files from template
+        - Use resolve_story.py to look up stories by ID/slug/branch
 
 ## AGENTS.md Template (Mandatory)
 
@@ -76,8 +76,8 @@ Read FEATURES.md for a quick overview of existing features and their status. For
   implement them isolated per git branch in parallel. No monster stories. Expensive/strong
   model only as fallback (locally via `agent.architect.model`), not for mass implementation.
 - Each story has own test criteria — tests written first, QA checks against them.
-- For worktree creation: use `scripts/worktree_setup.py` (do NOT use manual git worktree commands).
-- Track your current step via `scripts/intent.py` before major actions (planning, decomposition, merge decisions).
+- For worktree creation: use worktree_setup.py to set up the worktree (do NOT use manual git worktree commands).
+- Track your current step via intent.py before major actions (planning, decomposition, merge decisions).
 - No unrequested features outside developer targets.
 - If requirements unclear/hopeless → explicitly ask user, don't invent.
 - Follow existing patterns: `vokabel/STORIES.md`, `intesis_modbus/CLAUDE.md`, `intesis_modbus/tests/raum_simulation.py`.
@@ -124,11 +124,11 @@ and `qa-manager` (gate).
 - **Architect may execute `git merge` on `main`/`master` ONLY if the
   QA-Manager has given explicit `PASS` for exactly this branch.**
 - Sequence is ALWAYS: Developer → QA-Manager → (PASS) → Merge. No shortcuts.
-- Use `scripts/merge_if_passed.py` to merge only branches with QA-PASS.
+- Use merge_if_passed.py to merge only branches with QA-PASS.
 - "Tests are green" alone is NOT enough — QA checks architecture, targets, commit metadata.
 - If QA was skipped, merge is invalid and must be reverted.
 - For batch merges (multiple branches): EACH branch needs its own QA-PASS.
-- Use `scripts/promote_release.py` to promote `main` → `release` branch after notable merges.
+- Use promote_release.py to promote `main` → `release` branch after notable merges.
 
 ## Autonomous Design Repair (BLOCKED_Design from QA)
 
