@@ -82,11 +82,12 @@ def check_qa_pass(story_id: str) -> bool:
 def check_documenter_commit(branch: str) -> bool:
     """Check if branch has at least one commit with message starting with 'docs: reconcile'.
     
-    Uses: git log <branch> --oneline --grep="^docs: reconcile"
+    Uses: git log main..<branch> --oneline --grep="^docs: reconcile"
+    Scopes the check to branch-exclusive commits only (commits on branch but not on main).
     Returns True if at least one matching commit found, False otherwise.
     """
     result = subprocess.run(
-        ["git", "log", branch, "--oneline", "--grep=^docs: reconcile"],
+        ["git", "log", f"main..{branch}", "--oneline", "--grep=^docs: reconcile"],
         capture_output=True,
         text=True,
         check=False,

@@ -1,9 +1,9 @@
 /**
  * Documenter Guard — blocks merge if Documenter agent hasn't run
  * 
- * Checks the feature branch's commit history for a commit matching
- * the pattern "docs: reconcile". If no such commit is found, throws
- * an error instructing the user to run /document first.
+ * Checks the feature branch's commit history (branch-exclusive commits only)
+ * for a commit matching the pattern "docs: reconcile". If no such commit is found,
+ * throws an error instructing the user to run /document first.
  */
 
 /**
@@ -37,9 +37,9 @@ export async function documenterGuard(
     return
   }
   
-  // Check for documenter commit on the branch
+  // Check for documenter commit on the branch (branch-exclusive commits only)
   // The Documenter agent commits with message pattern "docs: reconcile *"
-  const gitLogCommand = `git log ${branch} --oneline --grep="docs: reconcile"`
+  const gitLogCommand = `git log main..${branch} --oneline --grep="docs: reconcile"`
   
   try {
     const result = await $`${gitLogCommand}`
