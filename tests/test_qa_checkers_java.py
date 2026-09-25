@@ -1,8 +1,8 @@
 """Tests for the gradle/maven checker plugins (story 12-03).
 
 Every test uses ``tmp_path`` as a fake project root, installs a stub runner
-binary (fake ``gradle`` / ``mvn``, bash script replaying preserved output,
-correct exit codes) on PATH and invokes the real ``scripts/qa_compress.sh``
+binary (fake ``gradle`` / ``mvn``, Python script replaying preserved output,
+correct exit codes) on PATH and invokes the real ``scripts/qa_compress.py``
 from there. No real Gradle or Maven is required — the stub binary is the
 external-system fake.
 
@@ -15,12 +15,13 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.sh"
+QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.py"
 
 
 FAKE_GRADLE_PASS_OUTPUT = (
@@ -60,13 +61,34 @@ def _install_stub_runner(
     """Install a stub ``<name>`` binary that replays ``output`` with ``exit_code``."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(exist_ok=True)
+    
+    # Create Python implementation
+    py_script = bin_dir / f"{name}_impl.py"
+    py_script.write_text(
+        "import sys, io\n"
+        "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')\n"
+        "import sys\n"
+        f"sys.stdout.write({repr(output)})\n"
+        f"sys.exit({exit_code})\n",
+        encoding="utf-8",
+    )
+    
+    # Create .cmd wrapper for Windows (use sys.executable for python)
+    cmd_wrapper = bin_dir / f"{name}.cmd"
+    cmd_wrapper.write_text(
+        f'@"{sys.executable}" "{py_script}" %*\n',
+        encoding="utf-8",
+    )
+    
+    # Create shebang script for Unix
     script = bin_dir / name
     script.write_text(
-        "#!/usr/bin/env bash\n"
-        "cat <<'FAKE_RUNNER_EOF'\n"
-        f"{output}"
-        "FAKE_RUNNER_EOF\n"
-        f"exit {exit_code}\n",
+        "#!/usr/bin/env python3\n"
+        "import sys, io\n"
+        "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')\n"
+        "import sys\n"
+        f"sys.stdout.write({repr(output)})\n"
+        f"sys.exit({exit_code})\n",
         encoding="utf-8",
     )
     script.chmod(0o755)
@@ -78,12 +100,13 @@ def _write_config(tmp_path: Path, content: str) -> None:
 
 
 def _run_qa_compress(cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run the real qa_compress.sh from the fake project root."""
+    """Run the real qa_compress.py from the fake project root."""
     return subprocess.run(
-        ["bash", str(QA_SCRIPT)],
+        [sys.executable, str(QA_SCRIPT)],
         cwd=cwd,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
         timeout=60,
     )

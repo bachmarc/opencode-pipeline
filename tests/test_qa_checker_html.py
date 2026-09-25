@@ -1,10 +1,10 @@
 """Tests for the HTML checker plugin (story 12-05).
 
 Every test uses ``tmp_path`` as a fake project root with a ``qa_config.json``
-and invokes the real ``scripts/qa_compress.sh`` from there. The external-
+and invokes the real ``scripts/qa_compress.py`` from there. The external-
 system fake is the tmp_path project root itself; the checker validates files
-via a ``python3`` one-liner (stdlib ``html.parser`` — no extra dependency),
-so the real python3 runs and no stub is needed.
+via the stdlib ``html.parser`` (no extra dependency), so the real python3 runs
+and no stub is needed.
 
 Checker contract (simple syntax check, documented simplification):
 - Void-tag whitelist (``br``, ``hr``, ``img``, ``input``, ``meta``, ``link``,
@@ -23,10 +23,11 @@ Exclusions (deterministic contract, no gitignore parsing): the walk skips
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.sh"
+QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.py"
 
 
 def _write_config(tmp_path: Path, checkers: list[str]) -> None:
@@ -37,9 +38,9 @@ def _write_config(tmp_path: Path, checkers: list[str]) -> None:
 
 
 def _run_qa_compress(cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run the real qa_compress.sh from the fake project root."""
+    """Run the real qa_compress.py from the fake project root."""
     return subprocess.run(
-        ["bash", str(QA_SCRIPT)],
+        [sys.executable, str(QA_SCRIPT)],
         cwd=cwd,
         capture_output=True,
         text=True,

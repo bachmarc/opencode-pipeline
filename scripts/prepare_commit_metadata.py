@@ -19,6 +19,7 @@ from __future__ import annotations
 import ast
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -260,11 +261,23 @@ def run_test(command: list[str] | None) -> str:
     """
     if command is None:
         return "n/a (syntax checkers only)"
+    
+    # On Windows, subprocess.run() with a list doesn't find .cmd files on PATH.
+    # Use shutil.which() to resolve the command first.
+    exe = shutil.which(command[0])
+    if exe is None:
+        # Runner binary not available — informational only, never crash.
+        return "unknown"
+    
+    # Replace the command name with the full path
+    full_command = [exe] + command[1:]
+    
     try:
         result = subprocess.run(
-            command,
+            full_command,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
     except OSError:
