@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -91,8 +91,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 20-01-resolve-story-root | resolve_story.py + story_status.py: get_repo_root() via CWD Git-traversal | Done (QA PASS, 4c300ec) | F-020 script-portability-fixes |
 | 20-02-worktree-unc-paths | worktree_setup.py: git -C pattern for UNC-path compatibility | Done (QA PASS, ff297c8) | F-020 script-portability-fixes |
 | 20-03-qa-compress-py-mandatory | developer.md + qa-manager.md: qa_compress.py as mandatory sole test entry point | Done (QA PASS, a61380a) | F-020 script-portability-fixes |
-
-## Phase comments
+| 21-01-documenter-scope-fix | merge_if_passed.py + documenter-guard.ts: branch-exclusive git log scope | Planned | F-021 documenter-scope-fix |
+| 21-02-documenter-catchup | Documenter catch-up run for Stories 15-00..20-03 | Planned | F-021 documenter-scope-fix |
 
 - **Retro:** Pure retroactive documentation of changes already made directly — no re-implementation.
 - **Phase 01 (Foundation):** Repo hygiene, docs, index — architect work directly on `main`
@@ -184,3 +184,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   - 20-01: `get_repo_root()` in `resolve_story.py` + `story_status.py`
   - 20-02: `git -C` pattern in `worktree_setup.py` for UNC-path compatibility
   - 20-03: `qa_compress.py` as mandatory sole entry point in `developer.md` + `qa-manager.md`
+- **Phase 21 (Documenter Scope Fix):** `git log <branch>` traversed full ancestry, so old
+  Phase-12 `docs: reconcile` commits on `main` satisfied the check for every branch — the
+  Documenter was never actually enforced since Phase 13. Fix: scope to `main..<branch>` in
+  both `merge_if_passed.py` and `documenter-guard.ts`. Follow-up: one-time catch-up Documenter
+  run for all stories 15-00..20-03. 2 stories:
+  - 21-01: Branch-exclusive scope fix in merge_if_passed.py + documenter-guard.ts + tests
+  - 21-02: Documenter catch-up run on main (Documenter agent, not developer)
