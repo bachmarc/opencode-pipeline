@@ -86,8 +86,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 17-04-qa-compress-sole-entry | Prompts forbid direct pytest, qa_compress.sh only | Done (QA PASS, 963c04e→1088ae8) | F-013 framework-path-consolidation |
 | 17-05-prompt-script-refs | Prompts drop scripts/ paths, describe actions only | Done (QA PASS, dd50c98→0650436) | F-013 framework-path-consolidation |
 | 18-01-check-architecture-file-mode | check_architecture.py: explicit file-list mode (root-layout projects) | Planned | F-014 architecture-checker-evolution |
-| 19-01-qa-compress-python | qa_compress.py: Python QA entry point (replaces bash) | Planned | F-019 python-qa-toolchain |
-| 19-02-session-recovery-pull | session_recovery.py: git pull at startup + test_resolve_by_id fix | Planned | F-019 python-qa-toolchain |
+| 19-01-qa-compress-python | qa_compress.py: Python QA entry point (replaces bash) | Done (QA PASS, d74bc5a→5f5c581) | F-019 python-qa-toolchain |
+| 19-02-session-recovery-pull | session_recovery.py: git pull at startup + test_resolve_by_id fix | Done (QA PASS, 5381e1d→627485d) | F-019 python-qa-toolchain |
 
 ## Phase comments
 
