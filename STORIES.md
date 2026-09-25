@@ -88,9 +88,9 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 18-01-check-architecture-file-mode | check_architecture.py: explicit file-list mode (root-layout projects) | Planned | F-014 architecture-checker-evolution |
 | 19-01-qa-compress-python | qa_compress.py: Python QA entry point (replaces bash) | Done (QA PASS, d74bc5a→5f5c581) | F-019 python-qa-toolchain |
 | 19-02-session-recovery-pull | session_recovery.py: git pull at startup + test_resolve_by_id fix | Done (QA PASS, 5381e1d→627485d) | F-019 python-qa-toolchain |
-| 20-01-resolve-story-root | resolve_story.py + story_status.py: get_repo_root() via CWD Git-traversal | Planned | F-020 script-portability-fixes |
-| 20-02-worktree-unc-paths | worktree_setup.py: git -C pattern for UNC-path compatibility | Planned | F-020 script-portability-fixes |
-| 20-03-qa-compress-py-mandatory | developer.md + qa-manager.md: qa_compress.py as mandatory sole test entry point | Planned | F-020 script-portability-fixes |
+| 20-01-resolve-story-root | resolve_story.py + story_status.py: get_repo_root() via CWD Git-traversal | Done (QA PASS, 4c300ec) | F-020 script-portability-fixes |
+| 20-02-worktree-unc-paths | worktree_setup.py: git -C pattern for UNC-path compatibility | Done (QA PASS, ff297c8) | F-020 script-portability-fixes |
+| 20-03-qa-compress-py-mandatory | developer.md + qa-manager.md: qa_compress.py as mandatory sole test entry point | Done (QA PASS, a61380a) | F-020 script-portability-fixes |
 
 ## Phase comments
 
