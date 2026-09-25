@@ -1,34 +1,33 @@
 """Tests for the JSON + YAML checker plugins (story 12-04).
 
 Every test uses ``tmp_path`` as a fake project root with a ``qa_config.json``
-and invokes the real ``scripts/qa_compress.sh`` from there. No stub is needed
-for tests 1-5: the checkers validate files via ``python3`` one-liners and the
-real python3 runs (PyYAML is available in this environment). The external-
-system fake is the tmp_path project root itself.
+and invokes the real ``scripts/qa_compress.py`` from there. No stub is needed
+for tests 1-5: the checkers validate files via Python and the real python3 runs
+(PyYAML is available in this environment). The external-system fake is the
+tmp_path project root itself.
 
 Exclusions (deterministic contract, no gitignore parsing): the walk skips
 ``.git``, ``.pipeline``, ``.worktrees``, ``node_modules``, ``__pycache__``,
 ``.pytest_cache``, ``dist`` and ``build`` — and the pipeline's own
 ``qa_config.json`` (already validated by the dispatcher, not project payload).
 
-``test_yaml_missing_pyyaml`` is the loud-failure path: it sources the yaml
-plugin directly and calls ``yaml_check`` with a stub ``python3`` on PATH that
-fails ONLY on ``import yaml`` (all other invocations delegate to the real
-python3), so the dispatch in qa_compress.sh is not shadowed.
+``test_yaml_missing_pyyaml`` is the loud-failure path: it calls qa_compress.py
+with a stub ``yaml`` module on PYTHONPATH that raises ImportError, so the
+yaml checker fails loudly with "PyYAML not installed".
 """
 
 from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import Callable
 
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.sh"
-YAML_PLUGIN = REPO_ROOT / "scripts" / "qa_checkers" / "yaml.sh"
+QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.py"
 
 
 def _write_config(tmp_path: Path, checkers: list[str]) -> None:
@@ -39,9 +38,9 @@ def _write_config(tmp_path: Path, checkers: list[str]) -> None:
 
 
 def _run_qa_compress(cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run the real qa_compress.sh from the fake project root."""
+    """Run the real qa_compress.py from the fake project root."""
     return subprocess.run(
-        ["bash", str(QA_SCRIPT)],
+        [sys.executable, str(QA_SCRIPT)],
         cwd=cwd,
         capture_output=True,
         text=True,
@@ -141,48 +140,38 @@ def test_yaml_fail(tmp_path: Path) -> None:
 
 def test_yaml_missing_pyyaml(tmp_path: Path) -> None:
     """yaml import fails -> loud FAIL 'PyYAML not installed', exit 1 (no skip)."""
-    stub_dir = tmp_path / "stubbin"
-    stub_dir.mkdir()
-    # Stub python3: fails ONLY on `import yaml` (checker one-liner); every other
-    # invocation delegates to the real python3, so nothing else is shadowed.
-    stub = stub_dir / "python3"
-    stub.write_text(
-        "#!/usr/bin/env bash\n"
-        'case "$*" in\n'
-        '  *"import yaml"*)\n'
-        '    echo "Traceback: ModuleNotFoundError: No module named \'yaml\'" >&2\n'
-        "    exit 1\n"
-        "    ;;\n"
-        "  *)\n"
-        '    exec /usr/bin/python3 "$@"\n'
-        "    ;;\n"
-        "esac\n",
+    # Create a fake yaml module that raises ImportError
+    fake_yaml_dir = tmp_path / "fake_modules"
+    fake_yaml_dir.mkdir()
+    
+    # Create a yaml.py that raises ImportError
+    fake_yaml = fake_yaml_dir / "yaml.py"
+    fake_yaml.write_text(
+        "raise ImportError('No module named yaml')\n",
         encoding="utf-8",
     )
-    stub.chmod(0o755)
-
+    
+    # Create a YAML file to check
     yaml_file = tmp_path / "feature.yml"
     yaml_file.write_text("key: value\n", encoding="utf-8")
-
-    script = tmp_path / "run_yaml_check.sh"
-    script.write_text(
-        "#!/usr/bin/env bash\n"
-        f'source "{YAML_PLUGIN}"\n'
-        "cd " + str(tmp_path) + "\n"
-        "yaml_check\n",
-        encoding="utf-8",
-    )
-    script.chmod(0o755)
-
+    
+    # Write config
+    _write_config(tmp_path, ["yaml"])
+    
+    # Run qa_compress.py with the fake yaml module on PYTHONPATH
     result = subprocess.run(
-        ["bash", str(script)],
+        [sys.executable, str(QA_SCRIPT)],
+        cwd=tmp_path,
         capture_output=True,
         text=True,
         check=False,
         timeout=60,
-        env={**os.environ, "PATH": str(stub_dir) + os.pathsep + os.environ["PATH"]},
+        env={
+            **os.environ,
+            "PYTHONPATH": str(fake_yaml_dir) + os.pathsep + os.environ.get("PYTHONPATH", ""),
+        },
     )
-
+    
     assert result.returncode == 1
     assert "yaml checker: PyYAML not installed" in result.stdout
     assert "## failed_files" not in result.stdout

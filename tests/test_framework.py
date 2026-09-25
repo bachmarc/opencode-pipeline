@@ -12,6 +12,7 @@ Stdlib only — no external systems, deterministic (repo files are the fixture).
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -179,25 +180,25 @@ def test_template_exists_and_const() -> None:
     )
 
 
-# --- Check 4: qa_compress.sh is syntactically valid --------------------------------
+# --- Check 4: qa_compress.py is syntactically valid --------------------------------
 
-QA_COMPRESS_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.sh"
+QA_COMPRESS_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.py"
 
 
 def test_qa_compress_script() -> None:
-    """scripts/qa_compress.sh exists and passes `bash -n` (syntax check)."""
+    """scripts/qa_compress.py exists and passes `python -m py_compile` (syntax check)."""
     rel = QA_COMPRESS_SCRIPT.relative_to(REPO_ROOT).as_posix()
     assert QA_COMPRESS_SCRIPT.is_file(), f"missing {rel}"
 
     result = subprocess.run(
-        ["bash", "-n", rel],
+        [sys.executable, "-m", "py_compile", rel],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0, (
-        f"bash -n {rel} failed (rc={result.returncode}):\n"
+        f"python -m py_compile {rel} failed (rc={result.returncode}):\n"
         f"{result.stderr.strip()}"
     )
 

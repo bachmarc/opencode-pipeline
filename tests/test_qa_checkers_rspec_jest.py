@@ -2,8 +2,8 @@
 
 Every test uses ``tmp_path`` as a fake project root, writes a ``qa_config.json``
 selecting the checker under test, installs a stub runner binary (fake ``rspec``
-/ ``jest``, bash script replaying preserved output) on ``PATH`` and invokes the
-real ``scripts/qa_compress.sh`` from there. No real Ruby/JavaScript toolchain
+/ ``jest``, Python script replaying preserved output) on ``PATH`` and invokes the
+real ``scripts/qa_compress.py`` from there. No real Ruby/JavaScript toolchain
 is required — the stub binary is the external-system fake.
 
 Preserved runner output shapes:
@@ -15,20 +15,21 @@ Preserved runner output shapes:
   ``✕ <test name> (<duration>)`` lines in the per-test results.
 
 Both plugins are self-registering per the 12-01 plugin contract
-(``scripts/qa_checkers/*.sh`` + ``register_check``); the checker exit code is
-the runner's exit code, and ``qa_compress.sh`` aggregates overall PASS/FAIL.
+(``scripts/qa_checkers/*.py`` + ``register_check``); the checker exit code is
+the runner's exit code, and ``qa_compress.py`` aggregates overall PASS/FAIL.
 """
 
 from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.sh"
+QA_SCRIPT = REPO_ROOT / "scripts" / "qa_compress.py"
 
 
 FAKE_RSPEC_PASS_OUTPUT = (
@@ -77,13 +78,34 @@ def _install_fake_runner(
     """Install a stub ``name`` binary that replays ``output`` with ``exit_code``."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(exist_ok=True)
+    
+    # Create Python implementation
+    py_script = bin_dir / f"{name}_impl.py"
+    py_script.write_text(
+        "import sys, io\n"
+        "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')\n"
+        "import sys\n"
+        f"sys.stdout.write({repr(output)})\n"
+        f"sys.exit({exit_code})\n",
+        encoding="utf-8",
+    )
+    
+    # Create .cmd wrapper for Windows (use sys.executable for python)
+    cmd_wrapper = bin_dir / f"{name}.cmd"
+    cmd_wrapper.write_text(
+        f'@"{sys.executable}" "{py_script}" %*\n',
+        encoding="utf-8",
+    )
+    
+    # Create shebang script for Unix
     script = bin_dir / name
     script.write_text(
-        "#!/usr/bin/env bash\n"
-        "cat <<'FAKE_RUNNER_EOF'\n"
-        f"{output}"
-        "FAKE_RUNNER_EOF\n"
-        f"exit {exit_code}\n",
+        "#!/usr/bin/env python3\n"
+        "import sys, io\n"
+        "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')\n"
+        "import sys\n"
+        f"sys.stdout.write({repr(output)})\n"
+        f"sys.exit({exit_code})\n",
         encoding="utf-8",
     )
     script.chmod(0o755)
@@ -95,12 +117,13 @@ def _write_config(tmp_path: Path, content: str) -> None:
 
 
 def _run_qa_compress(cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run the real qa_compress.sh from the fake project root."""
+    """Run the real qa_compress.py from the fake project root."""
     return subprocess.run(
-        ["bash", str(QA_SCRIPT)],
+        [sys.executable, str(QA_SCRIPT)],
         cwd=cwd,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
         timeout=60,
     )

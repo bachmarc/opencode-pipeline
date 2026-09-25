@@ -66,13 +66,34 @@ def _install_fake_runner(
     """Install a stub ``name`` binary on PATH that replays ``output``."""
     bin_dir = repo_dir / "bin"
     bin_dir.mkdir(exist_ok=True)
+    
+    # Create Python implementation
+    py_script = bin_dir / f"{name}_impl.py"
+    py_script.write_text(
+        "import sys, io\n"
+        "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')\n"
+        "import sys\n"
+        f"sys.stdout.write({repr(output)})\n"
+        f"sys.exit({exit_code})\n",
+        encoding="utf-8",
+    )
+    
+    # Create .cmd wrapper for Windows (use sys.executable for python)
+    cmd_wrapper = bin_dir / f"{name}.cmd"
+    cmd_wrapper.write_text(
+        f'@"{sys.executable}" "{py_script}" %*\n',
+        encoding="utf-8",
+    )
+    
+    # Create shebang script for Unix
     script = bin_dir / name
     script.write_text(
-        "#!/usr/bin/env bash\n"
-        "cat <<'FAKE_RUNNER_EOF'\n"
-        f"{output}"
-        "FAKE_RUNNER_EOF\n"
-        f"exit {exit_code}\n",
+        "#!/usr/bin/env python3\n"
+        "import sys, io\n"
+        "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')\n"
+        "import sys\n"
+        f"sys.stdout.write({repr(output)})\n"
+        f"sys.exit({exit_code})\n",
         encoding="utf-8",
     )
     script.chmod(0o755)
@@ -86,6 +107,7 @@ def _run_script(repo_dir: Path) -> subprocess.CompletedProcess[str]:
         cwd=repo_dir,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
         timeout=120,
     )
