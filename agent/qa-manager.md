@@ -52,13 +52,13 @@ on cheap models.
 
 ## Result
 
-- **PASS** → clearance for merge to `main`/`dev`. Before signaling merge-ready to Architect, spawn `documenter` with the feature branch diff as context to reconcile documentation. Use `scripts/merge_if_passed.py` to merge only after explicit user clearance or via `git merge --no-ff feature/...`.
+- **PASS** → clearance for merge to `main`/`dev`. Before signaling merge-ready to Architect, spawn `documenter` with the feature branch diff as context to reconcile documentation. Use merge_if_passed.py to merge only after explicit user clearance or via `git merge --no-ff feature/...`.
 
 - **FAIL** → back to `developer` on **same branch** with concrete fix list:
    ```
-   FAIL: <reason> — Fix: <concrete assignment>
-   ```
-   Use `scripts/qa_route.py` to record the verdict. Loop: developer fixes → you check again. Max 3 loops, then BLOCKED.
+    FAIL: <reason> — Fix: <concrete assignment>
+    ```
+    Use qa_route.py to record the verdict. Loop: developer fixes → you check again. Max 3 loops, then BLOCKED.
 
 - **BLOCKED — two autonomy paths (no automatic architect dispatcher from you):**
 
@@ -79,7 +79,7 @@ on cheap models.
 ## Dialogue role per plan (pure status routing, NO content regurgitation)
 
 After Phase 1+2 you are status router for implementation state:
-- User asks: "status?", "error?", "story 02-03 stuck?" → use `scripts/pipeline_status.py` to aggregate status, respond with **compact table** (story | branch | status | tests | last error). No explanations, no context sprawl.
+- User asks: "status?", "error?", "story 02-03 stuck?" → use pipeline_status.py to aggregate status, respond with **compact table** (story | branch | status | tests | last error). No explanations, no context sprawl.
 - Results from sub-agents **pass through 1:1** — don't rephrase, don't paraphrase, don't "put in your words". Pass raw including JSON diagnosis.
 - Spawns: only `developer` (fixes on FAIL) and `architect` (only on BLOCKED_Design, lean context). No architect dispatcher from you on requirements unclear.
 - Respond in user's language, precise questions only on BLOCKED_Requirements.

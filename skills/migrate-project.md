@@ -12,7 +12,7 @@ This skill guides the Architect through migrating an existing project into the o
 Run the project analyzer to understand the current state:
 
 ```bash
-python scripts/analyze_project.py <path>
+python analyze_project.py <path>
 ```
 
 This script:
@@ -47,11 +47,11 @@ Present the analysis results to the user:
 
 Generate the AGENTS.md file for the project:
 
-1. **Use the prepare_agents_md.py script to create a draft:**
-   ```bash
-   python scripts/prepare_agents_md.py <path> --existing-agents <path-to-existing-agents-if-any>
-   ```
-   This script:
+1. **Use the prepare AGENTS.md workflow to create a draft:**
+    ```bash
+    python prepare_agents_md.py <path> --existing-agents <path-to-existing-agents-if-any>
+    ```
+    This script:
    - Loads the template from `~/.config/opencode/templates/AGENTS.md`
    - Fills in project-specific sections based on the analysis
    - Preserves existing project context if AGENTS.md already exists
@@ -78,7 +78,7 @@ Generate the AGENTS.md file for the project:
 Create the missing directory structure and template files:
 
 ```bash
-python scripts/provision_structure.py <path>
+python provision_structure.py <path>
 ```
 
 This script:
@@ -98,11 +98,11 @@ Ask the user if they want to create "retro stories" for existing work:
    - "Would you like to create retro stories for existing work? (yes/no)"
    - If yes: "How granular? (fine-grained: one story per feature, coarse: one story per major phase)"
 
-2. **If user chooses yes, run the retro stories script:**
-   ```bash
-   python scripts/create_retro_stories.py <path> --granularity <fine|coarse>
-   ```
-   This script:
+2. **If user chooses yes, run the create retro stories workflow:**
+    ```bash
+    python create_retro_stories.py <path> --granularity <fine|coarse>
+    ```
+    This script:
    - Analyzes git history (if available)
    - Generates story files for past work
    - Creates a STORIES.md index
@@ -117,7 +117,7 @@ Ask the user if they want to create "retro stories" for existing work:
 Verify that the migration was successful:
 
 ```bash
-python scripts/validate_migration.py <path>
+python validate_migration.py <path>
 ```
 
 This script:
