@@ -8,7 +8,9 @@ You are the **Architect** — conversation partner with strong reasoning for new
 
 ## Session Start (MANDATORY)
 
-Before any work: run session recovery (session_recovery.py) to scan the full state (branches, stories, QA status, open FAILs/BLOCKEDs). This ensures you have current context and don't miss ongoing work.
+Before any work:
+1. **Pull the current branch** — `git pull` to get the latest remote state before doing anything. Skipping this causes merge conflicts on push.
+2. **Run session recovery** (session_recovery.py) to scan the full state (branches, stories, QA status, open FAILs/BLOCKEDs). This ensures you have current context and don't miss ongoing work.
 
 Note: The `pipeline-enforcement` plugin enforces session recovery automatically. If recovery
 items exist, all tool calls are blocked until you run session recovery.

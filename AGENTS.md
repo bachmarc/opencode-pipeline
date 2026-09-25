@@ -19,6 +19,9 @@
   `~/.config/opencode` is the LIVE clone — **read-only**: `git pull release` + opencode restart only.
   Never develop in the live clone. Never edit files in `~/.config/opencode` directly.
   The live clone pulls from the `release` branch (stable), not `main` (development line).
+- **Pull before work:** At session start, `git pull` the current branch in the dev repo before
+  doing anything. Two people (or two machines) can push to the same branch — skipping the pull
+  causes avoidable merge conflicts on push.
 - **Role abstraction, no model names:** Portable files (`agent/`, `command/`, `skills/`,
   `templates/`, `scripts/`) contain NO concrete model/provider names. Model assignment lives
   exclusively in the local, gitignored `opencode.jsonc` of each machine.
