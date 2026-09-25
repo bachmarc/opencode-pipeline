@@ -1,7 +1,7 @@
 ---
 id: F-013
 title: Framework Path Consolidation
-status: planned
+status: done
 owner: ""
 req: []
 ---
@@ -86,8 +86,8 @@ framework's test runner. Direct `pytest` is only mentioned as a checker name in
 ## Stories
 
 - 01-01-plugin-relative-paths (planned)
-- 17-01-plugin-relative-paths (planned) — Guards resolve scripts via import.meta.dirname, fail-closed
-- 17-02-verdict-schema-fix (planned) — merge-guard.ts reads verdicts[] not last_verdict
-- 17-03-enforcement-bypass-fix (planned) — merge_if_passed.py carries guard logic itself
-- 17-04-qa-compress-sole-entry (planned) — Prompts forbid direct pytest, qa_compress.sh only
-- 17-05-prompt-script-refs (planned) — Prompts drop script paths, describe actions only
+- 17-01-plugin-relative-paths (done) — Guards resolve scripts via import.meta.dirname, fail-closed
+- 17-02-verdict-schema-fix (done) — merge-guard.ts reads verdicts[] not last_verdict
+- 17-03-enforcement-bypass-fix (done) — merge_if_passed.py carries guard logic itself
+- 17-04-qa-compress-sole-entry (done) — Prompts forbid direct pytest, qa_compress.sh only
+- 17-05-prompt-script-refs (done) — Prompts drop scripts/ paths, describe actions only

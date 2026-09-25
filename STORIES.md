@@ -81,11 +81,11 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 15-04-dev-start-guard-marker | Dev-start guard: explicit [story: XX-YY] marker | Done (QA PASS, ed98c4e→2d570ff) | F-011 living-code-docs |
 
 | 16-01-clarification-markers | Clarification markers in story template + workflow | Done (QA PASS, 5c3b1e0→79b6ad9) | F-012 clarification-markers |
-| 17-01-plugin-relative-paths | Guards resolve scripts via import.meta.dirname, fail-closed | Planned | F-013 framework-path-consolidation |
-| 17-02-verdict-schema-fix | merge-guard.ts reads verdicts[] not last_verdict | Planned | F-013 framework-path-consolidation |
-| 17-03-enforcement-bypass-fix | merge_if_passed.py carries guard logic itself | Planned | F-013 framework-path-consolidation |
-| 17-04-qa-compress-sole-entry | Prompts forbid direct pytest, qa_compress.sh only | Planned | F-013 framework-path-consolidation |
-| 17-05-prompt-script-refs | Prompts drop scripts/ paths, describe actions only | Planned | F-013 framework-path-consolidation |
+| 17-01-plugin-relative-paths | Guards resolve scripts via import.meta.dirname, fail-closed | Done (QA PASS, e486ea7→619a068) | F-013 framework-path-consolidation |
+| 17-02-verdict-schema-fix | merge-guard.ts reads verdicts[] not last_verdict | Done (QA PASS, 1d29d19→41c6bb3) | F-013 framework-path-consolidation |
+| 17-03-enforcement-bypass-fix | merge_if_passed.py carries guard logic itself | Done (QA PASS, eef4e62→3b462e9) | F-013 framework-path-consolidation |
+| 17-04-qa-compress-sole-entry | Prompts forbid direct pytest, qa_compress.sh only | Done (QA PASS, 963c04e→1088ae8) | F-013 framework-path-consolidation |
+| 17-05-prompt-script-refs | Prompts drop scripts/ paths, describe actions only | Done (QA PASS, dd50c98→0650436) | F-013 framework-path-consolidation |
 
 ## Phase comments
 
