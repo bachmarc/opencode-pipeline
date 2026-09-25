@@ -90,6 +90,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 19-02-session-recovery-pull | session_recovery.py: git pull at startup + test_resolve_by_id fix | Done (QA PASS, 5381e1d→627485d) | F-019 python-qa-toolchain |
 | 20-01-resolve-story-root | resolve_story.py + story_status.py: get_repo_root() via CWD Git-traversal | Planned | F-020 script-portability-fixes |
 | 20-02-worktree-unc-paths | worktree_setup.py: git -C pattern for UNC-path compatibility | Planned | F-020 script-portability-fixes |
+| 20-03-qa-compress-py-mandatory | developer.md + qa-manager.md: qa_compress.py as mandatory sole test entry point | Planned | F-020 script-portability-fixes |
 
 ## Phase comments
 
@@ -182,3 +183,4 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   — fix: `git -C <path>` instead of `cwd=<path>` for worktree-local commands. 2 stories, parallel:
   - 20-01: `get_repo_root()` in `resolve_story.py` + `story_status.py`
   - 20-02: `git -C` pattern in `worktree_setup.py` for UNC-path compatibility
+  - 20-03: `qa_compress.py` as mandatory sole entry point in `developer.md` + `qa-manager.md`

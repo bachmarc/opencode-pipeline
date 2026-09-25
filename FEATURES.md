@@ -20,7 +20,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-013 | Framework Path Consolidation | done | — | 17-01, 17-02, 17-03, 17-04, 17-05 |
 | F-014 | Architecture Checker Evolution | planned | — | 18-01 |
 | F-019 | Python QA Toolchain | done | — | 19-01, 19-02 |
-| F-020 | Script Portability Fixes | planned | — | 20-01, 20-02 |
+| F-020 | Script Portability Fixes | planned | — | 20-01, 20-02, 20-03 |
 
 ## Feature status derivation
 

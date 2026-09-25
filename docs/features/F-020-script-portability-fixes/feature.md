@@ -33,3 +33,4 @@ Two portability bugs were reported by a user running the framework on a Windows 
 
 - 20-01-resolve-story-root (Planned)
 - 20-02-worktree-unc-paths (Planned)
+- 20-03-qa-compress-py-mandatory (Planned)
