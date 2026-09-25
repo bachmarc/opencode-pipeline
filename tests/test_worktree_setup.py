@@ -1,14 +1,17 @@
-"""Worktree setup script tests (Story 06-04).
+"""Worktree setup script tests (Story 06-04, Story 20-02).
 
 Tests for scripts/worktree_setup.py — deterministic worktree/branch creation.
 Tests use tmp_path fixtures with git init to create isolated test repos.
 No external systems required.
+
+Story 20-02: Tests verify UNC path compatibility via git -C pattern.
 """
 
 import json
 import subprocess
 import sys
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -232,3 +235,67 @@ def test_output_is_json(tmp_path: Path) -> None:
     assert exit_code == 0
     output = json.loads(stdout)  # Should not raise
     assert isinstance(output, list)
+
+
+def test_worktree_git_commands_use_dash_c() -> None:
+    """Worktree-local git commands use 'git -C <path>' pattern (Story 20-02).
+    
+    Verifies that the worktree_setup.py source code uses git -C pattern
+    for worktree-local operations, not cwd=<worktree_path>.
+    This ensures UNC path compatibility on Windows.
+    """
+    script_path = SCRIPTS_DIR / "worktree_setup.py"
+    script_content = script_path.read_text()
+    
+    # Check that cmd_remove uses git -C for status check
+    # Should have: ["git", "-C", str(worktree_path), "status", "--porcelain"]
+    # Should NOT have: cwd=str(worktree_path) in the status call
+    assert 'git", "-C", str(worktree_path), "status"' in script_content, (
+        "cmd_remove should use git -C pattern for status check"
+    )
+    
+    # Check that cmd_list uses git -C for symbolic-ref
+    # Should have: ["git", "-C", path, "symbolic-ref", "--short", "HEAD"]
+    # Should NOT have: cwd=path in the symbolic-ref call
+    assert 'git", "-C", path, "symbolic-ref"' in script_content, (
+        "cmd_list should use git -C pattern for symbolic-ref"
+    )
+    
+    # Check that cmd_list uses git -C for status
+    # Should have: ["git", "-C", path, "status", "--porcelain"]
+    # Should NOT have: cwd=path in the status call
+    assert 'git", "-C", path, "status"' in script_content, (
+        "cmd_list should use git -C pattern for status"
+    )
+    
+    # Verify that worktree-local calls do NOT use cwd=str(worktree_path)
+    # or cwd=path for git commands (only repo_root should use cwd)
+    lines = script_content.split("\n")
+    
+    # Find lines with subprocess.run calls
+    for i, line in enumerate(lines):
+        if "subprocess.run" in line and "git" in line:
+            # Check context - look ahead for cwd parameter
+            context = "\n".join(lines[i:min(i+10, len(lines))])
+            
+            # If this is a worktree-local command (has "-C" in args)
+            if '"-C"' in context:
+                # Should NOT have cwd=str(worktree_path) or cwd=path
+                assert "cwd=str(worktree_path)" not in context, (
+                    f"Line {i+1}: worktree-local git command should not use "
+                    f"cwd=str(worktree_path) when using git -C"
+                )
+                # For cmd_list, check that cwd=path is not used with "-C"
+                if "cwd=path" in context:
+                    # This is OK only if it's not in the same subprocess.run call
+                    # Extract the subprocess.run call
+                    call_start = context.find("subprocess.run")
+                    call_end = context.find(")", call_start)
+                    if call_end > call_start:
+                        call_text = context[call_start:call_end]
+                        # If both "-C" and cwd=path are in same call, that's wrong
+                        if '"-C"' in call_text and "cwd=path" in call_text:
+                            raise AssertionError(
+                                f"Line {i+1}: worktree-local git command should not use "
+                                f"cwd=path when using git -C"
+                            )
