@@ -26,7 +26,7 @@ FORBIDDEN_RUNNERS = ("pytest", "rspec", "jest", "gradle", "maven")
 # runner-name scan. Kept per directory; empty means zero exemptions.
 # NOT for portable prompts — documented escape hatch only.
 ALLOWLIST: dict[str, tuple[str, ...]] = {
-    "agent": (),  # no legitimate runner mentions in agent prompts
+    "agent": ("Do NOT run",),  # Story 20-03: explicit prohibition of direct pytest invocation
     "command": (),  # no legitimate runner mentions in command prompts
 }
 

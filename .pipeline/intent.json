@@ -102,6 +102,13 @@
       "step": "writing tests for get_repo_root()",
       "started_at": "2026-09-25T12:30:28.637969+00:00",
       "done": true
+    },
+    {
+      "story_id": "20-03",
+      "agent": "developer",
+      "step": "writing tests",
+      "started_at": "2026-09-25T12:49:49.895388+00:00",
+      "done": true
     }
   ]
 }

@@ -32,10 +32,10 @@ on cheap models.
     - If any `[NEEDS CLARIFICATION]` marker remains in the story file → FAIL (ambiguity not resolved before implementation).
 
 2. **Tests green & complete? (deterministic, no log interpretation)**
-   - Check via the project's configured checkers (`qa_config.json`) / `qa_compress.sh` — it delivers `exit_code` + error/test names + assertions (compressed, no raw logs).
-   - `exit_code = 0` → tests green. `exit_code != 0` → the `failed_tests` list from script is your FAIL basis.
-   - If you can't uniquely classify cause with compact result (test name + assertion enough) → **strong model as fallback**: delegate cause analysis to `architect` (strong model, locally configured) with compact list, NOT raw log spam.
-   - **Test criteria** of story met? Tests existed BEFORE code and use fakes (no real external systems). If tests missing = FAIL.
+    - Run tests exclusively via `qa_compress.py` — never invoke individual checkers directly. `qa_compress.py` reads `qa_config.json` and runs all configured checkers. It delivers `exit_code` + error/test names + assertions (compressed, no raw logs).
+    - `exit_code = 0` → tests green. `exit_code != 0` → the `failed_tests` list from script is your FAIL basis.
+    - If you can't uniquely classify cause with compact result (test name + assertion enough) → **strong model as fallback**: delegate cause analysis to `architect` (strong model, locally configured) with compact list, NOT raw log spam.
+    - **Test criteria** of story met? Tests existed BEFORE code and use fakes (no real external systems). If tests missing = FAIL.
 
 3. **Architecture separation maintained?**
    - `src/core/` has **zero imports** from framework/IO (`appdaemon`, `hass`, `httpx`, `sqlalchemy`, `modbus` etc.) — only stdlib + domain. Like `intesis_modbus/klimasteuerung.py` (pure `KlimaGeraet` class).
