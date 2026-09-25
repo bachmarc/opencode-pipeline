@@ -13,6 +13,10 @@ Valid status labels:
 
 Only touches the status line, preserves all other content.
 
+Repo root is determined by traversing upward from the current working directory (CWD)
+looking for a .git directory. This allows the script to work correctly when installed
+centrally in ~/.config/opencode/scripts/ and called from any project directory.
+
 Outputs JSON: {"story_id": "<id>", "old_status": "...", "new_status": "..."}
 
 Exit codes:
@@ -25,6 +29,20 @@ import json
 import re
 import sys
 from pathlib import Path
+
+
+def get_repo_root() -> Path:
+    """Find repo root by traversing upward from cwd looking for .git directory.
+    
+    Returns the first directory containing a .git subdirectory, or falls back to
+    the current working directory if no .git is found.
+    """
+    current = Path.cwd()
+    while current != current.parent:
+        if (current / ".git").exists():
+            return current
+        current = current.parent
+    return Path.cwd()
 
 
 def find_story_file(repo_root: Path, story_id: str) -> Path | None:
@@ -111,7 +129,7 @@ def main() -> int:
     story_id = sys.argv[1]
     new_status = sys.argv[2]
     
-    repo_root = Path(__file__).resolve().parent.parent
+    repo_root = get_repo_root()
     
     # Find story file
     story_file = find_story_file(repo_root, story_id)
