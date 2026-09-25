@@ -23,7 +23,7 @@ The architect has already created the worktree — you work **exclusively** in i
 6. Implement **only** the developer targets — no more, no less. No unrequested features.
    - `src/core/` first (pure logic, zero IO imports)
    - then `src/adapters/` (thin wrapper, delegates to core)
-7. Run the project's configured test suite via `scripts/qa_compress.sh` (plus project-specific linters if configured) — everything must be green.
+7. Run the project's configured test suite via the framework's test runner script `qa_compress.sh` (plus project-specific linters if configured) — everything must be green.
 8. Use `scripts/prepare_commit_metadata.py` to generate commit message with required metadata
 9. `git add` + `git commit` with mandatory metadata in body (see below) — do NOT push to main.
 
