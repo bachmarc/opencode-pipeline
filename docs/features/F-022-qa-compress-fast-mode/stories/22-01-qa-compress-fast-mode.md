@@ -1,12 +1,9 @@
----
-id: "22-01"
-feature: F-022
-title: "qa_compress.py --fast: changed files → affected test modules"
-status: planned
-branch: feature/22-01-qa-compress-fast-mode
----
+# Story 22-01 — qa_compress.py --fast: changed files → affected test modules
 
-## Context
+Status: Planned
+Feature: qa-compress-fast-mode (F-022)
+
+## Context / Purpose
 
 `qa_compress.py` has no scope filter. Every run executes all 366+ tests (~85s). For a
 2-file change, only 2-3 test modules are relevant. A `--fast` flag should detect changed
@@ -26,7 +23,7 @@ convention, and pass only those to pytest.
 5. `--fast` output clearly labels itself:
    `[fast mode] running: tests/test_foo.py tests/test_bar.py`
 
-## Developer Targets
+## Developer Targets (exactly, no more / no less)
 
 - `scripts/qa_compress.py`: add `--fast` argument to argparse; implement
   `get_changed_test_modules(branch)` function that runs `git diff`, maps filenames to
@@ -41,7 +38,7 @@ convention, and pass only those to pytest.
   - `test_fast_mode_fallback_on_no_match`: mock `git diff` output with `README.md` only
     → assert fallback to full run
 
-## Acceptance Criteria
+## Acceptance criteria (checked by qa-manager)
 
 - `qa_compress.py --fast` exists and runs without error.
 - `get_changed_test_modules()` function exists in `qa_compress.py`.
@@ -49,7 +46,7 @@ convention, and pass only those to pytest.
 - `test_fast_mode_fallback_on_no_match` passes.
 - Full run (no `--fast`) unchanged — all existing tests still pass.
 
-## Test Criteria (before implementation)
+## Test criteria (must exist BEFORE implementation)
 
 - `tests/test_qa_compress.py::test_fast_mode_maps_scripts_to_tests`: mock subprocess for
   git diff returning `scripts/merge_if_passed.py\n` → `get_changed_test_modules()` returns
