@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Session recovery script for pipeline state collection (Story 06-08).
 
+Pulls latest changes from remote before scanning state (Story 19-02).
 Collects comprehensive pipeline state: open intents, worktrees, main state,
 QA state, and feature claims. Outputs JSON to stdout and human-readable
 summary to stderr.
@@ -351,6 +352,14 @@ def main() -> int:
     
     # Use current directory as repo root
     repo_path = Path.cwd()
+    
+    # Pull latest changes before scanning state
+    pull_code, pull_out, pull_err = run_git_command(["pull"], repo_path)
+    pull_output = (pull_out + "\n" + pull_err).strip()
+    if pull_output:
+        print(pull_output, file=sys.stderr)
+    if pull_code != 0:
+        print("Warning: git pull failed (continuing with local state)", file=sys.stderr)
     
     # Collect state
     state = collect_state(repo_path)

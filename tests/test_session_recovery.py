@@ -277,3 +277,23 @@ def test_output_is_valid_json(tmp_path: Path) -> None:
         assert isinstance(data, dict)
     except json.JSONDecodeError as e:
         pytest.fail(f"Output is not valid JSON: {e}\nOutput: {stdout}")
+
+
+def test_pull_called_on_startup(tmp_path: Path) -> None:
+    """git pull is attempted at startup; failure is non-fatal (no remote = warning only)."""
+    repo_path = tmp_path / "test_repo"
+    init_git_repo(repo_path)
+    pipeline_dir = repo_path / ".pipeline"
+    pipeline_dir.mkdir()
+    (pipeline_dir / "intent.json").write_text('{"intents": []}')
+    (pipeline_dir / "qa-state").mkdir()
+
+    exit_code, stdout, stderr = run_session_recovery_script([], repo_path)
+
+    # Pull fails (no remote) but script must still exit 0
+    assert exit_code == 0, f"Script failed: {stderr}"
+    # Warning or pull output must appear in stderr
+    assert "pull" in stderr.lower() or "warning" in stderr.lower() or "fatal" in stderr.lower()
+    # JSON output must still be valid
+    data = json.loads(stdout)
+    assert "open_intents" in data

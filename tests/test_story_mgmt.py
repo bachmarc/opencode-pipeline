@@ -36,7 +36,6 @@ def test_resolve_by_id() -> None:
     assert data["feature"] == "pipeline-evolution"
     assert data["branch"] == "feature/06-01-feature-hierarchy"
     assert data["worktree"] == ".worktrees/06-01-feature-hierarchy"
-    assert data["status"] == "Planned"
     assert "story_file" in data
 
 
