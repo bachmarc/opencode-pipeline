@@ -22,6 +22,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-019 | Python QA Toolchain | done | — | 19-01, 19-02 |
 | F-020 | Script Portability Fixes | done | — | 20-01, 20-02, 20-03 |
 | F-021 | Documenter Scope Fix | in-progress | — | 21-01, 21-02 |
+| F-022 | QA Compress Fast Mode | planned | — | 22-01, 22-02 |
 
 ## Feature status derivation
 

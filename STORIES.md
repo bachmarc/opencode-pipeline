@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix → 22 QA Compress Fast Mode
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -91,8 +91,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 20-01-resolve-story-root | resolve_story.py + story_status.py: get_repo_root() via CWD Git-traversal | Done (QA PASS, 4c300ec) | F-020 script-portability-fixes |
 | 20-02-worktree-unc-paths | worktree_setup.py: git -C pattern for UNC-path compatibility | Done (QA PASS, ff297c8) | F-020 script-portability-fixes |
 | 20-03-qa-compress-py-mandatory | developer.md + qa-manager.md: qa_compress.py as mandatory sole test entry point | Done (QA PASS, a61380a) | F-020 script-portability-fixes |
-| 21-01-documenter-scope-fix | merge_if_passed.py + documenter-guard.ts: branch-exclusive git log scope | Planned | F-021 documenter-scope-fix |
+| 21-01-documenter-scope-fix | merge_if_passed.py + documenter-guard.ts: branch-exclusive git log scope | Done (QA PASS, 0a11f94) | F-021 documenter-scope-fix |
 | 21-02-documenter-catchup | Documenter catch-up run for Stories 15-00..20-03 | Planned | F-021 documenter-scope-fix |
+| 22-01-qa-compress-fast-mode | qa_compress.py --fast: changed files → affected test modules | Planned | F-022 qa-compress-fast-mode |
+| 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Planned | F-022 qa-compress-fast-mode |
 
 - **Retro:** Pure retroactive documentation of changes already made directly — no re-implementation.
 - **Phase 01 (Foundation):** Repo hygiene, docs, index — architect work directly on `main`
@@ -191,3 +193,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   run for all stories 15-00..20-03. 2 stories:
   - 21-01: Branch-exclusive scope fix in merge_if_passed.py + documenter-guard.ts + tests
   - 21-02: Documenter catch-up run on main (Documenter agent, not developer)
+- **Phase 22 (QA Compress Fast Mode):** `qa_compress.py` always runs the full suite (~85s,
+  366+ tests) — no scope filter. Developer also runs it twice (before + after commit).
+  Fix: `--fast` flag maps changed files to test modules by name convention
+  (`scripts/foo.py` → `tests/test_foo.py`), runs only those. Full run remains default.
+  Developer prompt explicitly forbids post-commit verification runs. 2 stories, parallel:
+  - 22-01: `qa_compress.py --fast` — changed files → affected test modules via name convention
+  - 22-02: Developer prompt — explicit prohibition of post-commit qa_compress.py run
