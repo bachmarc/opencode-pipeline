@@ -19,6 +19,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-012 | Clarification Markers | done | — | 16-01 |
 | F-013 | Framework Path Consolidation | done | — | 17-01, 17-02, 17-03, 17-04, 17-05 |
 | F-014 | Architecture Checker Evolution | planned | — | 18-01 |
+| F-019 | Python QA Toolchain | planned | — | 19-01, 19-02 |
 
 ## Feature status derivation
 

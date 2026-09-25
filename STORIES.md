@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -86,6 +86,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 17-04-qa-compress-sole-entry | Prompts forbid direct pytest, qa_compress.sh only | Done (QA PASS, 963c04e→1088ae8) | F-013 framework-path-consolidation |
 | 17-05-prompt-script-refs | Prompts drop scripts/ paths, describe actions only | Done (QA PASS, dd50c98→0650436) | F-013 framework-path-consolidation |
 | 18-01-check-architecture-file-mode | check_architecture.py: explicit file-list mode (root-layout projects) | Planned | F-014 architecture-checker-evolution |
+| 19-01-qa-compress-python | qa_compress.py: Python QA entry point (replaces bash) | Planned | F-019 python-qa-toolchain |
+| 19-02-session-recovery-pull | session_recovery.py: git pull at startup + test_resolve_by_id fix | Planned | F-019 python-qa-toolchain |
 
 ## Phase comments
 
@@ -164,3 +166,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   directory-only invocation cannot express "check these core files" without also
   checking the adapter. 1 story (candidate, not scheduled):
   - 18-01: `--files` mode, byte-identical directory mode, shared per-file check unit
+- **Phase 19 (Python QA Toolchain):** Replace `qa_compress.sh` and all `qa_checkers/*.sh`
+  with Python equivalents — the framework is already all-Python except for these bash files.
+  Fixes 26 test failures on Windows (`/bin/bash` not found). Also integrates `git pull`
+  into `session_recovery.py` and fixes a fragile status assertion in `test_resolve_by_id`.
+  2 stories, parallel:
+  - 19-01: `qa_compress.py` + 8 Python checker modules, bash files deleted
+  - 19-02: `git pull` in `session_recovery.py` + `test_resolve_by_id` status assertion removed
