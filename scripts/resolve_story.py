@@ -6,6 +6,10 @@ branch name (feature/06-01-feature-hierarchy), or partial match.
 
 Outputs JSON with story metadata: id, slug, feature, branch, worktree, status, story_file.
 
+Repo root is determined by traversing upward from the current working directory (CWD)
+looking for a .git directory. This allows the script to work correctly when installed
+centrally in ~/.config/opencode/scripts/ and called from any project directory.
+
 Exit codes:
   0 - story found
   1 - story not found
@@ -15,6 +19,20 @@ Exit codes:
 import json
 import sys
 from pathlib import Path
+
+
+def get_repo_root() -> Path:
+    """Find repo root by traversing upward from cwd looking for .git directory.
+    
+    Returns the first directory containing a .git subdirectory, or falls back to
+    the current working directory if no .git is found.
+    """
+    current = Path.cwd()
+    while current != current.parent:
+        if (current / ".git").exists():
+            return current
+        current = current.parent
+    return Path.cwd()
 
 
 def find_all_stories(repo_root: Path) -> list[dict]:
@@ -162,7 +180,7 @@ def main() -> int:
         return 1
     
     query = sys.argv[1]
-    repo_root = Path(__file__).resolve().parent.parent
+    repo_root = get_repo_root()
     
     exit_code, story = resolve_story(repo_root, query)
     

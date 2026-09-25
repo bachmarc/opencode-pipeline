@@ -95,6 +95,13 @@
       "step": "implementing script path removal",
       "started_at": "2026-09-25T10:31:51.342467+00:00",
       "done": true
+    },
+    {
+      "story_id": "20-01",
+      "agent": "developer",
+      "step": "writing tests for get_repo_root()",
+      "started_at": "2026-09-25T12:30:28.637969+00:00",
+      "done": true
     }
   ]
 }
