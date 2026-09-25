@@ -7,9 +7,12 @@ import { join } from "path"
  * Detects `git merge <branch>` pattern and checks for a corresponding QA-PASS
  * in `.pipeline/qa-state/<story-id>-<slug>.json`.
  * 
+ * Reads schema: `{"verdicts": [{"verdict": "PASS"|"FAIL", "timestamp": "…", …}]}`
+ * Checks: `status.verdicts[status.verdicts.length - 1].verdict === "PASS"`
+ * 
  * @param command - The full command string (e.g., "git merge feature/11-02-merge-guard")
  * @param directory - The project directory containing .pipeline/qa-state/
- * @throws Error if no QA-PASS found for the branch
+ * @throws Error if no QA-PASS found for the branch or verdicts array is missing/empty
  */
 export function mergeGuard(command: string, directory: string): void {
   // Regex to detect git merge commands and extract branch name
@@ -51,7 +54,8 @@ export function mergeGuard(command: string, directory: string): void {
     const statusContent = readFileSync(qaStatusFile, "utf-8")
     const status = JSON.parse(statusContent)
 
-    if (status.last_verdict !== "PASS") {
+    // Check verdicts array: must exist, be non-empty, and have PASS as last verdict
+    if (!status.verdicts?.length || status.verdicts[status.verdicts.length - 1].verdict !== "PASS") {
       throw new Error(
         `Merge blocked: no QA-PASS for branch ${branchName}. Run QA first.`
       )

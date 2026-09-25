@@ -6,6 +6,8 @@ next action based on verdict counts and budget limits:
 - 3 FAILs → blocked-requirements
 - 2 BLOCKED_Design → blocked-requirements
 
+Schema: {"verdicts": [{"verdict": "PASS"|"FAIL"|"BLOCKED_Design", "timestamp": "…", …}]}
+
 Usage:
   qa_route.py record <story-id> <verdict>  # Record a verdict (PASS, FAIL, BLOCKED_Design, etc.)
   qa_route.py next <story-id>              # Get next action based on history
