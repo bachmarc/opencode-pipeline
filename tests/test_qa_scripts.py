@@ -244,7 +244,7 @@ def test_merge_if_passed_with_pass(tmp_path: Path) -> None:
         capture_output=True,
     )
     
-    # Create initial commit on main
+    # Create initial commit on master (default branch)
     (repo_dir / "README.md").write_text("# Test\n")
     subprocess.run(
         ["git", "add", "README.md"],
@@ -277,9 +277,22 @@ def test_merge_if_passed_with_pass(tmp_path: Path) -> None:
         capture_output=True,
     )
     
-    # Switch back to main
+    # Add a commit with "docs: reconcile" message (required by story 17-03)
+    (repo_dir / "docs.md").write_text("# Documentation\n")
     subprocess.run(
-        ["git", "checkout", "main"],
+        ["git", "add", "docs.md"],
+        cwd=str(repo_dir),
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "commit", "-m", "docs: reconcile"],
+        cwd=str(repo_dir),
+        capture_output=True,
+    )
+    
+    # Switch back to master
+    subprocess.run(
+        ["git", "checkout", "master"],
         cwd=str(repo_dir),
         capture_output=True,
     )
