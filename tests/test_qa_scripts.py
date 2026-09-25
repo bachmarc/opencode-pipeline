@@ -257,6 +257,13 @@ def test_merge_if_passed_with_pass(tmp_path: Path) -> None:
         capture_output=True,
     )
     
+    # Rename master to main
+    subprocess.run(
+        ["git", "branch", "-m", "master", "main"],
+        cwd=str(repo_dir),
+        capture_output=True,
+    )
+    
     # Create feature branch
     subprocess.run(
         ["git", "checkout", "-b", "feature/06-11-test"],
@@ -290,9 +297,9 @@ def test_merge_if_passed_with_pass(tmp_path: Path) -> None:
         capture_output=True,
     )
     
-    # Switch back to master
+    # Switch back to main
     subprocess.run(
-        ["git", "checkout", "master"],
+        ["git", "checkout", "main"],
         cwd=str(repo_dir),
         capture_output=True,
     )
