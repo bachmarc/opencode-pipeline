@@ -81,6 +81,11 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 15-04-dev-start-guard-marker | Dev-start guard: explicit [story: XX-YY] marker | Done (QA PASS, ed98c4e→2d570ff) | F-011 living-code-docs |
 
 | 16-01-clarification-markers | Clarification markers in story template + workflow | Done (QA PASS, 5c3b1e0→79b6ad9) | F-012 clarification-markers |
+| 17-01-plugin-relative-paths | Guards resolve scripts via import.meta.dirname, fail-closed | Planned | F-013 framework-path-consolidation |
+| 17-02-verdict-schema-fix | merge-guard.ts reads verdicts[] not last_verdict | Planned | F-013 framework-path-consolidation |
+| 17-03-enforcement-bypass-fix | merge_if_passed.py carries guard logic itself | Planned | F-013 framework-path-consolidation |
+| 17-04-qa-compress-sole-entry | Prompts forbid direct pytest, qa_compress.sh only | Planned | F-013 framework-path-consolidation |
+| 17-05-prompt-script-refs | Prompts drop scripts/ paths, describe actions only | Planned | F-013 framework-path-consolidation |
 
 ## Phase comments
 
@@ -145,3 +150,11 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   concept in story templates + architect/QA prompts. Template-level change, no scripts.
   Inspired by spec-kit's clarify pattern. 1 story:
   - 16-01: Marker guidance in story template, architect prompt, QA prompt
+- **Phase 17 (Framework Path Consolidation):** Fix the dogfood blind spot — framework scripts
+  were assumed project-local but only exist in the framework installation. Guards resolve
+  scripts via `import.meta.dirname` (plugin-relative, platform-independent). Fail-closed
+  session recovery. Verdict schema unified. Enforcement bypass closed. qa_compress.sh as
+  sole test entry point. Prompts drop script paths. 5 stories in 3 waves:
+  - Wave 1 (17-01, 17-02): Plugin-relative paths + Verdict schema fix (parallel)
+  - Wave 2 (17-03, 17-04): Enforcement bypass fix + qa_compress.sh sole entry (parallel)
+  - Wave 3 (17-05): Prompts drop script paths (after 17-04 to avoid conflicts)
