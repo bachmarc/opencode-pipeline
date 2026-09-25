@@ -18,6 +18,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-011 | Living Code Documentation | done | — | 15-00, 15-01, 15-02, 15-03, 15-04 |
 | F-012 | Clarification Markers | done | — | 16-01 |
 | F-013 | Framework Path Consolidation | done | — | 17-01, 17-02, 17-03, 17-04, 17-05 |
+| F-014 | Architecture Checker Evolution | planned | — | 18-01 |
 
 ## Feature status derivation
 
