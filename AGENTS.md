@@ -1,5 +1,5 @@
 # AGENTS.md — opencode-pipeline (Dev Repo)
-<!-- synced_through: 14-01 | updated: 2026-09-22 -->
+<!-- synced_through: 20-03 | updated: 2026-09-25 -->
 
 > Skeleton filled from `~/.config/opencode/templates/AGENTS.md`. Constant sections (workflow, git
 > conventions, languages, prohibitions) kept unchanged; project-specifics filled in dialogue.
@@ -7,10 +7,9 @@
 ## This project: opencode-pipeline — multi-agent dev pipeline as config-as-code
 
 - **What:** The opencode agent framework (architect / developer / qa-manager roles, dev-workflow
-  skill, commands, qa_compress.sh). Developed dogfooded: this pipeline repo is itself developed
+  skill, commands, qa_compress.py). Developed dogfooded: this pipeline repo is itself developed
   through the pipeline (stories → branches → QA gate).
-- **Stack:** Markdown (agents, skills, commands, docs), Bash (`scripts/qa_compress.sh`),
-  Python 3 + pytest (framework self-checks in `tests/`), Git. No runtime app.
+- **Stack:** Markdown (agents, skills, commands, docs), Python 3 + pytest (framework self-checks in `tests/`), Git. No runtime app. `qa_compress.py` is the sole test entry point (replaces bash).
 - **Versioning:** `APP_VERSION = "0.1.0"` — bump on notable merges (document in STORIES.md).
 
 ## Core rules (source of truth: feature files + story files)
@@ -34,10 +33,10 @@
 
 This repo's "product" is configuration and deterministic tooling, not a service:
 
-- **`scripts/qa_compress.sh`** — deterministic log compression (checker-registry pattern).
+- **`scripts/qa_compress.py`** — deterministic log compression (checker-registry pattern, Python).
 - **`tests/`** — self-referential framework checks: pytest reads the repo's own portable files
   and asserts invariants (frontmatter intact, no model names, template exists, script syntax).
-  These tests are the QA target for `qa_compress.sh` — no fakes needed beyond the file system.
+  These tests are the QA target for `qa_compress.py` — no fakes needed beyond the file system.
 - **`agent/`, `command/`, `skills/`, `templates/`** — data, not code: prompts and skeletons.
   Changes here need story + QA like everything else.
 - **`plugins/pipeline-enforcement.ts`** — opencode plugin for deterministic process enforcement.

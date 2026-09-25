@@ -1,5 +1,5 @@
 # opencode Pipeline
-<!-- synced_through: 14-01 | updated: 2026-09-22 -->
+<!-- synced_through: 20-03 | updated: 2026-09-25 -->
 
 **A multi-agent development pipeline as config-as-code** — for teams building software through structured dialogue, deterministic automation, and cheap-model mass work.
 
@@ -21,7 +21,7 @@ The pipeline orchestrates four specialized agents:
 The repository contains:
 
 - **`agent/`** — The four role definitions (architect, developer, qa-manager, documenter). Each is a Markdown file with frontmatter (description, mode, rules) and a prompt. Roles are portable; model assignment is local.
-- **`scripts/`** — 15+ deterministic Python scripts + `qa_compress.sh` (Bash) with modular checker plugins in `scripts/qa_checkers/`. Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks, template migration, and polyglot commit metadata.
+- **`scripts/`** — 15+ deterministic Python scripts with modular checker plugins in `scripts/qa_checkers/`. Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks, template migration, polyglot commit metadata, and watermark tracking. `qa_compress.py` is the sole test entry point (replaces bash).
 - **`plugins/`** — Pipeline enforcement plugin (TypeScript, `plugins/pipeline-enforcement.ts`). Six deterministic guards that block process violations at the tool-call level: merge without QA-PASS, dev-start without story, architect editing code, story status after merge, session start without recovery, merge without documenter. Deploys to `~/.config/opencode/plugins/` via release branch.
 - **`templates/`** — Skeletons for new projects: `AGENTS.md` (project knowledge template) and `.gitignore`.
 - **`command/`** — Invokable commands that orchestrate the flow: `/new-project`, `/requirements`, `/decompose`, `/implement`, `/qa-check`, `/status`, `/qa_summary`, `/document`.
@@ -32,7 +32,7 @@ The repository contains:
 
 1. **Cheap models for mass work** — Developer and QA-Manager run on lean models. Only the Architect (reasoning) and fallback diagnostics use strong models. This keeps costs low while maintaining quality gates.
 
-2. **Deterministic scripts over LLM free-hand** — QA is not a thinker; it's a judge. Test compression (`qa_compress.sh`) reduces 20,000 lines of pytest spam to ≤200 tokens. Verdicts are strict JSON, no monologues.
+2. **Deterministic scripts over LLM free-hand** — QA is not a thinker; it's a judge. Test compression (`qa_compress.py`) reduces 20,000 lines of pytest spam to ≤200 tokens. Verdicts are strict JSON, no monologues.
 
 3. **Config-as-code (clone & go)** — The entire framework is flat, readable files (Markdown + Bash). No secrets, no binary format. Transfer to another machine: clone, create local `opencode.jsonc`, restart. Done.
 
@@ -65,7 +65,7 @@ flowchart TD
     D -- "User gives feedback" --> B
 
     E --> F["Developer implements story\n(tests first, isolated branch)"]
-    F --> G["QA-Manager checks\n(qa_compress.sh → JSON verdict)"]
+    F --> G["QA-Manager checks\n(qa_compress.py → JSON verdict)"]
     G -- "PASS" --> H["Merge to main\n(after user clearance)"]
     G -- "FAIL (max 3×)" --> F
     G -- "BLOCKED_Design" --> I["Architect fixes design\n(autonomous, no user needed)"]
@@ -106,10 +106,10 @@ Once you give the go, the pipeline runs **autonomously for a long time** without
    - Runs `pytest` green, commits with metadata
 
 2. **QA-Manager** (cheap model) checks the branch — **deterministically, not by thinking**:
-   - Runs `qa_compress.sh` which compresses pytest output to ≤200 tokens (exit code + failed test names + assertions — no log spam)
-   - Evaluates the compressed result against acceptance criteria
-   - Checks architecture separation (no IO imports in core, fake parity, integration tests call real orchestration code)
-   - Returns a **strict JSON verdict**: `{"status": "PASS|FAIL|BLOCKED_*", "reason": "...", "failed_tests": [...]}`
+    - Runs `qa_compress.py` which compresses pytest output to ≤200 tokens (exit code + failed test names + assertions — no log spam)
+    - Evaluates the compressed result against acceptance criteria
+    - Checks architecture separation (no IO imports in core, fake parity, integration tests call real orchestration code)
+    - Returns a **strict JSON verdict**: `{"status": "PASS|FAIL|BLOCKED_*", "reason": "...", "failed_tests": [...]}`
 
 3. **On PASS** → branch is cleared for merge (you confirm the merge).
 
@@ -143,7 +143,7 @@ If the failure is a **domain/intention question** (requirement unclear, behavior
 | `/implement <story-id>` | Developer | Implement one story (tests first, isolated branch) |
 | `/qa-check <branch>` | QA-Manager | Run QA gate → JSON verdict (PASS/FAIL/BLOCKED) |
 | `/status` | QA-Manager | Show implementation status (table: story, branch, tests, QA, error) |
-| `/qa_summary` | — | Run `qa_compress.sh` and show compact test report |
+| `/qa_summary` | — | Run `qa_compress.py` and show compact test report |
 | `/document [scope]` | Documenter | Reconcile documentation against code state |
 
 ---
@@ -347,13 +347,15 @@ The QA gate works with **any language** — not just Python/pytest. Projects dec
 
 2. **Checker plugins** live in `scripts/qa_checkers/`, one file per runner. Each registers itself:
 
-```bash
-# scripts/qa_checkers/mypy.sh — one file per checker
-mypy_check() { mypy "$@" >/dev/null 2>&1; return $?; }
-register_check mypy mypy_check
+```python
+# scripts/qa_checkers/mypy.py — one file per checker
+def mypy_check():
+    result = subprocess.run(["mypy", "."], capture_output=True)
+    return (compressed_output, result.returncode)
+register_check("mypy", mypy_check)
 ```
 
-3. **`qa_compress.sh` dispatches** the declared checkers serially with AND semantics (all must pass). Aggregation and exit code happen automatically.
+3. **`qa_compress.py` dispatches** the declared checkers serially with AND semantics (all must pass). Aggregation and exit code happen automatically.
 
 **Available checkers:** `pytest` (Python, default), `rspec` (Ruby), `jest` (JavaScript/TypeScript), `gradle` (Java/Kotlin), `maven` (Java), `json` (JSON syntax validation), `yaml` (YAML syntax validation), `html` (HTML syntax check — tag matching, attribute quoting, void element validation).
 
@@ -382,6 +384,7 @@ docs/features/<feature-name>/
 - **Features carry vision and context** — they describe what all their stories together create, not just a folder grouping.
 - **Architecture decisions live in feature/story files** — documented in feature.md Context sections and story Requirements sections.
 - **Templates enforce structure** — `docs/features/_feature_template.md` and `_story_template.md` ensure consistency across all features and stories.
+- **Watermark-based incremental updates** — `README.md` and `AGENTS.md` carry a `synced_through` watermark (e.g., `<!-- synced_through: 20-03 | updated: 2026-09-25 -->`) that tracks the last incorporated story. The Documenter uses this to identify pending stories and make targeted updates, avoiding full re-evaluation drift.
 
 ### Project Migration (`/migrate-project`)
 
@@ -426,6 +429,6 @@ Therefore: **tests exist BEFORE the code**, each story has its own fake-based te
 
 ## Open points / outlook
 
-- `qa_compress.sh` is verified against **pytest 9** (PASS: `78 passed`; FAIL: `2 failed, 1 passed`); for older pytest versions check one line in the summary grep if needed.
+- `qa_compress.py` is verified against **pytest 9** (PASS: `78 passed`; FAIL: `2 failed, 1 passed`); for older pytest versions check one line in the summary grep if needed.
 - Optional: merge into a shared `~/dotfiles` repo with other tools (then via symlink instead of a direct clone).
 - Optional: CI (GitHub Actions) — can be added later; local pytest + QA gate is the current contract.
