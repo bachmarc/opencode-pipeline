@@ -1,12 +1,18 @@
 import { existsSync } from "fs"
+import { join } from "path"
 
 /**
  * Session Recovery Guard — blocks tool execution if session recovery is needed.
  * 
- * On first tool call of a session, runs `scripts/session_recovery.py --check`.
- * If recovery items exist (exit code 1), throws an error with recovery instructions.
+ * Resolves the session_recovery.py script from the framework installation directory
+ * using import.meta.dirname (plugin's own directory) + ../scripts/ relative path.
+ * This ensures the guard works in any project, not just the dogfood repo.
  * 
- * Only applies to "architect" and "build" agents. Safe for non-pipeline projects.
+ * On first tool call of a session, runs the recovery check script.
+ * If recovery items exist (exit code 1), throws an error with recovery instructions.
+ * If the script is not found, throws "Framework not installed" error (fail-closed).
+ * 
+ * Only applies to "architect" and "build" agents.
  */
 export async function sessionRecoveryGuard(
   agent: string,
@@ -18,15 +24,19 @@ export async function sessionRecoveryGuard(
     return
   }
 
-  // Check if recovery script exists (safe for non-pipeline projects)
-  const scriptPath = `${directory}/scripts/session_recovery.py`
+  // Resolve script path relative to framework installation (plugin's directory)
+  const scriptPath = join(import.meta.dirname, "..", "scripts", "session_recovery.py")
+  
+  // Check if recovery script exists — fail-closed if not found
   if (!existsSync(scriptPath)) {
-    return
+    throw new Error(
+      `Framework not installed: session_recovery.py not found at ${scriptPath}. Reinstall opencode-pipeline.`
+    )
   }
 
   // Run recovery check
   try {
-    const result = await $`python3 scripts/session_recovery.py --check`
+    const result = await $`python3 ${scriptPath} --check`
     // Exit code 0 = clean, no recovery needed
     return
   } catch (error: any) {
@@ -35,7 +45,7 @@ export async function sessionRecoveryGuard(
     if (exitCode === 1) {
       const stderr = error.stderr?.toString() || error.message || ""
       throw new Error(
-        `Session recovery required before continuing.\n\n${stderr}\n\nRun scripts/session_recovery.py and address open items.`
+        `Session recovery required before continuing.\n\n${stderr}\n\nRun ${scriptPath} and address open items.`
       )
     }
     // Other exit codes are unexpected, re-throw
