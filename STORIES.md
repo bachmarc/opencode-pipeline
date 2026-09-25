@@ -93,8 +93,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 20-03-qa-compress-py-mandatory | developer.md + qa-manager.md: qa_compress.py as mandatory sole test entry point | Done (QA PASS, a61380a) | F-020 script-portability-fixes |
 | 21-01-documenter-scope-fix | merge_if_passed.py + documenter-guard.ts: branch-exclusive git log scope | Done (QA PASS, 0a11f94) | F-021 documenter-scope-fix |
 | 21-02-documenter-catchup | Documenter catch-up run for Stories 15-00..20-03 | Done (2ccf5eb) | F-021 documenter-scope-fix |
-| 22-01-qa-compress-fast-mode | qa_compress.py --fast: changed files → affected test modules | Planned | F-022 qa-compress-fast-mode |
-| 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Planned | F-022 qa-compress-fast-mode |
+| 22-01-qa-compress-fast-mode | qa_compress.py --fast: changed files → affected test modules | Done (QA PASS, a98931e) | F-022 qa-compress-fast-mode |
+| 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Done (QA PASS, 159a7c3) | F-022 qa-compress-fast-mode |
 
 - **Retro:** Pure retroactive documentation of changes already made directly — no re-implementation.
 - **Phase 01 (Foundation):** Repo hygiene, docs, index — architect work directly on `main`
