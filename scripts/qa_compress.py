@@ -21,12 +21,25 @@ Modular checker registry pattern (flat, inline):
   - Only CONFIGURED checkers run (serially). Overall status = FAIL as soon as
     ONE checker is non-zero (AND semantics).
 
+Fast mode (--fast flag):
+  - Detects changed files via `git diff main..<branch> --name-only`.
+  - Falls back to `git diff HEAD~1 --name-only` if not on a feature branch.
+  - Maps changed files to test modules by name convention:
+    * scripts/foo.py         -> tests/test_foo.py
+    * plugins/guards/foo.ts  -> tests/test_foo.py (dashes to underscores)
+    * plugins/foo.ts         -> tests/test_foo.py
+  - Returns only test files that exist. If no matches, falls back to full run.
+  - Output: "[fast mode] running: tests/test_foo.py tests/test_bar.py"
+
 Usage: invoke from the project root (cwd = QA-checked project).
+  - Full run: python scripts/qa_compress.py
+  - Fast run: python scripts/qa_compress.py --fast
 Outputs the compact QA package.
 """
 
 from __future__ import annotations
 
+import argparse
 import io
 import json
 import re
@@ -37,9 +50,13 @@ from datetime import datetime
 from html.parser import HTMLParser
 from pathlib import Path
 
-# Ensure UTF-8 output on Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+# Ensure UTF-8 output on Windows (skip in test environments)
+if sys.platform == "win32" and "pytest" not in sys.modules:
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    except (AttributeError, ValueError):
+        # In test environments or when stdout is already wrapped, skip
+        pass
 
 # --- Checker implementations (inline, no plugin files) ---
 
@@ -610,8 +627,109 @@ def _validate_configured_checkers(configured: list[str]) -> None:
             sys.exit(1)
 
 
+def get_changed_test_modules(repo_root: Path) -> list[str]:
+    """Return test module paths for files changed on this branch vs main.
+    
+    Uses git diff main..HEAD --name-only to find changed files.
+    Maps by name convention:
+      scripts/foo.py         -> tests/test_foo.py
+      plugins/guards/foo.ts  -> tests/test_foo.py  (foo with dashes -> underscores)
+      plugins/foo.ts         -> tests/test_foo.py
+    
+    Returns only paths that actually exist. Empty list = fallback to full run.
+    Falls back to git diff HEAD~1 --name-only if not on a feature branch.
+    
+    Args:
+        repo_root: Path to the repository root.
+    
+    Returns:
+        List of test file paths (as strings) that exist and match changed files.
+        Empty list if no matches found.
+    """
+    # Try to get changed files via git diff main..HEAD
+    try:
+        result = subprocess.run(
+            ["git", "diff", "main..HEAD", "--name-only"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=10,
+        )
+        
+        if result.returncode != 0:
+            # Not on a feature branch, try HEAD~1
+            result = subprocess.run(
+                ["git", "diff", "HEAD~1", "--name-only"],
+                cwd=repo_root,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=10,
+            )
+        
+        if result.returncode != 0:
+            # git diff failed, return empty list
+            return []
+        
+        changed_files = result.stdout.strip().split("\n")
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        # git not available or timed out
+        return []
+    
+    # Map changed files to test modules
+    test_modules = set()
+    
+    for file_path in changed_files:
+        if not file_path.strip():
+            continue
+        
+        # Normalize path separators
+        file_path = file_path.replace("\\", "/")
+        
+        # Map scripts/foo.py -> tests/test_foo.py
+        if file_path.startswith("scripts/") and file_path.endswith(".py"):
+            base_name = Path(file_path).stem
+            test_file = repo_root / "tests" / f"test_{base_name}.py"
+            if test_file.exists():
+                test_modules.add(str(test_file))
+        
+        # Map plugins/guards/foo.ts -> tests/test_foo.py (dashes to underscores)
+        elif file_path.startswith("plugins/guards/") and file_path.endswith(".ts"):
+            base_name = Path(file_path).stem
+            # Replace dashes with underscores
+            base_name = base_name.replace("-", "_")
+            test_file = repo_root / "tests" / f"test_{base_name}.py"
+            if test_file.exists():
+                test_modules.add(str(test_file))
+        
+        # Map plugins/foo.ts -> tests/test_foo.py (dashes to underscores)
+        elif file_path.startswith("plugins/") and file_path.endswith(".ts"):
+            # Skip if it's in plugins/guards (already handled above)
+            if not file_path.startswith("plugins/guards/"):
+                base_name = Path(file_path).stem
+                # Replace dashes with underscores
+                base_name = base_name.replace("-", "_")
+                test_file = repo_root / "tests" / f"test_{base_name}.py"
+                if test_file.exists():
+                    test_modules.add(str(test_file))
+    
+    return sorted(list(test_modules))
+
+
 def main() -> int:
     """Main entry point."""
+    # Parse arguments
+    parser = argparse.ArgumentParser(
+        description="QA-Summary: compact, modular test report"
+    )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Fast mode: run only tests for changed files (git diff main..HEAD)",
+    )
+    args = parser.parse_args()
+    
     # Load configuration
     configured = _load_config()
     
@@ -625,6 +743,20 @@ def main() -> int:
         print("overall: PASS")
         return 0
     
+    # Handle fast mode
+    fast_mode_args = []
+    if args.fast:
+        repo_root = Path.cwd()
+        changed_test_modules = get_changed_test_modules(repo_root)
+        
+        if changed_test_modules:
+            # Run only the changed test modules
+            print(f"[fast mode] running: {' '.join(changed_test_modules)}")
+            fast_mode_args = changed_test_modules
+        else:
+            # No matching test modules, fall back to full run
+            print("[fast mode] no matching test modules found, falling back to full run")
+    
     # Run checkers
     print(f"# QA-Testsummary ({datetime.now().strftime('%H:%M:%S')})")
     print("---")
@@ -632,7 +764,12 @@ def main() -> int:
     overall_exit = 0
     for name in configured:
         fn = CHECKERS[name]
-        output, exit_code = fn()
+        
+        # For pytest checker in fast mode, pass the test modules as arguments
+        if name == "pytest" and fast_mode_args:
+            output, exit_code = _pytest_check_with_args(fast_mode_args)
+        else:
+            output, exit_code = fn()
         
         print(f"## {name} (exit: {exit_code})")
         print(output, end="")
@@ -644,6 +781,70 @@ def main() -> int:
     print(f"overall: {'FAIL' if overall_exit else 'PASS'}")
     
     return overall_exit
+
+
+def _pytest_check_with_args(test_modules: list[str]) -> tuple[str, int]:
+    """Run pytest with specific test modules and return compressed output.
+    
+    Args:
+        test_modules: List of test file paths to run.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Find pytest on PATH (handles .cmd on Windows)
+    pytest_exe = shutil.which("pytest")
+    if not pytest_exe:
+        return "pytest not found on PATH\n", 1
+    
+    try:
+        result = subprocess.run(
+            [pytest_exe, "--tb=short"] + test_modules,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "pytest timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    # Extract summary line: "78 passed in 0.50s" or "1 failed in 0.77s" etc.
+    summary_match = re.search(
+        r"=+\s*([0-9]+\s+)?[0-9,]*\s*(passed|failed|error|no tests|deselected)",
+        output,
+    )
+    summary = summary_match.group(0) if summary_match else "<no summary line>"
+    
+    compressed = f"summary: {summary}\n"
+    
+    if exit_code != 0:
+        # Extract failed/error lines
+        failed_lines = re.findall(r"^(?:FAILED|ERROR) .*$", output, re.MULTILINE)
+        if failed_lines:
+            compressed += "## failed_tests\n"
+            for line in failed_lines[-20:]:  # Last 20
+                compressed += line + "\n"
+        
+        # Extract short test summary (without assertion details)
+        short_lines = re.findall(r"^(?:FAILED|ERROR) .*$", output, re.MULTILINE)
+        if short_lines:
+            compressed += "## short_test_summary\n"
+            for line in short_lines[-20:]:  # Last 20
+                # Remove assertion details (everything after " - ")
+                short = re.sub(r" - .*", "", line)
+                compressed += short + "\n"
+        
+        # Extract assertion lines
+        assert_lines = re.findall(r"^\s*>\s*assert.*$", output, re.MULTILINE)
+        if assert_lines:
+            compressed += "## assertions\n"
+            for line in assert_lines[-20:]:  # Last 20
+                compressed += line + "\n"
+    
+    return compressed, exit_code
 
 
 if __name__ == "__main__":
