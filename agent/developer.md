@@ -24,6 +24,7 @@ The architect has already created the worktree — you work **exclusively** in i
    - `src/core/` first (pure logic, zero IO imports)
    - then `src/adapters/` (thin wrapper, delegates to core)
 7. Run `qa_compress.py` — this is the sole and complete test entry point. It reads `qa_config.json` and runs all configured checkers (pytest, linters, etc.). Do NOT run `pytest` directly — `qa_compress.py` already covers everything.
+   - **Run `qa_compress.py` exactly once before committing. Do NOT run it again after the commit — the pre-commit run is the QA evidence.**
 8. Use prepare_commit_metadata.py to generate commit message with required metadata
 9. `git add` + `git commit` with mandatory metadata in body (see below) — do NOT push to main.
 
