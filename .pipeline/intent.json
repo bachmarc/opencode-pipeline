@@ -109,6 +109,13 @@
       "step": "writing tests",
       "started_at": "2026-09-25T12:49:49.895388+00:00",
       "done": true
+    },
+    {
+      "story_id": "planning",
+      "agent": "architect",
+      "step": "F-021 documenter-scope-fix: feature + stories 21-01 + 21-02",
+      "started_at": "2026-09-25T14:44:58.145708+00:00",
+      "done": false
     }
   ]
 }
