@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Worktree setup script for deterministic branch/worktree creation (Story 06-04).
+"""Worktree setup script for deterministic branch/worktree creation (Story 06-04, Story 20-02).
 
 Subcommands:
   create <story-id>  — Create worktree and branch for a story
@@ -7,6 +7,11 @@ Subcommands:
   list               — List all worktrees with branch and status
 
 Uses only stdlib (pathlib, subprocess, json, argparse).
+
+UNC path compatibility (Story 20-02):
+  Worktree-local git commands use 'git -C <path>' pattern instead of cwd=<path>
+  to support Windows UNC network paths (e.g., \\server\share\...).
+  Repo-root commands continue to use cwd=<repo_root> (always local paths).
 
 Exit codes:
   0 — success
@@ -150,6 +155,8 @@ def cmd_create(args: argparse.Namespace, repo_root: Path) -> int:
 def cmd_remove(args: argparse.Namespace, repo_root: Path) -> int:
     """Remove worktree after checking for uncommitted changes.
     
+    Uses 'git -C <path>' for worktree-local operations to support UNC paths.
+    
     Returns: 0 on success, 1 on error.
     """
     story_id = args.story_id
@@ -175,10 +182,9 @@ def cmd_remove(args: argparse.Namespace, repo_root: Path) -> int:
         print(json.dumps(output))
         return 1
     
-    # Check for uncommitted changes in worktree
+    # Check for uncommitted changes in worktree using git -C (UNC path compatible)
     result = subprocess.run(
-        ["git", "status", "--porcelain"],
-        cwd=str(worktree_path),
+        ["git", "-C", str(worktree_path), "status", "--porcelain"],
         capture_output=True,
         text=True,
         check=False,
@@ -221,6 +227,8 @@ def cmd_remove(args: argparse.Namespace, repo_root: Path) -> int:
 def cmd_list(args: argparse.Namespace, repo_root: Path) -> int:
     """List all worktrees with branch and status.
     
+    Uses 'git -C <path>' for worktree-local operations to support UNC paths.
+    
     Returns: 0 on success.
     """
     # Get list of worktrees from git
@@ -249,11 +257,10 @@ def cmd_list(args: argparse.Namespace, repo_root: Path) -> int:
                 if ".worktrees" not in path_obj.parts:
                     continue
                 
-                # Get branch name
+                # Get branch name using git -C (UNC path compatible)
                 branch = "unknown"
                 result_branch = subprocess.run(
-                    ["git", "symbolic-ref", "--short", "HEAD"],
-                    cwd=path,
+                    ["git", "-C", path, "symbolic-ref", "--short", "HEAD"],
                     capture_output=True,
                     text=True,
                     check=False,
@@ -261,10 +268,9 @@ def cmd_list(args: argparse.Namespace, repo_root: Path) -> int:
                 if result_branch.returncode == 0:
                     branch = result_branch.stdout.strip()
                 
-                # Get status
+                # Get status using git -C (UNC path compatible)
                 result_status = subprocess.run(
-                    ["git", "status", "--porcelain"],
-                    cwd=path,
+                    ["git", "-C", path, "status", "--porcelain"],
                     capture_output=True,
                     text=True,
                     check=False,
