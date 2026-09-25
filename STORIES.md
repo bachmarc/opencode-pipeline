@@ -88,6 +88,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 18-01-check-architecture-file-mode | check_architecture.py: explicit file-list mode (root-layout projects) | Planned | F-014 architecture-checker-evolution |
 | 19-01-qa-compress-python | qa_compress.py: Python QA entry point (replaces bash) | Done (QA PASS, d74bc5a→5f5c581) | F-019 python-qa-toolchain |
 | 19-02-session-recovery-pull | session_recovery.py: git pull at startup + test_resolve_by_id fix | Done (QA PASS, 5381e1d→627485d) | F-019 python-qa-toolchain |
+| 20-01-resolve-story-root | resolve_story.py + story_status.py: get_repo_root() via CWD Git-traversal | Planned | F-020 script-portability-fixes |
+| 20-02-worktree-unc-paths | worktree_setup.py: git -C pattern for UNC-path compatibility | Planned | F-020 script-portability-fixes |
 
 ## Phase comments
 
@@ -173,3 +175,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   2 stories, parallel:
   - 19-01: `qa_compress.py` + 8 Python checker modules, bash files deleted
   - 19-02: `git pull` in `session_recovery.py` + `test_resolve_by_id` status assertion removed
+- **Phase 20 (Script Portability Fixes):** Two portability bugs reported on Windows UNC paths.
+  `resolve_story.py` + `story_status.py` use `Path(__file__).parent.parent` for repo root
+  (resolves to framework dir, not project dir) — fix: `get_repo_root()` with Git-traversal
+  from `Path.cwd()`. `worktree_setup.py` passes UNC paths as `cwd=` to subprocess (WinError 267)
+  — fix: `git -C <path>` instead of `cwd=<path>` for worktree-local commands. 2 stories, parallel:
+  - 20-01: `get_repo_root()` in `resolve_story.py` + `story_status.py`
+  - 20-02: `git -C` pattern in `worktree_setup.py` for UNC-path compatibility
