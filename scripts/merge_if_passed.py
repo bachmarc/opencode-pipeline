@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Merge validation script.
 
-Checks .pipeline/qa-state/ for QA-PASS verdict before merging.
+Checks .pipeline/qa-state/ for QA-PASS verdict and documenter-reconcile commit before merging.
 
 Usage:
   merge_if_passed.py <branch>
@@ -9,18 +9,21 @@ Usage:
 Behavior:
 - Extracts story-id from branch name (e.g., feature/06-11-qa-scripts → 06-11)
 - Checks .pipeline/qa-state/<story-id>.json for PASS verdict
-- If PASS: git merge --no-ff <branch> into current branch
+- Checks for at least one commit with message starting with "docs: reconcile" on the branch
+- If both checks pass: git merge --no-ff <branch> into current branch
 - If no PASS: exit code 1 + error JSON
+- If no documenter commit: exit code 1 + error JSON
 - On merge conflict: exit code 2
 
 Output: JSON to stdout
   Success: {"merged": true, "branch": "...", "commit": "..."}
-  No PASS: {"error": "No QA-PASS found for story ..."}
+  No PASS: {"error": "Merge blocked: no QA-PASS for ..."}
+  No documenter: {"error": "Merge blocked: documenter not run on ..."}
   Conflict: {"error": "Merge conflict on branch ..."}
 
 Exit codes:
   0 - Merged successfully
-  1 - No QA-PASS record found
+  1 - No QA-PASS record found, no documenter commit, or merge failed
   2 - Merge conflict
 """
 
@@ -74,6 +77,23 @@ def check_qa_pass(story_id: str) -> bool:
         return bool(verdicts and verdicts[-1].get("verdict") == "PASS")
     except Exception:  # noqa: BLE001
         return False
+
+
+def check_documenter_commit(branch: str) -> bool:
+    """Check if branch has at least one commit with message starting with 'docs: reconcile'.
+    
+    Uses: git log <branch> --oneline --grep="^docs: reconcile"
+    Returns True if at least one matching commit found, False otherwise.
+    """
+    result = subprocess.run(
+        ["git", "log", branch, "--oneline", "--grep=^docs: reconcile"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    
+    # If returncode is 0 and there's output, we found matching commits
+    return result.returncode == 0 and bool(result.stdout.strip())
 
 
 def get_current_branch() -> str | None:
@@ -148,7 +168,15 @@ def main() -> int:
     # Check for QA-PASS verdict
     if not check_qa_pass(story_id):
         output = {
-            "error": f"No QA-PASS found for story {story_id}",
+            "error": f"Merge blocked: no QA-PASS for {branch}",
+        }
+        print(json.dumps(output))
+        return 1
+    
+    # Check for documenter-reconcile commit
+    if not check_documenter_commit(branch):
+        output = {
+            "error": f"Merge blocked: documenter not run on {branch}. Run /document first.",
         }
         print(json.dumps(output))
         return 1
