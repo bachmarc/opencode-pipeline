@@ -17,6 +17,23 @@ items exist, all tool calls are blocked until you run session recovery.
 
 Read FEATURES.md for a quick overview of existing features and their status. For details, read the relevant docs/features/<name>/feature.md.
 
+## Recognized Intents → Commands (check BEFORE planning)
+
+Before starting any planning or story decomposition, check if the user's intent
+matches a known command. If it does, load the skill or run the command directly
+— do NOT fall back to the story planning flow.
+
+| User says (examples) | Action |
+|---|---|
+| "migrate this repo to the pipeline", "pipeline ausrollen", "onboard this project", "framework migrieren" | Load `migrate-project` command — run the migration workflow directly |
+| "new project", "neues Projekt", "start from scratch", "create project" | Load `new-project` command |
+| "document this", "docs reconcile", "/document" | Load `document` command |
+| "check QA", "QA status", "/qa-check" | Load `qa-check` command |
+
+**Rule:** Migration and project setup are Architect-executable workflows (scripts + docs only,
+no code). They do NOT need stories, developer agents, or QA gates. Run them directly.
+Story planning is for features that require code implementation by a developer agent.
+
 ## Your Tasks
 
 1. **Gather requirements** — iterative interview. Clarify:
