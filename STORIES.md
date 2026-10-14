@@ -97,10 +97,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Done (QA PASS, 159a7c3) | F-022 qa-compress-fast-mode |
 | 23-01-migrate-pipeline-enforcement | Migrate pipeline-enforcement.ts to OpenCode V2 Plugin API | **Done (QA PASS, 91e2513)** | F-023 plugin-v2-migration |
 | 24-01-rename-agent-dir | Rename agent/ → agents/ and remove deprecated temperature frontmatter | **Done (QA PASS, 319d3a8)** | F-024 v2-agent-dir-fix |
-| 25-01-analyze-project-profile | analyze_project.py: test_command + qa_checker + deploy_hints detection | Planned | F-025 project-profile |
-| 25-02-migrate-dialog-and-qa-config | /migrate Phase 2+4: test+deploy dialog, qa_config.json, deploy doc | Planned | F-025 project-profile |
-| 25-03-history-dialog | /migrate Phase 5: granular retro / baseline / clean-start dialog | Planned | F-025 project-profile |
-| 26-01-codebase-snapshot-in-story-template | Story template + Architect + Developer: ## Codebase Snapshot section | Planned | F-026 codebase-snapshot |
+| 25-01-analyze-project-profile | analyze_project.py: test_command + qa_checker + deploy_hints detection | Done (QA PASS) | F-025 project-profile |
+| 25-02-migrate-dialog-and-qa-config | /migrate Phase 2+4: test+deploy dialog, qa_config.json, deploy doc | Done (QA PASS) | F-025 project-profile |
+| 25-03-history-dialog | /migrate Phase 5: granular retro / baseline / clean-start dialog | Done (QA PASS) | F-025 project-profile |
+| 26-01-codebase-snapshot-in-story-template | Story template + Architect + Developer: ## Codebase Snapshot section | Done (QA PASS) | F-026 codebase-snapshot |
 
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
 
