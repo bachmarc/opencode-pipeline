@@ -1,11 +1,11 @@
 """Tests for Documenter agent and /document command (Story 06-10).
 
 Checks:
-1. agent/documenter.md exists with required frontmatter (description, mode, temperature)
+1. agents/documenter.md exists with required frontmatter (description, mode)
 2. mode is exactly 'subagent'
 3. command/document.md exists with agent: documenter
-4. agent/qa-manager.md references documenter spawn after PASS
-5. No concrete model names in agent/documenter.md
+4. agents/qa-manager.md references documenter spawn after PASS
+5. No concrete model names in agents/documenter.md
 6. Documenter prompt clearly states boundaries (what it does NOT do)
 
 Stdlib only — no external systems, deterministic (repo files are the fixture).
@@ -55,7 +55,7 @@ def parse_frontmatter(text: str, filename: str) -> dict[str, str]:
 
 
 def test_documenter_frontmatter() -> None:
-    """agent/documenter.md has required keys (description, mode, temperature)."""
+    """agents/documenter.md has required keys (description, mode)."""
     documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
@@ -71,7 +71,7 @@ def test_documenter_frontmatter() -> None:
 
 
 def test_documenter_mode_subagent() -> None:
-    """agent/documenter.md mode is exactly 'subagent'."""
+    """agents/documenter.md mode is exactly 'subagent'."""
     documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
@@ -101,7 +101,7 @@ def test_document_command_exists() -> None:
 
 
 def test_qa_manager_references_documenter() -> None:
-    """agent/qa-manager.md contains 'documenter' (spawn instruction)."""
+    """agents/qa-manager.md contains 'documenter' (spawn instruction)."""
     qa_manager_path = REPO_ROOT / "agents" / "qa-manager.md"
     assert qa_manager_path.is_file(), f"missing {qa_manager_path.relative_to(REPO_ROOT)}"
 
@@ -112,7 +112,7 @@ def test_qa_manager_references_documenter() -> None:
 
 
 def test_documenter_no_model_names() -> None:
-    """No concrete model/provider names in agent/documenter.md."""
+    """No concrete model/provider names in agents/documenter.md."""
     documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 

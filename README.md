@@ -1,5 +1,5 @@
 # opencode Pipeline
-<!-- synced_through: 20-03 | updated: 2026-09-25 -->
+<!-- synced_through: 24-01 | updated: 2026-10-14 -->
 
 **A multi-agent development pipeline as config-as-code** — for teams building software through structured dialogue, deterministic automation, and cheap-model mass work.
 
@@ -20,7 +20,7 @@ The pipeline orchestrates four specialized agents:
 
 The repository contains:
 
-- **`agent/`** — The four role definitions (architect, developer, qa-manager, documenter). Each is a Markdown file with frontmatter (description, mode, rules) and a prompt. Roles are portable; model assignment is local.
+- **`agents/`** — The four role definitions (architect, developer, qa-manager, documenter). Each is a Markdown file with frontmatter (description, mode) and a prompt. Roles are portable; model assignment is local.
 - **`scripts/`** — 15+ deterministic Python scripts with modular checker plugins in `scripts/qa_checkers/`. Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks, template migration, polyglot commit metadata, and watermark tracking. `qa_compress.py` is the sole test entry point (replaces bash).
 - **`plugins/`** — Pipeline enforcement plugin (TypeScript, `plugins/pipeline-enforcement.ts`). Six deterministic guards that block process violations at the tool-call level: merge without QA-PASS, dev-start without story, architect editing code, story status after merge, session start without recovery, merge without documenter. Deploys to `~/.config/opencode/plugins/` via release branch.
 - **`templates/`** — Skeletons for new projects: `AGENTS.md` (project knowledge template) and `.gitignore`.
@@ -46,7 +46,7 @@ The repository contains:
 ### Important notes
 
 - **`opencode.jsonc` is local, gitignored** — Provider endpoints, model names, and per-agent model assignment live in `~/.config/opencode/opencode.jsonc` on each machine. This file is not in the repository.
-- **Per-agent model assignment** — The role files (`agent/*.md`) no longer carry a hardcoded `model:` line. Which model runs for which purpose is configured locally in the JSON under `agent`. Other machines have different providers/model names → only adjust the local JSON, the role files stay untouched.
+- **Per-agent model assignment** — The role files (`agents/*.md`) no longer carry a hardcoded `model:` line. Which model runs for which purpose is configured locally in the JSON under `agent`. Other machines have different providers/model names → only adjust the local JSON, the role files stay untouched.
 
 ---
 
@@ -223,9 +223,9 @@ This section is a reference for deeper topics. Links from the Installation secti
 
 ### <a id="model-assignment"></a>Model Assignment
 
-The four role files (`agent/architect.md`, `developer.md`, `qa-manager.md`, `documenter.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
+The four role files (`agents/architect.md`, `developer.md`, `qa-manager.md`, `documenter.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
 
-- **Role (portable, in Git):** *who does what* — mode, temperature, prompt, rules. In `agent/*.md`.
+- **Role (portable, in Git):** *who does what* — mode, prompt, rules. In `agents/*.md`.
 - **Machine (local, gitignored):** *which model* for *what*. In `~/.config/opencode/opencode.jsonc` under `agent`.
 
 **Why:**
@@ -360,7 +360,7 @@ register_check("mypy", mypy_check)
 **Available checkers:** `pytest` (Python, default), `rspec` (Ruby), `jest` (JavaScript/TypeScript), `gradle` (Java/Kotlin), `maven` (Java), `json` (JSON syntax validation), `yaml` (YAML syntax validation), `html` (HTML syntax check — tag matching, attribute quoting, void element validation).
 
 **Runner abstraction extends everywhere:**
-- **Portable prompts** (`agent/*.md`, `command/*.md`) reference "the configured test suite / configured checkers" — never a concrete runner name. Enforced by `tests/test_no_runner_names_in_prompts.py`.
+- **Portable prompts** (`agents/*.md`, `command/*.md`) reference "the configured test suite / configured checkers" — never a concrete runner name. Enforced by `tests/test_no_runner_names_in_prompts.py`.
 - **Template constant sections** (`templates/AGENTS.md`) are runner-agnostic. Existing projects re-sync via `scripts/migrate_template_sections.py`.
 - **Commit metadata** (`prepare_commit_metadata.py`) derives the test command from `qa_config.json` and extracts symbols/affects in a language-aware way (Python, JS/TS, Bash, Ruby, Java).
 - **Architecture checking** (`check_architecture.py`) validates import boundaries across languages — Python, JS/TS, Ruby, Java — with per-language allowlists.
@@ -408,7 +408,7 @@ After migration, the project works with all pipeline features (worktrees, QA gat
 
 ### Per-project AGENTS.md (project knowledge, per repo)
 
-Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agent/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
+Every project repo carries its own `AGENTS.md` — loaded via `"instructions": ["AGENTS.md"]` as context into **every session of every agent** working in that folder. It is not the agents' definition (that lives here, in `agents/*.md`); it is the **project's knowledge**: stack, core rules, architecture separation, git conventions, references.
 
 - **Agent definition (global, this repo):** who the agent is, prompt, behavior — identical on every machine.
 - **Project AGENTS.md (per repo, in the project):** what the project is and which rules its code must follow — versioned with the code, correct on every checkout.

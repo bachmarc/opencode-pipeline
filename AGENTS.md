@@ -1,5 +1,5 @@
 # AGENTS.md — opencode-pipeline (Dev Repo)
-<!-- synced_through: 20-03 | updated: 2026-09-25 -->
+<!-- synced_through: 24-01 | updated: 2026-10-14 -->
 
 > Skeleton filled from `~/.config/opencode/templates/AGENTS.md`. Constant sections (workflow, git
 > conventions, languages, prohibitions) kept unchanged; project-specifics filled in dialogue.
@@ -21,7 +21,7 @@
 - **Pull before work:** At session start, `git pull` the current branch in the dev repo before
   doing anything. Two people (or two machines) can push to the same branch — skipping the pull
   causes avoidable merge conflicts on push.
-- **Role abstraction, no model names:** Portable files (`agent/`, `command/`, `skills/`,
+- **Role abstraction, no model names:** Portable files (`agents/`, `command/`, `skills/`,
   `templates/`, `scripts/`) contain NO concrete model/provider names. Model assignment lives
   exclusively in the local, gitignored `opencode.jsonc` of each machine.
 - **Template constancy:** Constant sections of `templates/AGENTS.md` (workflow, git conventions,
@@ -37,7 +37,7 @@ This repo's "product" is configuration and deterministic tooling, not a service:
 - **`tests/`** — self-referential framework checks: pytest reads the repo's own portable files
   and asserts invariants (frontmatter intact, no model names, template exists, script syntax).
   These tests are the QA target for `qa_compress.py` — no fakes needed beyond the file system.
-- **`agent/`, `command/`, `skills/`, `templates/`** — data, not code: prompts and skeletons.
+- **`agents/`, `command/`, `skills/`, `templates/`** — data, not code: prompts and skeletons.
   Changes here need story + QA like everything else.
 - **`plugins/pipeline-enforcement.ts`** — opencode plugin for deterministic process enforcement.
   Guards: merge (QA-PASS required), dev-start (story verification), architect-code (no silent
