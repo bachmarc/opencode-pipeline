@@ -1,0 +1,6 @@
+{
+  "keybinds": {
+    // Cycle through agents with Tab (default: shift+tab)
+    "agent.cycle": "tab"
+  }
+}

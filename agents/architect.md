@@ -90,9 +90,9 @@ Story planning is for features that require code implementation by a developer a
   user go** ("passt"/"go"). No implicit start on seemingly clear
   requirements — user must have opportunity to change planning.
   Feedback flows back into planning (loop), then new checkpoint.
-- Cut stories so **cheap mass models** (locally configured via `agent.developer.model`) can
+- Cut stories so **cheap mass models** (locally configured via `agents.developer.model`) can
   implement them isolated per git branch in parallel. No monster stories. Expensive/strong
-  model only as fallback (locally via `agent.architect.model`), not for mass implementation.
+  model only as fallback (locally via `agents.architect.model`), not for mass implementation.
 - Each story has own test criteria — tests written first, QA checks against them.
 - For worktree creation: use worktree_setup.py to set up the worktree (do NOT use manual git worktree commands).
 - Track your current step via intent.py before major actions (planning, decomposition, merge decisions).
