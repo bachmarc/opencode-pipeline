@@ -5,11 +5,12 @@ This script runs deterministic checks on a project to ensure it has been
 properly migrated to the opencode pipeline. It validates:
 - AGENTS.md exists and constant sections match template
 - Required directories exist (.pipeline/, docs/features/, tests/)
-- qa_config.json exists and contains valid checker names
+- qa_config.json exists and contains valid checker names (or is explicitly opted-out)
 - FEATURES.md exists
 - STORIES.md exists
 - .pipeline/intent.json exists
 - Git is initialized
+- AGENTS.md contains a ## Deployment section with real content
 
 Exit codes:
   0 - PASS: all checks pass
@@ -222,7 +223,10 @@ def check_required_dirs(target_path: Path) -> Dict:
 
 
 def check_qa_config(target_path: Path) -> Dict:
-    """Check if qa_config.json exists and contains valid checker names."""
+    """Check if qa_config.json exists and contains valid checker names.
+    
+    Also accepts explicit opt-out: {"checkers": []} is valid.
+    """
     qa_config_path = target_path / "qa_config.json"
     
     if not qa_config_path.exists():
@@ -251,6 +255,14 @@ def check_qa_config(target_path: Path) -> Dict:
         }
     
     checkers = config["checkers"]
+    
+    # Empty checkers list is valid (explicit opt-out)
+    if not checkers:
+        return {
+            "check": "qa_config",
+            "status": "pass",
+            "detail": "qa_config.json valid (explicit opt-out with empty checkers)"
+        }
     
     # Validate each checker
     invalid_checkers = []
@@ -344,6 +356,76 @@ def check_git_initialized(target_path: Path) -> Dict:
         }
 
 
+def check_deploy_documented(target_path: Path) -> Dict:
+    """Check if AGENTS.md contains a ## Deployment section with real content."""
+    agents_path = target_path / "AGENTS.md"
+    
+    if not agents_path.exists():
+        return {
+            "check": "deploy_documented",
+            "status": "fail",
+            "detail": "AGENTS.md not found (cannot check deployment documentation)"
+        }
+    
+    try:
+        with open(agents_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except Exception as e:
+        return {
+            "check": "deploy_documented",
+            "status": "fail",
+            "detail": f"Error reading AGENTS.md: {e}"
+        }
+    
+    # Check if ## Deployment section exists
+    if "## Deployment" not in content:
+        return {
+            "check": "deploy_documented",
+            "status": "fail",
+            "detail": "AGENTS.md missing ## Deployment section"
+        }
+    
+    # Extract the Deployment section to check for real content
+    lines = content.split('\n')
+    deployment_start = None
+    deployment_end = None
+    
+    for i, line in enumerate(lines):
+        if line.strip() == "## Deployment":
+            deployment_start = i
+        elif deployment_start is not None and line.startswith("## "):
+            deployment_end = i
+            break
+    
+    if deployment_end is None:
+        deployment_end = len(lines)
+    
+    if deployment_start is None:
+        return {
+            "check": "deploy_documented",
+            "status": "fail",
+            "detail": "AGENTS.md missing ## Deployment section"
+        }
+    
+    # Extract section content and check if it has real content (more than just the heading)
+    section_lines = lines[deployment_start + 1:deployment_end]
+    # Remove empty lines and check if there's meaningful content
+    meaningful_content = [l.strip() for l in section_lines if l.strip() and not l.strip().startswith("#")]
+    
+    if meaningful_content:
+        return {
+            "check": "deploy_documented",
+            "status": "pass",
+            "detail": "AGENTS.md contains ## Deployment section with documentation"
+        }
+    else:
+        return {
+            "check": "deploy_documented",
+            "status": "fail",
+            "detail": "AGENTS.md ## Deployment section is empty or contains only placeholders"
+        }
+
+
 def validate_migration(target_path: str) -> Dict:
     """Run all validation checks on a project.
     
@@ -372,6 +454,7 @@ def validate_migration(target_path: str) -> Dict:
         check_stories_md(target),
         check_pipeline_intent(target),
         check_git_initialized(target),
+        check_deploy_documented(target),
     ]
     
     # Determine overall status

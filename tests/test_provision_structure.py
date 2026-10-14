@@ -487,3 +487,186 @@ def test_output_json_structure(tmp_path):
     assert isinstance(output["created"], list), "'created' should be a list"
     assert isinstance(output["already_existed"], list), "'already_existed' should be a list"
     assert isinstance(output["gitignore_entries_added"], list), "'gitignore_entries_added' should be a list"
+
+
+def test_writes_qa_config_for_known_checker(tmp_path):
+    """qa_checker='pytest' passed → qa_config.json written with {"checkers": ["pytest"]}."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "python",
+    }
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checker="pytest",
+        deploy_methods=[]
+    )
+    
+    # Check qa_config.json was created
+    qa_config_path = target / "qa_config.json"
+    assert qa_config_path.exists(), "qa_config.json not created"
+    
+    qa_config = json.loads(qa_config_path.read_text())
+    assert qa_config == {"checkers": ["pytest"]}, f"qa_config.json has wrong content: {qa_config}"
+    
+    # Check report
+    assert "qa_config" in report, "report missing 'qa_config' key"
+    assert report["qa_config"] == "created", f"qa_config report should be 'created', got {report['qa_config']}"
+
+
+def test_no_qa_config_for_unknown_checker(tmp_path):
+    """qa_checker='unknown' passed → no qa_config.json created, reported as skipped."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "unknown",
+    }
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checker="unknown",
+        deploy_methods=[]
+    )
+    
+    # Check qa_config.json was NOT created
+    qa_config_path = target / "qa_config.json"
+    assert not qa_config_path.exists(), "qa_config.json should not be created for unknown checker"
+    
+    # Check report
+    assert "qa_config" in report, "report missing 'qa_config' key"
+    assert report["qa_config"] == "skipped", f"qa_config report should be 'skipped', got {report['qa_config']}"
+
+
+def test_does_not_overwrite_existing_qa_config(tmp_path):
+    """Existing qa_config.json → not overwritten, reported as skipped."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    # Create existing qa_config.json
+    qa_config_path = target / "qa_config.json"
+    original_content = {"checkers": ["custom-checker"]}
+    qa_config_path.write_text(json.dumps(original_content))
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "python",
+    }
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checker="pytest",
+        deploy_methods=[]
+    )
+    
+    # Check qa_config.json was NOT overwritten
+    qa_config = json.loads(qa_config_path.read_text())
+    assert qa_config == original_content, "qa_config.json was overwritten"
+    
+    # Check report
+    assert "qa_config" in report, "report missing 'qa_config' key"
+    assert report["qa_config"] == "skipped", f"qa_config report should be 'skipped', got {report['qa_config']}"
+
+
+def test_appends_deploy_section_to_agents_md(tmp_path):
+    """deploy_methods=['docker'] + existing AGENTS.md → ## Deployment section appended."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    # Create existing AGENTS.md
+    agents_md_path = target / "AGENTS.md"
+    original_content = "# AGENTS.md\n\nSome content here.\n"
+    agents_md_path.write_text(original_content)
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "python",
+    }
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checker="pytest",
+        deploy_methods=["docker"]
+    )
+    
+    # Check ## Deployment section was appended
+    agents_md_content = agents_md_path.read_text()
+    assert "## Deployment" in agents_md_content, "## Deployment section not appended"
+    assert "docker" in agents_md_content, "docker method not documented"
+    
+    # Check report
+    assert "deploy_section" in report, "report missing 'deploy_section' key"
+    assert report["deploy_section"] == "created", f"deploy_section report should be 'created', got {report['deploy_section']}"
+
+
+def test_does_not_overwrite_existing_deploy_section(tmp_path):
+    """AGENTS.md with existing ## Deployment → not overwritten, reported as skipped."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    # Create AGENTS.md with existing ## Deployment section
+    agents_md_path = target / "AGENTS.md"
+    original_content = "# AGENTS.md\n\n## Deployment\n\nManual deploy.\n"
+    agents_md_path.write_text(original_content)
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "python",
+    }
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checker="pytest",
+        deploy_methods=["docker"]
+    )
+    
+    # Check ## Deployment section was NOT overwritten
+    agents_md_content = agents_md_path.read_text()
+    assert agents_md_content == original_content, "AGENTS.md was modified"
+    
+    # Check report
+    assert "deploy_section" in report, "report missing 'deploy_section' key"
+    assert report["deploy_section"] == "skipped", f"deploy_section report should be 'skipped', got {report['deploy_section']}"
+
+
+def test_report_contains_qa_config_and_deploy_keys(tmp_path):
+    """Report dict always contains 'qa_config' and 'deploy_section' keys."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "python",
+    }
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checker="pytest",
+        deploy_methods=["docker"]
+    )
+    
+    # Check keys exist
+    assert "qa_config" in report, "report missing 'qa_config' key"
+    assert "deploy_section" in report, "report missing 'deploy_section' key"
