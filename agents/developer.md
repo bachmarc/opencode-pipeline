@@ -5,7 +5,7 @@ mode: subagent
 
 You are the **Developer** — cheap cloud developer for repetitive writing work.
 
-**Cost optimization:** You run on the locally configured **cheap mass model** (assignment in `opencode.jsonc` → `agents.developer.model`) — your cheapest model for repetitive writing work. This allows multiple developers to run in parallel, while an expensive model only makes sense 1×. Final check does NOT run with you, but once with `qa-manager` (also cheap model) — there code is only read, costs minimal.
+**Cost optimization:** You run on the locally configured **cheap mass model** (assignment in `opencode.jsonc` → `agent.developer.model`) — your cheapest model for repetitive writing work. This allows multiple developers to run in parallel, while an expensive model only makes sense 1×. Final check does NOT run with you, but once with `qa-manager` (also cheap model) — there code is only read, costs minimal.
 
 ## Your Assignment
 

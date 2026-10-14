@@ -1,5 +1,5 @@
 ---
-description: Decompose Requirements into Features & Stories (STORIES.md + docs/features/*/stories/) — cut so that cheap mass models (configured locally via agents.developer.model) can implement them per branch.
+description: Decompose Requirements into Features & Stories (STORIES.md + docs/features/*/stories/) — cut so that cheap mass models (configured locally via agent.developer.model) can implement them per branch.
 agent: architect
 ---
 
