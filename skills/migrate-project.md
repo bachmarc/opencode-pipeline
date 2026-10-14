@@ -1,11 +1,13 @@
 ---
-description: Guide Architect through 6-phase project migration workflow
+description: Guide Architect through 6-phase project migration workflow (Stories 12-01 through 25-03)
 mode: skill
 ---
 
 # migrate-project Skill — 6-Phase Migration Workflow
 
 This skill guides the Architect through migrating an existing project into the opencode pipeline framework. The migration is deterministic and non-destructive — it analyzes the project, generates configuration files, and provisions missing structure without modifying source code.
+
+Phase 5 (Story 25-03) adds comprehensive history handling with three strategies: granular retro stories, single baseline story, or clean start.
 
 ## Phase 1: Analyze Project Structure
 
@@ -90,27 +92,129 @@ This script:
 
 **Output:** List of created directories and files.
 
-## Phase 5: Optional Retro Stories (User Choice)
+## Phase 5: Handle Project History (User Choice)
 
-Ask the user if they want to create "retro stories" for existing work:
+When an existing project is onboarded, it arrives with development history — git commits, CHANGELOG.md, TODO.md, or accumulated knowledge. The pipeline offers three strategies, and the architect presents a history summary before the user chooses:
 
-1. **Ask the user:**
-   - "Would you like to create retro stories for existing work? (yes/no)"
-   - If yes: "How granular? (fine-grained: one story per feature, coarse: one story per major phase)"
+### Step 1: Scan the project's existing history
 
-2. **If user chooses yes, run the create retro stories workflow:**
-    ```bash
-    python create_retro_stories.py <path> --granularity <fine|coarse>
-    ```
-    This script:
-   - Analyzes git history (if available)
-   - Generates story files for past work
-   - Creates a STORIES.md index
-   - Marks stories as "Done" (historical)
+Run the history scanner to collect information about existing work using `create_retro_stories.py`:
 
-3. **If user chooses no:**
-   - Skip this phase
-   - Continue to Phase 6
+```bash
+python create_retro_stories.py --scan <path>
+```
+
+Alternatively, using Python directly:
+
+```bash
+python -c "
+import sys
+from pathlib import Path
+sys.path.insert(0, 'scripts')
+from create_retro_stories import scan_history
+import json
+result = scan_history(Path('<path>'))
+print(json.dumps(result, indent=2, default=str))
+"
+```
+
+This scan collects:
+- **Git summary:** number of commits, date range (first to last), and the last 10 commit messages
+- **CHANGELOG.md:** section headings (e.g., "## v1.2.0")
+- **TODO.md:** outstanding items (non-empty lines)
+- **README.md:** content from a "## History" or "## Changelog" section if present
+
+### Step 2: Present the history summary to the user
+
+Show the architect/user what history was found:
+
+> **Existing project history:**
+> 
+> **Git:** 47 commits (2023-06-15 to 2024-10-14)  
+> Latest commits: "Fix production bug", "Release v1.3.0", "Refactor auth module", ...
+> 
+> **Documentation:**
+> - CHANGELOG.md: Found (entries: v1.3.0, v1.2.1, v1.2.0, v1.1.0, v1.0.0)
+> - TODO.md: Found (5 outstanding items)
+> - README.md: Found (History section with background)
+
+### Step 3: Offer three history handling strategies
+
+Present the user with three options:
+
+**Option 1: Granular retro stories** (if git or docs history exists)
+- Analyzes git commits and documentation entries
+- Generates one done story per detected milestone (from git tags, CHANGELOG headings, or commit patterns)
+- Gives full traceability for future audits
+- Best for: projects with meaningful commit history or well-maintained CHANGELOGs
+
+**Option 2: Single baseline story** (always available)
+- Creates one `00-00-baseline-existing-state.md` marked Done
+- Covers all pre-pipeline development in a single story
+- Simpler, lower overhead
+- Best for: large legacy codebases where detailed reconstruction is impractical or unnecessary
+
+**Option 3: Clean start** (always available)
+- No retro stories created
+- Git history is preserved, but the pipeline has no done stories
+- Pipeline adoption date is the starting point for the pipeline story index
+- Best for: throwaway code, very messy history, or intentional fresh start
+
+Ask the user:
+> **How do you want to handle the project's existing history?**
+> 
+> 1. Granular retro stories (one per milestone)
+> 2. Single baseline story
+> 3. Clean start (no retro stories)
+
+### Step 4: Confirm and execute
+
+Once the user chooses, confirm the choice and execute:
+
+**If granular retro stories (Option 1):**
+```
+This will create one done story per detected milestone from git + docs.
+Continue? (yes/no)
+```
+(Implementation: call `create_retro_stories()` with granular data. Story 25-03 specifies the interface.)
+
+**If baseline story (Option 2):**
+```
+This will create 00-00-baseline-existing-state.md and mark it Done.
+Summary: [user-provided or auto-generated from scan]
+Continue? (yes/no)
+```
+If confirmed, use `create_retro_stories.py` to generate the baseline:
+```bash
+python -c "
+import sys
+from pathlib import Path
+sys.path.insert(0, 'scripts')
+from create_retro_stories import create_baseline_story
+result = create_baseline_story(Path('<path>'), '<summary>')
+print(result)
+"
+```
+
+**If clean start (Option 3):**
+```
+No retro stories will be created. The git history is preserved.
+Pipeline adoption date: [today]
+Continue? (yes/no)
+```
+If confirmed, add a comment line to STORIES.md:
+```markdown
+<!-- Pipeline adopted: 2024-10-14. No retro stories created. Git history preserved. -->
+```
+
+### Summary
+
+After Phase 5:
+- User has chosen how to handle project history
+- If Option 1: retro stories are generated from git + docs analysis
+- If Option 2: baseline story is created
+- If Option 3: STORIES.md is marked with adoption date, no retro stories
+- Project is ready for Phase 6 validation
 
 ## Phase 6: Validate Migration
 

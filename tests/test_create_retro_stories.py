@@ -1,8 +1,12 @@
-"""Tests for retro story generator script (Story 12-05).
+"""Tests for retro story generator script (Story 12-05, extended in 25-03).
 
 Tests for create_retro_stories.py which creates retro feature and story files
 from a JSON definition. Uses temporary directories for all tests.
 Retro feature folder uses F-RETRO-retro naming convention.
+
+Story 25-03 adds tests for:
+- scan_history() function to collect git and doc-based history
+- create_baseline_story() function to create a single baseline story
 """
 
 from __future__ import annotations
@@ -17,7 +21,7 @@ import pytest
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from create_retro_stories import create_retro_stories
+from create_retro_stories import create_retro_stories, scan_history, create_baseline_story
 
 
 @pytest.fixture
@@ -201,3 +205,187 @@ def test_never_overwrites_existing_retro(tmp_path: Path, retro_def_single: dict)
     # Check it's in skipped list
     assert "skipped" in result, "Result should have skipped list"
     assert any("RETRO-01" in str(f) for f in result["skipped"]), "Skipped file should be in result"
+
+
+# Tests for scan_history() function
+def test_scan_history_with_git(tmp_path: Path) -> None:
+    """Project with git repo → git_summary has commits, date_range, messages."""
+    # Initialize a git repository with commits
+    import subprocess
+    import os
+    
+    git_dir = tmp_path / "repo"
+    git_dir.mkdir()
+    
+    # Initialize git
+    subprocess.run(["git", "init"], cwd=git_dir, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=git_dir, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=git_dir, capture_output=True, check=True)
+    
+    # Create commits
+    (git_dir / "file1.txt").write_text("initial content")
+    subprocess.run(["git", "add", "."], cwd=git_dir, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=git_dir, capture_output=True, check=True)
+    
+    (git_dir / "file2.txt").write_text("more content")
+    subprocess.run(["git", "add", "."], cwd=git_dir, capture_output=True, check=True)
+    subprocess.run(["git", "commit", "-m", "Add feature X"], cwd=git_dir, capture_output=True, check=True)
+    
+    result = scan_history(git_dir)
+    
+    assert "git_summary" in result, "Should have git_summary key"
+    git_summary = result["git_summary"]
+    assert git_summary["commits"] >= 2, f"Should have at least 2 commits, got {git_summary['commits']}"
+    assert "date_range" in git_summary, "Should have date_range"
+    assert "messages" in git_summary, "Should have messages"
+    assert len(git_summary["messages"]) > 0, "Should have commit messages"
+
+
+def test_scan_history_without_git(tmp_path: Path) -> None:
+    """Project without .git → git_summary has zeros/empty values, no error."""
+    # Create a directory without git
+    no_git_dir = tmp_path / "no_git_repo"
+    no_git_dir.mkdir()
+    
+    result = scan_history(no_git_dir)
+    
+    assert "git_summary" in result, "Should have git_summary key even without git"
+    git_summary = result["git_summary"]
+    assert git_summary["commits"] == 0, "Should have 0 commits"
+    assert git_summary["date_range"] == [], "date_range should be empty"
+    assert git_summary["messages"] == [], "messages should be empty"
+
+
+def test_scan_history_with_changelog(tmp_path: Path) -> None:
+    """Project with CHANGELOG.md containing headings → changelog_entries is non-empty list."""
+    # Create a CHANGELOG.md
+    (tmp_path / "CHANGELOG.md").write_text(
+        """# Changelog
+
+## v1.2.0
+Some changes
+
+## v1.1.0
+Earlier changes
+
+## v1.0.0
+Initial release
+""",
+        encoding="utf-8"
+    )
+    
+    result = scan_history(tmp_path)
+    
+    assert "changelog_entries" in result, "Should have changelog_entries key"
+    assert len(result["changelog_entries"]) > 0, "Should have changelog entries"
+    assert any("v1.2.0" in entry for entry in result["changelog_entries"]), "Should include v1.2.0 heading"
+
+
+def test_scan_history_without_docs(tmp_path: Path) -> None:
+    """Project with no CHANGELOG/TODO/README → all doc fields empty, no error."""
+    result = scan_history(tmp_path)
+    
+    assert "changelog_entries" in result, "Should have changelog_entries key"
+    assert result["changelog_entries"] == [], "Should be empty list"
+    
+    assert "todo_items" in result, "Should have todo_items key"
+    assert result["todo_items"] == [], "Should be empty list"
+    
+    assert "readme_history_section" in result, "Should have readme_history_section key"
+    assert result["readme_history_section"] == "", "Should be empty string"
+
+
+def test_scan_history_with_todo(tmp_path: Path) -> None:
+    """Project with TODO.md → todo_items is non-empty list."""
+    (tmp_path / "TODO.md").write_text(
+        """# TODO
+
+- [ ] Feature A
+- [ ] Feature B
+- [x] Feature C (done)
+
+Some additional notes here.
+""",
+        encoding="utf-8"
+    )
+    
+    result = scan_history(tmp_path)
+    
+    assert "todo_items" in result, "Should have todo_items key"
+    assert len(result["todo_items"]) > 0, "Should have todo items"
+    # Should contain non-empty lines
+    assert any("Feature" in item for item in result["todo_items"]), "Should contain feature items"
+
+
+def test_scan_history_readme_history_section(tmp_path: Path) -> None:
+    """README.md with History section → readme_history_section non-empty."""
+    (tmp_path / "README.md").write_text(
+        """# Project README
+
+## Introduction
+
+Main content here.
+
+## History
+
+This project started in 2024 with basic features.
+Later we added support for X and Y.
+The codebase has grown significantly.
+
+## Getting Started
+
+Installation steps...
+""",
+        encoding="utf-8"
+    )
+    
+    result = scan_history(tmp_path)
+    
+    assert "readme_history_section" in result, "Should have readme_history_section key"
+    assert len(result["readme_history_section"]) > 0, "Should have history section content"
+    assert "2024" in result["readme_history_section"], "Should contain history section text"
+
+
+def test_create_baseline_story_creates_file(tmp_path: Path) -> None:
+    """Creates 00-00-baseline-existing-state.md with Status: Done and summary content."""
+    summary_text = "All development prior to pipeline adoption, including initial setup and feature development."
+    
+    result = create_baseline_story(tmp_path, summary_text)
+    
+    # Check file exists
+    baseline_file = tmp_path / "docs" / "features" / "F-RETRO-retro" / "stories" / "00-00-baseline-existing-state.md"
+    assert baseline_file.exists(), f"Baseline story file should exist at {baseline_file}"
+    
+    # Check content
+    content = baseline_file.read_text(encoding="utf-8")
+    assert "Status: Done" in content, "Should have Status: Done"
+    assert "00-00-baseline-existing-state" in content, "Should have story ID"
+    assert summary_text in content, "Should contain the provided summary"
+    
+    # Check result
+    assert "created" in result, "Should have created key in result"
+    assert len(result["created"]) > 0, "Should have created files"
+
+
+def test_create_baseline_story_no_overwrite(tmp_path: Path) -> None:
+    """Existing baseline → returns skipped, file unchanged."""
+    # Create existing baseline story
+    stories_dir = tmp_path / "docs" / "features" / "F-RETRO-retro" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    
+    baseline_file = stories_dir / "00-00-baseline-existing-state.md"
+    original_content = "# Original baseline\n\nThis should not be changed."
+    baseline_file.write_text(original_content, encoding="utf-8")
+    
+    # Try to create another baseline
+    summary_text = "New summary"
+    result = create_baseline_story(tmp_path, summary_text)
+    
+    # Check file was not overwritten
+    content = baseline_file.read_text(encoding="utf-8")
+    assert content == original_content, "Existing baseline should not be overwritten"
+    
+    # Check result
+    assert "skipped" in result, "Should have skipped key"
+    assert len(result["skipped"]) > 0, "Should have skipped files"
+

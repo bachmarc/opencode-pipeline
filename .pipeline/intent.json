@@ -130,6 +130,15 @@
       "step": "F-026 codebase-snapshot: story 26-01",
       "started_at": "2026-10-14T16:15:13.180047+00:00",
       "done": true
+    },
+    {
+      "story_id": "25-03",
+      "agent": "developer",
+      "step": "writing tests for scan_history and create_baseline_story",
+      "started_at": "2026-10-14T16:27:05.390355+00:00",
+      "done": true,
+      "worktree": ".worktrees/25-03-history-dialog",
+      "branch": "feature/25-03-history-dialog"
     }
   ]
 }
