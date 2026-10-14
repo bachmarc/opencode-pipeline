@@ -2,8 +2,8 @@
 """Deterministic project analysis script.
 
 Scans a project and produces a structured JSON report: stack detection,
-agent file detection, directory structure analysis, git state, and
-existing pipeline files.
+agent file detection, directory structure analysis, git state, existing
+pipeline files, test command detection, and deployment hints.
 """
 
 import argparse
@@ -11,6 +11,90 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+
+
+def detect_test_command(target: Path) -> tuple[str, str]:
+    """Detect test command and corresponding qa_checker name.
+    
+    Args:
+        target: Path to the project
+    
+    Returns:
+        Tuple of (test_command, qa_checker). Both are "unknown" if no match.
+    
+    Detection rules (highest-priority match wins):
+    - Gemfile → ("bundle exec rspec", "rspec")
+    - package.json → ("npm test", "jest")
+    - pom.xml → ("mvn test", "maven")
+    - build.gradle or build.gradle.kts → ("./gradlew test", "gradle")
+    - requirements.txt/pyproject.toml/setup.py → ("pytest", "pytest")
+    - none → ("unknown", "unknown")
+    """
+    # Check in priority order
+    if (target / "Gemfile").exists():
+        return ("bundle exec rspec", "rspec")
+    if (target / "package.json").exists():
+        return ("npm test", "jest")
+    if (target / "pom.xml").exists():
+        return ("mvn test", "maven")
+    if (target / "build.gradle").exists() or (target / "build.gradle.kts").exists():
+        return ("./gradlew test", "gradle")
+    if (target / "requirements.txt").exists() or (target / "pyproject.toml").exists() or (target / "setup.py").exists():
+        return ("pytest", "pytest")
+    
+    return ("unknown", "unknown")
+
+
+def detect_deploy_hints(target: Path) -> list[str]:
+    """Detect deployment hints from project files and structure.
+    
+    Args:
+        target: Path to the project
+    
+    Returns:
+        List of deployment hint strings. Returns ["unknown"] if none found.
+    
+    Detection rules:
+    - .github/workflows/ directory exists → "github-actions"
+    - Dockerfile or docker-compose.yml exists → "dockerfile"
+    - Makefile with a 'deploy' target → "makefile-deploy-target"
+    - Procfile exists → "heroku"
+    - *.sh file with 'deploy' or 'scp' in name → "scp-script"
+    - none → ["unknown"]
+    """
+    hints = []
+    
+    # Check for GitHub Actions
+    if (target / ".github" / "workflows").exists() and (target / ".github" / "workflows").is_dir():
+        hints.append("github-actions")
+    
+    # Check for Docker
+    if (target / "Dockerfile").exists() or (target / "docker-compose.yml").exists():
+        hints.append("dockerfile")
+    
+    # Check for Makefile with deploy target
+    makefile_path = target / "Makefile"
+    if makefile_path.exists():
+        try:
+            content = makefile_path.read_text()
+            if "deploy:" in content or "deploy :" in content:
+                hints.append("makefile-deploy-target")
+        except (IOError, UnicodeDecodeError):
+            pass
+    
+    # Check for Procfile (Heroku)
+    if (target / "Procfile").exists():
+        hints.append("heroku")
+    
+    # Check for deploy/scp scripts
+    for script_file in target.glob("*.sh"):
+        if "deploy" in script_file.name.lower() or "scp" in script_file.name.lower():
+            hints.append("scp-script")
+            break
+    
+    # Return hints or unknown
+    return hints if hints else ["unknown"]
+
 
 
 def analyze_project(target_path: str) -> dict:
@@ -28,6 +112,9 @@ def analyze_project(target_path: str) -> dict:
         - git: Dict with git state
         - missing: List of missing pipeline directories
         - existing_pipeline_files: List of existing pipeline files
+        - test_command: Detected or inferred test command string
+        - qa_checker: Corresponding qa_compress.py checker name
+        - deploy_hints: List of deployment signals found
     """
     target = Path(target_path).resolve()
     
@@ -153,6 +240,12 @@ def analyze_project(target_path: str) -> dict:
         if file_path.exists():
             existing_files.append(file_name)
     
+    # Detect test command and qa_checker
+    test_command, qa_checker = detect_test_command(target)
+    
+    # Detect deploy hints
+    deploy_hints = detect_deploy_hints(target)
+    
     # Build result
     result = {
         "project_name": target.name,
@@ -165,6 +258,9 @@ def analyze_project(target_path: str) -> dict:
         "git": git_state,
         "missing": missing_dirs,
         "existing_pipeline_files": existing_files,
+        "test_command": test_command,
+        "qa_checker": qa_checker,
+        "deploy_hints": deploy_hints,
     }
     
     return result
