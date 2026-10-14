@@ -24,6 +24,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-021 | Documenter Scope Fix | done | — | 21-01, 21-02 |
 | F-022 | QA Compress Fast Mode | done | — | 22-01, 22-02 |
 | F-023 | Plugin V2 Migration | **done** | — | 23-01 |
+| F-024 | V2 Agent Directory Fix | **in-progress** | — | 24-01 |
 
 ## Feature status derivation
 

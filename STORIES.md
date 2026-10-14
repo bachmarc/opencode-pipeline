@@ -96,6 +96,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 22-01-qa-compress-fast-mode | qa_compress.py --fast: changed files → affected test modules | Done (QA PASS, a98931e) | F-022 qa-compress-fast-mode |
 | 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Done (QA PASS, 159a7c3) | F-022 qa-compress-fast-mode |
 | 23-01-migrate-pipeline-enforcement | Migrate pipeline-enforcement.ts to OpenCode V2 Plugin API | **Done (QA PASS, 91e2513)** | F-023 plugin-v2-migration |
+| 24-01-rename-agent-dir | Rename agent/ → agents/ and remove deprecated temperature frontmatter | **In Progress** | F-024 v2-agent-dir-fix |
 
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
 
