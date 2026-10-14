@@ -1,7 +1,7 @@
 ---
 id: F-023
 title: Plugin V2 Migration
-status: planned
+status: done
 owner: ""
 req: []
 ---
@@ -27,4 +27,4 @@ it is maintained separately outside this repo.
 
 ## Stories
 
-- 23-01-migrate-pipeline-enforcement (planned)
+- 23-01-migrate-pipeline-enforcement (done)

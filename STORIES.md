@@ -95,7 +95,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 21-02-documenter-catchup | Documenter catch-up run for Stories 15-00..20-03 | Done (2ccf5eb) | F-021 documenter-scope-fix |
 | 22-01-qa-compress-fast-mode | qa_compress.py --fast: changed files → affected test modules | Done (QA PASS, a98931e) | F-022 qa-compress-fast-mode |
 | 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Done (QA PASS, 159a7c3) | F-022 qa-compress-fast-mode |
-| 23-01-migrate-pipeline-enforcement | Migrate pipeline-enforcement.ts to OpenCode V2 Plugin API | Planned | F-023 plugin-v2-migration |
+| 23-01-migrate-pipeline-enforcement | Migrate pipeline-enforcement.ts to OpenCode V2 Plugin API | **Done (QA PASS, 91e2513)** | F-023 plugin-v2-migration |
 
 - **Retro:** Pure retroactive documentation of changes already made directly — no re-implementation.
 - **Phase 01 (Foundation):** Repo hygiene, docs, index — architect work directly on `main`

@@ -1,6 +1,6 @@
 # Story 23-01 — Migrate pipeline-enforcement.ts to OpenCode V2 Plugin API
 
-Status: Planned
+Status: Done
 Feature: plugin-v2-migration (F-023)
 
 ## Context / Purpose
