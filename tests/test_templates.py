@@ -105,3 +105,25 @@ def test_story_template_has_code_doc_guidance():
         "Story template Developer Targets section missing guidance about updating "
         "docstrings or module headers in changed files"
     )
+
+
+def test_story_template_has_codebase_snapshot_section():
+    """Test that story template has a ## Codebase Snapshot section."""
+    template_path = Path("docs/features/_story_template.md")
+    assert template_path.exists(), f"{template_path} does not exist"
+    
+    content = template_path.read_text()
+    
+    # Check for the section
+    assert "## Codebase Snapshot" in content, (
+        "Story template missing '## Codebase Snapshot' section"
+    )
+    
+    # Check that it comes before "## Context / Purpose" (if Context exists)
+    snapshot_idx = content.find("## Codebase Snapshot")
+    context_idx = content.find("## Context / Purpose")
+    
+    if context_idx != -1:
+        assert snapshot_idx < context_idx, (
+            "Codebase Snapshot section must come before Context / Purpose section"
+        )

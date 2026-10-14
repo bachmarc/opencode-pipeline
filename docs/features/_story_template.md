@@ -3,6 +3,15 @@
 Status: Planned | In Progress | Done
 Feature: <feature-name> (<feature-id>)
 
+## Codebase Snapshot
+
+<!-- Filled by Architect at decomposition time. Lists affected files, relevant function
+     signatures, and existing tests near the change. Developer reads this first.
+     Omit only for trivial one-liners with no existing code to navigate. -->
+
+- `<file>` — <what is in it that is relevant: function name, line range, what it does>
+- `<test file>` — <which existing tests cover adjacent code>
+
 ## Context / Purpose
 
 <Why does this story exist? What problem does it solve? Self-contained — no external references needed>
