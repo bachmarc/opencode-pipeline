@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix → 22 QA Compress Fast Mode
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix → 22 QA Compress Fast Mode → 23 Plugin V2 Migration → 24 V2 Agent Dir Fix → 25 Project Profile & QA Configuration
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -97,6 +97,9 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Done (QA PASS, 159a7c3) | F-022 qa-compress-fast-mode |
 | 23-01-migrate-pipeline-enforcement | Migrate pipeline-enforcement.ts to OpenCode V2 Plugin API | **Done (QA PASS, 91e2513)** | F-023 plugin-v2-migration |
 | 24-01-rename-agent-dir | Rename agent/ → agents/ and remove deprecated temperature frontmatter | **Done (QA PASS, 319d3a8)** | F-024 v2-agent-dir-fix |
+| 25-01-analyze-project-profile | analyze_project.py: test_command + qa_checker + deploy_hints detection | Planned | F-025 project-profile |
+| 25-02-migrate-dialog-and-qa-config | /migrate Phase 2+4: test+deploy dialog, qa_config.json, deploy doc | Planned | F-025 project-profile |
+| 25-03-history-dialog | /migrate Phase 5: granular retro / baseline / clean-start dialog | Planned | F-025 project-profile |
 
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
 
