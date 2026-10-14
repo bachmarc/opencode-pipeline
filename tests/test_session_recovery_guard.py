@@ -25,12 +25,12 @@ def test_guard_checks_exit_code():
     guard_file = repo_root / "plugins" / "guards" / "session-recovery-guard.ts"
     content = guard_file.read_text()
     
-    # Check for exit code checking patterns
+    # Check for exit code checking patterns (V2: spawnSync uses .status)
     has_exit_code_check = (
         "exitCode" in content or 
         "exit_code" in content or 
         ".code" in content or
-        "code ===" in content or
+        ".status" in content or
         "code ===" in content
     )
     assert has_exit_code_check, "Exit code check not found in guard file"

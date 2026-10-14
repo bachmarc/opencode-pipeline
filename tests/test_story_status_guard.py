@@ -42,9 +42,11 @@ def test_plugin_imports_story_status_guard():
 
 
 def test_plugin_has_after_hook():
-    """Test that pipeline-enforcement.ts contains tool.execute.after hook."""
+    """Test that pipeline-enforcement.ts contains execute.after hook (V2 format)."""
     plugin_file = Path(__file__).parent.parent / "plugins" / "pipeline-enforcement.ts"
     content = plugin_file.read_text()
     
-    assert "tool.execute.after" in content, \
-        "pipeline-enforcement.ts should contain tool.execute.after hook"
+    # V2: looks for "execute.after" (the hook name in ctx.tool.hook() calls)
+    # not the old V1 hook object string "tool.execute.after"
+    assert "execute.after" in content, \
+        "pipeline-enforcement.ts should contain execute.after hook (V2 format)"

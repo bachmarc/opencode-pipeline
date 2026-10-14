@@ -1,0 +1,26 @@
+{
+  "story_id": "23-01",
+  "story_name": "migrate-pipeline-enforcement",
+  "status": "PASS",
+  "timestamp": "2026-10-14T16:31:36Z",
+  "acceptance_criteria": {
+    "no_needs_clarification": true,
+    "export_default_plugin_define": true,
+    "import_from_opencode_plugin": true,
+    "no_old_named_export": true,
+    "package_json_has_opencode_plugin": true,
+    "package_json_no_opencode_ai_plugin": true,
+    "test_plugin_scaffold_pass": true,
+    "no_broken_tests": true,
+    "pytest_exit_zero": true
+  },
+  "test_summary": {
+    "total_tests": 373,
+    "passed": 373,
+    "failed": 0,
+    "exit_code": 0,
+    "checkers": ["pytest", "yaml"]
+  },
+  "qa_manager": "qa-manager (Haiku 4.5)",
+  "note": "All acceptance criteria verified. Plugin successfully migrated from V1 to V2 API."
+}
