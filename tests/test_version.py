@@ -23,11 +23,11 @@ SEMVER_PATTERN = r"^\d+\.\d+\.\d+$"
 
 
 def test_app_version() -> None:
-    """APP_VERSION is importable, matches semver X.Y.Z and holds "0.1.0"."""
+    """APP_VERSION is importable, matches semver X.Y.Z and holds "0.2.0"."""
     assert re.match(SEMVER_PATTERN, APP_VERSION), (
         f"APP_VERSION {APP_VERSION!r} does not match semver pattern "
         f"'{SEMVER_PATTERN}'"
     )
-    assert APP_VERSION == "0.1.0", (
-        f"APP_VERSION is {APP_VERSION!r}, expected '0.1.0'"
+    assert APP_VERSION == "0.2.0", (
+        f"APP_VERSION is {APP_VERSION!r}, expected '0.2.0'"
     )

@@ -391,3 +391,295 @@ def test_existing_pipeline_files(tmp_path):
     # Check that existing files are detected
     assert "STORIES.md" in output["existing_pipeline_files"]
     assert "FEATURES.md" in output["existing_pipeline_files"]
+
+
+# Tests for test_command, qa_checker, and deploy_hints detection
+
+def test_detect_test_command_python(tmp_path):
+    """Project with requirements.txt → test_command='pytest', qa_checker='pytest'."""
+    target = tmp_path / "python_project"
+    target.mkdir()
+    (target / "requirements.txt").write_text("pytest==7.0.0\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["test_command"] == "pytest", f"Expected 'pytest', got {output['test_command']}"
+    assert output["qa_checker"] == "pytest", f"Expected 'pytest', got {output['qa_checker']}"
+
+
+def test_detect_test_command_ruby(tmp_path):
+    """Project with Gemfile → test_command='bundle exec rspec', qa_checker='rspec'."""
+    target = tmp_path / "ruby_project"
+    target.mkdir()
+    (target / "Gemfile").write_text("gem 'rspec'\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["test_command"] == "bundle exec rspec", f"Expected 'bundle exec rspec', got {output['test_command']}"
+    assert output["qa_checker"] == "rspec", f"Expected 'rspec', got {output['qa_checker']}"
+
+
+def test_detect_test_command_node(tmp_path):
+    """Project with package.json → test_command='npm test', qa_checker='jest'."""
+    target = tmp_path / "node_project"
+    target.mkdir()
+    (target / "package.json").write_text('{"name": "test", "scripts": {"test": "jest"}}\n')
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["test_command"] == "npm test", f"Expected 'npm test', got {output['test_command']}"
+    assert output["qa_checker"] == "jest", f"Expected 'jest', got {output['qa_checker']}"
+
+
+def test_detect_test_command_maven(tmp_path):
+    """Project with pom.xml → test_command='mvn test', qa_checker='maven'."""
+    target = tmp_path / "maven_project"
+    target.mkdir()
+    (target / "pom.xml").write_text("<project></project>\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["test_command"] == "mvn test", f"Expected 'mvn test', got {output['test_command']}"
+    assert output["qa_checker"] == "maven", f"Expected 'maven', got {output['qa_checker']}"
+
+
+def test_detect_test_command_gradle(tmp_path):
+    """Project with build.gradle → test_command='./gradlew test', qa_checker='gradle'."""
+    target = tmp_path / "gradle_project"
+    target.mkdir()
+    (target / "build.gradle").write_text("plugins {}\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["test_command"] == "./gradlew test", f"Expected './gradlew test', got {output['test_command']}"
+    assert output["qa_checker"] == "gradle", f"Expected 'gradle', got {output['qa_checker']}"
+
+
+def test_detect_test_command_unknown(tmp_path):
+    """Empty project → test_command='unknown', qa_checker='unknown'."""
+    target = tmp_path / "empty_project"
+    target.mkdir()
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["test_command"] == "unknown", f"Expected 'unknown', got {output['test_command']}"
+    assert output["qa_checker"] == "unknown", f"Expected 'unknown', got {output['qa_checker']}"
+
+
+def test_deploy_hints_github_actions(tmp_path):
+    """Project with .github/workflows/ → 'github-actions' in hints."""
+    target = tmp_path / "github_project"
+    target.mkdir()
+    (target / ".github" / "workflows").mkdir(parents=True)
+    (target / ".github" / "workflows" / "ci.yml").write_text("name: CI\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "github-actions" in output["deploy_hints"], f"Expected 'github-actions' in {output['deploy_hints']}"
+
+
+def test_deploy_hints_dockerfile(tmp_path):
+    """Project with Dockerfile → 'dockerfile' in hints."""
+    target = tmp_path / "docker_project"
+    target.mkdir()
+    (target / "Dockerfile").write_text("FROM python:3.9\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "dockerfile" in output["deploy_hints"], f"Expected 'dockerfile' in {output['deploy_hints']}"
+
+
+def test_deploy_hints_makefile_target(tmp_path):
+    """Project with Makefile containing deploy: → 'makefile-deploy-target' in hints."""
+    target = tmp_path / "makefile_project"
+    target.mkdir()
+    (target / "Makefile").write_text("build:\n\techo building\n\ndeploy:\n\techo deploying\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "makefile-deploy-target" in output["deploy_hints"], f"Expected 'makefile-deploy-target' in {output['deploy_hints']}"
+
+
+def test_deploy_hints_heroku(tmp_path):
+    """Project with Procfile → 'heroku' in hints."""
+    target = tmp_path / "heroku_project"
+    target.mkdir()
+    (target / "Procfile").write_text("web: python app.py\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "heroku" in output["deploy_hints"], f"Expected 'heroku' in {output['deploy_hints']}"
+
+
+def test_deploy_hints_scp_script(tmp_path):
+    """Project with deploy.sh → 'scp-script' in hints."""
+    target = tmp_path / "scp_project"
+    target.mkdir()
+    (target / "deploy.sh").write_text("#!/bin/bash\nscp -r . user@host:/app\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "scp-script" in output["deploy_hints"], f"Expected 'scp-script' in {output['deploy_hints']}"
+
+
+def test_deploy_hints_multiple(tmp_path):
+    """Project with Dockerfile and .github/workflows/ → both hints present."""
+    target = tmp_path / "multi_deploy_project"
+    target.mkdir()
+    (target / "Dockerfile").write_text("FROM python:3.9\n")
+    (target / ".github" / "workflows").mkdir(parents=True)
+    (target / ".github" / "workflows" / "ci.yml").write_text("name: CI\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "dockerfile" in output["deploy_hints"], f"Expected 'dockerfile' in {output['deploy_hints']}"
+    assert "github-actions" in output["deploy_hints"], f"Expected 'github-actions' in {output['deploy_hints']}"
+
+
+def test_deploy_hints_unknown(tmp_path):
+    """Project with no deploy signals → deploy_hints=['unknown']."""
+    target = tmp_path / "no_deploy_project"
+    target.mkdir()
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["deploy_hints"] == ["unknown"], f"Expected ['unknown'], got {output['deploy_hints']}"
+
+
+def test_existing_fields_unchanged(tmp_path):
+    """Existing output fields still present after extension."""
+    target = tmp_path / "existing_fields_project"
+    target.mkdir()
+    (target / "requirements.txt").write_text("pytest==7.0.0\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    
+    # Check that all original fields are still present
+    required_keys = [
+        "project_name",
+        "stack",
+        "agent_file",
+        "structure",
+        "git",
+        "missing",
+        "existing_pipeline_files",
+        "test_command",
+        "qa_checker",
+        "deploy_hints"
+    ]
+    
+    for key in required_keys:
+        assert key in output, f"Missing required key: {key}"

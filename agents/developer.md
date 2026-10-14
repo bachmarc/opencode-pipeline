@@ -14,7 +14,7 @@ The architect has already created the worktree — you work **exclusively** in i
 
 ## Workflow (strict)
 
-1. Read your story file (found via resolve_story.py) → **Developer Targets** + **Test Criteria**
+1. Read your story file (found via resolve_story.py) → **Developer Targets** + **Test Criteria**. If the story contains a `## Codebase Snapshot` section, read it before exploring any files. Use it as your navigation starting point — go directly to the listed files and functions. Do not re-explore files already covered by the snapshot.
 2. Your story file contains all requirements and targets you need.
 3. Use resolve_story.py to find the story context and verify you're on the correct branch
 4. Track your current step via intent.py (e.g., "writing tests", "implementing core", "running the test suite")

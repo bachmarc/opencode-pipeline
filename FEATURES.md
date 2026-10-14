@@ -25,6 +25,8 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-022 | QA Compress Fast Mode | done | — | 22-01, 22-02 |
 | F-023 | Plugin V2 Migration | **done** | — | 23-01 |
 | F-024 | V2 Agent Directory Fix | **done** | — | 24-01 |
+| F-025 | Project Profile & QA Configuration | **done** | — | 25-01, 25-02, 25-03 |
+| F-026 | Codebase Snapshot in Stories | **done** | — | 26-01 |
 
 ## Feature status derivation
 

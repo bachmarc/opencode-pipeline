@@ -38,9 +38,10 @@ def valid_project(tmp_path, template_agents_md):
     project_root = tmp_path / "valid_project"
     project_root.mkdir()
     
-    # Create AGENTS.md with correct constant sections
+    # Create AGENTS.md with correct constant sections and Deployment section
+    agents_md_content = template_agents_md + "\n## Deployment\n\nThis project is deployed manually.\n"
     agents_md_path = project_root / "AGENTS.md"
-    agents_md_path.write_text(template_agents_md, encoding='utf-8')
+    agents_md_path.write_text(agents_md_content, encoding='utf-8')
     
     # Create required directories
     (project_root / ".pipeline").mkdir()
@@ -335,9 +336,55 @@ class TestValidateMigration:
             "stories_md",
             "pipeline_intent",
             "git_initialized",
+            "deploy_documented",
         ]
         
         check_names = [c["check"] for c in output["checks"]]
         
         for expected in expected_checks:
             assert expected in check_names, f"Expected check '{expected}' not found in output"
+    
+    def test_check_deploy_documented_pass(self, valid_project):
+        """AGENTS.md with ## Deployment + real content → check_deploy_documented passes."""
+        from scripts.validate_migration import check_deploy_documented
+        
+        # Add deployment section to AGENTS.md
+        agents_md = valid_project / "AGENTS.md"
+        content = agents_md.read_text(encoding='utf-8')
+        content += "\n## Deployment\n\nThis project is deployed using Docker.\n"
+        agents_md.write_text(content, encoding='utf-8')
+        
+        result = check_deploy_documented(valid_project)
+        
+        assert result["check"] == "deploy_documented"
+        assert result["status"] == "pass", f"Expected pass, got {result['status']}: {result['detail']}"
+    
+    def test_check_deploy_documented_fail_missing(self, valid_project):
+        """AGENTS.md without ## Deployment → check_deploy_documented fails."""
+        from scripts.validate_migration import check_deploy_documented
+        
+        # Remove the Deployment section from AGENTS.md
+        agents_md = valid_project / "AGENTS.md"
+        content = agents_md.read_text(encoding='utf-8')
+        # Remove the Deployment section
+        content = content.split('## Deployment')[0].rstrip()
+        agents_md.write_text(content, encoding='utf-8')
+        
+        result = check_deploy_documented(valid_project)
+        
+        assert result["check"] == "deploy_documented"
+        assert result["status"] == "fail", f"Expected fail, got {result['status']}"
+        assert "AGENTS.md missing ## Deployment section" in result["detail"]
+    
+    def test_qa_config_explicit_optout_passes(self, valid_project):
+        """qa_config.json with {"checkers": []} (explicit opt-out) → check_qa_config passes."""
+        from scripts.validate_migration import check_qa_config
+        
+        # Set qa_config to empty checkers list (opt-out)
+        qa_config = valid_project / "qa_config.json"
+        qa_config.write_text(json.dumps({"checkers": []}), encoding='utf-8')
+        
+        result = check_qa_config(valid_project)
+        
+        assert result["check"] == "qa_config"
+        assert result["status"] == "pass", f"Expected pass for explicit opt-out, got {result['status']}: {result['detail']}"

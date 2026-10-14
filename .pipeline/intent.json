@@ -115,7 +115,30 @@
       "agent": "architect",
       "step": "F-021 documenter-scope-fix: feature + stories 21-01 + 21-02",
       "started_at": "2026-09-25T14:44:58.145708+00:00",
-      "done": false
+      "done": true
+    },
+    {
+      "story_id": "planning",
+      "agent": "architect",
+      "step": "F-025 project-profile: feature + stories 25-01 + 25-02 + 25-03",
+      "started_at": "2026-10-14T16:05:00.859932+00:00",
+      "done": true
+    },
+    {
+      "story_id": "planning",
+      "agent": "architect",
+      "step": "F-026 codebase-snapshot: story 26-01",
+      "started_at": "2026-10-14T16:15:13.180047+00:00",
+      "done": true
+    },
+    {
+      "story_id": "25-03",
+      "agent": "developer",
+      "step": "writing tests for scan_history and create_baseline_story",
+      "started_at": "2026-10-14T16:27:05.390355+00:00",
+      "done": true,
+      "worktree": ".worktrees/25-03-history-dialog",
+      "branch": "feature/25-03-history-dialog"
     }
   ]
 }

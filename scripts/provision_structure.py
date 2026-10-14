@@ -5,8 +5,12 @@ provision_structure.py — Deterministic structure provisioning for opencode pro
 Creates missing directories and files based on analysis JSON. Never overwrites existing files.
 Uses analysis from Story 12-02 to know what's already present.
 
+Accepts optional qa_checker and deploy_methods to write qa_config.json and append
+## Deployment section to AGENTS.md.
+
 Usage:
     python provision_structure.py <target_path> <analysis_json_file>
+    provision_structure(target_path, analysis, qa_checker="pytest", deploy_methods=["docker"])
 
 Exit codes:
     0 — Success
@@ -18,16 +22,19 @@ import sys
 from pathlib import Path
 
 
-def provision_structure(target_path: str, analysis: dict) -> dict:
+def provision_structure(target_path: str, analysis: dict, qa_checker: str = "", deploy_methods: list = []) -> dict:
     """
     Create missing directories and files for a project.
     
     Args:
         target_path: Path to the project directory
         analysis: Analysis dict from Story 12-02 with structure info
+        qa_checker: Optional checker name (e.g., "pytest", "jest"). If set and not "unknown",
+                   qa_config.json is written with this checker
+        deploy_methods: Optional list of deployment methods (e.g., ["docker", "scp"])
         
     Returns:
-        Report dict with "created", "already_existed", "gitignore_entries_added" lists
+        Report dict with "created", "already_existed", "gitignore_entries_added", "qa_config", "deploy_section" keys
     """
     target = Path(target_path)
     
@@ -37,7 +44,9 @@ def provision_structure(target_path: str, analysis: dict) -> dict:
     report = {
         "created": [],
         "already_existed": [],
-        "gitignore_entries_added": []
+        "gitignore_entries_added": [],
+        "qa_config": "skipped",
+        "deploy_section": "skipped"
     }
     
     # Directories to create
@@ -71,18 +80,32 @@ def provision_structure(target_path: str, analysis: dict) -> dict:
         "unknown": "pytest"
     }
     
-    # Determine checker based on stack
-    stack = analysis.get("stack", "unknown")
-    checker = stack_to_checker.get(stack, "pytest")
-    
-    # Create qa_config.json if it doesn't exist
-    qa_config_path = target / "qa_config.json"
-    if not qa_config_path.exists():
-        qa_config = {"checkers": [checker]}
-        qa_config_path.write_text(json.dumps(qa_config, indent=2))
-        report["created"].append("qa_config.json")
+    # Determine checker based on stack or use provided qa_checker
+    if qa_checker:
+        # Use provided qa_checker
+        checker = qa_checker
     else:
-        report["already_existed"].append("qa_config.json")
+        # Determine from stack
+        stack = analysis.get("stack", "unknown")
+        checker = stack_to_checker.get(stack, "pytest")
+    
+    # Create qa_config.json if qa_checker is provided and not "unknown"
+    qa_config_path = target / "qa_config.json"
+    if qa_checker and qa_checker != "unknown":
+        if not qa_config_path.exists():
+            qa_config = {"checkers": [qa_checker]}
+            qa_config_path.write_text(json.dumps(qa_config, indent=2))
+            report["qa_config"] = "created"
+        else:
+            report["qa_config"] = "skipped"
+    elif not qa_checker:
+        # Legacy behavior: use stack-based checker if no qa_checker provided
+        if not qa_config_path.exists():
+            qa_config = {"checkers": [checker]}
+            qa_config_path.write_text(json.dumps(qa_config, indent=2))
+            report["created"].append("qa_config.json")
+        else:
+            report["already_existed"].append("qa_config.json")
     
     # Create .pipeline/intent.json if it doesn't exist
     intent_path = target / ".pipeline" / "intent.json"
@@ -166,6 +189,25 @@ def provision_structure(target_path: str, analysis: dict) -> dict:
         gitignore_path.write_text(gitignore_content)
         report["gitignore_entries_added"] = pipeline_entries
         report["created"].append(".gitignore")
+    
+    # Append ## Deployment section to AGENTS.md if deploy_methods provided
+    agents_md_path = target / "AGENTS.md"
+    if deploy_methods and agents_md_path.exists():
+        agents_md_content = agents_md_path.read_text()
+        
+        # Check if ## Deployment section already exists
+        if "## Deployment" not in agents_md_content:
+            # Append the deployment section
+            deployment_section = "\n## Deployment\n\n"
+            deployment_section += "This project uses the following deployment methods:\n\n"
+            for method in deploy_methods:
+                deployment_section += f"- **{method}**\n"
+            deployment_section += "\n"
+            
+            agents_md_path.write_text(agents_md_content + deployment_section)
+            report["deploy_section"] = "created"
+        else:
+            report["deploy_section"] = "skipped"
     
     return report
 
