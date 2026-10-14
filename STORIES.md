@@ -96,7 +96,6 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 22-01-qa-compress-fast-mode | qa_compress.py --fast: changed files → affected test modules | Done (QA PASS, a98931e) | F-022 qa-compress-fast-mode |
 | 22-02-developer-no-postcommit-run | Developer prompt: forbid post-commit qa_compress.py verification run | Done (QA PASS, 159a7c3) | F-022 qa-compress-fast-mode |
 | 23-01-migrate-pipeline-enforcement | Migrate pipeline-enforcement.ts to OpenCode V2 Plugin API | Planned | F-023 plugin-v2-migration |
-| 23-02-migrate-rtk | Migrate rtk.ts to OpenCode V2 Plugin API | Planned | F-023 plugin-v2-migration |
 
 - **Retro:** Pure retroactive documentation of changes already made directly — no re-implementation.
 - **Phase 01 (Foundation):** Repo hygiene, docs, index — architect work directly on `main`
@@ -202,10 +201,9 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   Developer prompt explicitly forbids post-commit verification runs. 2 stories, parallel:
   - 22-01: `qa_compress.py --fast` — changed files → affected test modules via name convention
   - 22-02: Developer prompt — explicit prohibition of post-commit qa_compress.py run
-- **Phase 23 (Plugin V2 Migration):** Both global plugins (`pipeline-enforcement.ts` and
-  `rtk.ts`) fail to load since the upgrade to OpenCode V2 — V1 named-export factory pattern
-  rejected by V2 schema validator (`Missing key at ["default"]`). All six pipeline guards and
-  the rtk token-saving rewrite are inactive. Fix: rewrite both plugins with
-  `export default Plugin.define({ id, setup })` from `@opencode/plugin`. 2 stories, parallel:
-  - 23-01: Migrate `pipeline-enforcement.ts` — V2 entrypoint + hook registration via ctx.tool.hook
-  - 23-02: Migrate `rtk.ts` — V2 entrypoint + child_process replaces Bun shell helper
+- **Phase 23 (Plugin V2 Migration):** `pipeline-enforcement.ts` fails to load since the upgrade
+  to OpenCode V2 — V1 named-export factory pattern rejected by V2 schema validator
+  (`Missing key at ["default"]`). All six pipeline guards are inactive. Fix: rewrite with
+  `export default Plugin.define({ id, setup })` from `@opencode/plugin`; replace Bun `$`
+  shell helper with `child_process` in session-recovery and documenter guards. 1 story:
+  - 23-01: Migrate `pipeline-enforcement.ts` + affected guard files
