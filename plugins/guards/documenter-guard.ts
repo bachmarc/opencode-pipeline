@@ -1,9 +1,13 @@
+import { execSync } from "child_process"
+
 /**
- * Documenter Guard — blocks merge if Documenter agent hasn't run
+ * Documenter Guard — blocks merge if Documenter agent hasn't run (V2).
  * 
  * Checks the feature branch's commit history (branch-exclusive commits only)
  * for a commit matching the pattern "docs: reconcile". If no such commit is found,
  * throws an error instructing the user to run /document first.
+ * 
+ * Uses execSync from child_process (V2: no $ context available).
  */
 
 /**
@@ -17,17 +21,15 @@ function parseBranchFromMergeCommand(command: string): string | null {
 }
 
 /**
- * Documenter Guard — ensures Documenter has run before merge
+ * Documenter Guard — ensures Documenter has run before merge (V2).
  * 
  * @param command - The full command being executed
  * @param directory - The working directory
- * @param $ - Bun's shell API
  * @throws Error if no documenter commit found on the branch
  */
 export async function documenterGuard(
   command: string,
-  directory: string,
-  $: any
+  directory: string
 ): Promise<void> {
   // Parse branch name from git merge command
   const branch = parseBranchFromMergeCommand(command)
@@ -42,8 +44,7 @@ export async function documenterGuard(
   const gitLogCommand = `git log main..${branch} --oneline --grep="docs: reconcile"`
   
   try {
-    const result = await $`${gitLogCommand}`
-    const output = result.stdout.toString().trim()
+    const output = execSync(gitLogCommand, { encoding: "utf8", cwd: directory }).trim()
     
     // If no matching commits found, throw error
     if (!output) {
@@ -55,7 +56,7 @@ export async function documenterGuard(
     // If documenter commit found, return silently
     return
   } catch (error: any) {
-    // Re-throw our custom error, or throw git errors as-is
+    // If it's our custom error about documenter not run, re-throw
     if (error.message?.includes("Documenter not run")) {
       throw error
     }
