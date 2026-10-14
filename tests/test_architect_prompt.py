@@ -221,3 +221,30 @@ def test_valid_frontmatter() -> None:
             f"architect.md: frontmatter must not contain {key!r} — models are "
             f"configured only in the local opencode.jsonc"
         )
+
+
+def test_architect_prompt_has_codebase_snapshot_rule() -> None:
+    """agent/architect.md contains a rule about filling the Codebase Snapshot at decomposition time."""
+    architect_path = REPO_ROOT / "agents" / "architect.md"
+    assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
+
+    content = architect_path.read_text(encoding="utf-8")
+
+    # Check for Codebase Snapshot rule in the Decompose features & stories section
+    assert "Codebase Snapshot" in content, (
+        "architect.md: missing Codebase Snapshot rule in Decompose features & stories section"
+    )
+
+
+def test_architect_prompt_has_test_scenario_review_rule() -> None:
+    """agent/architect.md contains a rule about presenting test scenarios at the Planning Checkpoint."""
+    architect_path = REPO_ROOT / "agents" / "architect.md"
+    assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
+
+    content = architect_path.read_text(encoding="utf-8")
+
+    # Check for Test scenario review rule
+    assert "Test scenario review" in content or "test scenario" in content.lower(), (
+        "architect.md: missing guidance about presenting non-trivial test scenarios "
+        "with explanation at the Planning Checkpoint"
+    )

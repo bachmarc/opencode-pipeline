@@ -59,3 +59,16 @@ def test_developer_prompt_forbids_postcommit_run() -> None:
     assert "after" in content_lower or "commit" in content_lower, (
         "agent/developer.md must mention 'after' or 'commit' in context of the prohibition"
     )
+
+
+def test_developer_prompt_reads_codebase_snapshot() -> None:
+    """agent/developer.md contains a rule about reading the Codebase Snapshot before exploring files."""
+    dev_path = REPO_ROOT / "agents" / "developer.md"
+    assert dev_path.exists(), f"{dev_path} not found"
+    
+    content = dev_path.read_text(encoding="utf-8")
+    
+    # Check for Codebase Snapshot mention
+    assert "Codebase Snapshot" in content, (
+        "agent/developer.md: missing guidance about reading Codebase Snapshot"
+    )
