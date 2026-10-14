@@ -17,7 +17,7 @@ from pathlib import Path
 
 def read_documenter_md():
     """Read the documenter.md file."""
-    path = Path(__file__).parent.parent / "agent" / "documenter.md"
+    path = Path(__file__).parent.parent / "agents" / "documenter.md"
     return path.read_text(encoding="utf-8")
 
 

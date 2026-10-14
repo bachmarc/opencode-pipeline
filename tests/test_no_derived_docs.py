@@ -33,7 +33,7 @@ def test_design_md_does_not_exist() -> None:
 
 def test_architect_instructs_read_features_md() -> None:
     """agent/architect.md should instruct reading FEATURES.md (not requirements.md)."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -46,7 +46,7 @@ def test_architect_instructs_read_features_md() -> None:
 
 def test_architect_no_derived_doc_references() -> None:
     """agent/architect.md should not instruct creating/maintaining requirements.md or design.md."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -70,7 +70,7 @@ def test_architect_no_derived_doc_references() -> None:
 
 def test_documenter_no_requirements_generation() -> None:
     """agent/documenter.md should not instruct generating requirements.md."""
-    documenter_path = REPO_ROOT / "agent" / "documenter.md"
+    documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
     content = documenter_path.read_text(encoding="utf-8")
@@ -92,7 +92,7 @@ def test_documenter_no_requirements_generation() -> None:
 
 def test_documenter_no_design_generation() -> None:
     """agent/documenter.md should not instruct generating design.md."""
-    documenter_path = REPO_ROOT / "agent" / "documenter.md"
+    documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
     content = documenter_path.read_text(encoding="utf-8")

@@ -56,13 +56,13 @@ def parse_frontmatter(text: str, filename: str) -> dict[str, str]:
 
 def test_documenter_frontmatter() -> None:
     """agent/documenter.md has required keys (description, mode, temperature)."""
-    documenter_path = REPO_ROOT / "agent" / "documenter.md"
+    documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
     content = documenter_path.read_text(encoding="utf-8")
     meta = parse_frontmatter(content, "documenter.md")
 
-    required_keys = ("description", "mode", "temperature")
+    required_keys = ("description", "mode")
     for key in required_keys:
         assert key in meta, (
             f"documenter.md: frontmatter missing required key {key!r} "
@@ -72,7 +72,7 @@ def test_documenter_frontmatter() -> None:
 
 def test_documenter_mode_subagent() -> None:
     """agent/documenter.md mode is exactly 'subagent'."""
-    documenter_path = REPO_ROOT / "agent" / "documenter.md"
+    documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
     content = documenter_path.read_text(encoding="utf-8")
@@ -102,7 +102,7 @@ def test_document_command_exists() -> None:
 
 def test_qa_manager_references_documenter() -> None:
     """agent/qa-manager.md contains 'documenter' (spawn instruction)."""
-    qa_manager_path = REPO_ROOT / "agent" / "qa-manager.md"
+    qa_manager_path = REPO_ROOT / "agents" / "qa-manager.md"
     assert qa_manager_path.is_file(), f"missing {qa_manager_path.relative_to(REPO_ROOT)}"
 
     content = qa_manager_path.read_text(encoding="utf-8")
@@ -113,7 +113,7 @@ def test_qa_manager_references_documenter() -> None:
 
 def test_documenter_no_model_names() -> None:
     """No concrete model/provider names in agent/documenter.md."""
-    documenter_path = REPO_ROOT / "agent" / "documenter.md"
+    documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
     content = documenter_path.read_text(encoding="utf-8")
@@ -145,7 +145,7 @@ def test_documenter_no_model_names() -> None:
 
 def test_documenter_states_boundaries() -> None:
     """Documenter prompt clearly states boundaries (what it does NOT do)."""
-    documenter_path = REPO_ROOT / "agent" / "documenter.md"
+    documenter_path = REPO_ROOT / "agents" / "documenter.md"
     assert documenter_path.is_file(), f"missing {documenter_path.relative_to(REPO_ROOT)}"
 
     content = documenter_path.read_text(encoding="utf-8")

@@ -14,7 +14,7 @@ from pathlib import Path
 
 def test_architect_has_orchestration_section():
     """Architect.md contains 'Phase 3 Orchestration' section."""
-    architect_path = Path(__file__).parent.parent / "agent" / "architect.md"
+    architect_path = Path(__file__).parent.parent / "agents" / "architect.md"
     content = architect_path.read_text(encoding="utf-8")
     assert "## Phase 3 Orchestration" in content, \
         "architect.md missing '## Phase 3 Orchestration' section"
@@ -22,7 +22,7 @@ def test_architect_has_orchestration_section():
 
 def test_architect_no_batch_qa_rule():
     """Architect.md contains 'Do NOT batch' rule."""
-    architect_path = Path(__file__).parent.parent / "agent" / "architect.md"
+    architect_path = Path(__file__).parent.parent / "agents" / "architect.md"
     content = architect_path.read_text(encoding="utf-8")
     assert "Do NOT batch" in content, \
         "architect.md missing 'Do NOT batch' rule"
@@ -30,7 +30,7 @@ def test_architect_no_batch_qa_rule():
 
 def test_architect_no_own_testsuite_run_rule():
     """Architect.md contains 'Do NOT run the test suite yourself' rule."""
-    architect_path = Path(__file__).parent.parent / "agent" / "architect.md"
+    architect_path = Path(__file__).parent.parent / "agents" / "architect.md"
     content = architect_path.read_text(encoding="utf-8")
     assert "Do NOT run the test suite yourself" in content, \
         "architect.md missing 'Do NOT run the test suite yourself' rule"
@@ -38,7 +38,7 @@ def test_architect_no_own_testsuite_run_rule():
 
 def test_qa_single_story_enforcement():
     """QA-Manager.md contains single-story enforcement rule."""
-    qa_manager_path = Path(__file__).parent.parent / "agent" / "qa-manager.md"
+    qa_manager_path = Path(__file__).parent.parent / "agents" / "qa-manager.md"
     content = qa_manager_path.read_text(encoding="utf-8")
     assert "Single-story enforcement" in content, \
         "qa-manager.md missing 'Single-story enforcement' rule"
@@ -48,7 +48,7 @@ def test_qa_single_story_enforcement():
 
 def test_design_orchestration_section():
     """Orchestration Principles are documented in agent/architect.md."""
-    architect_path = Path(__file__).parent.parent / "agent" / "architect.md"
+    architect_path = Path(__file__).parent.parent / "agents" / "architect.md"
     content = architect_path.read_text(encoding="utf-8")
     assert "## Phase 3 Orchestration" in content, \
         "architect.md missing '## Phase 3 Orchestration' section (orchestration principles)"
@@ -69,7 +69,7 @@ def test_no_model_names():
     ]
     
     # Check only the new sections added by this story
-    architect_path = Path(__file__).parent.parent / "agent" / "architect.md"
+    architect_path = Path(__file__).parent.parent / "agents" / "architect.md"
     architect_content = architect_path.read_text(encoding="utf-8")
     # Extract only the Phase 3 Orchestration section
     if "## Phase 3 Orchestration" in architect_content:
@@ -85,7 +85,7 @@ def test_no_model_names():
                     f"Concrete model name '{match_text}' found in Phase 3 Orchestration section"
     
     # Check QA-Manager single-story enforcement section
-    qa_manager_path = Path(__file__).parent.parent / "agent" / "qa-manager.md"
+    qa_manager_path = Path(__file__).parent.parent / "agents" / "qa-manager.md"
     qa_manager_content = qa_manager_path.read_text(encoding="utf-8")
     if "Single-story enforcement" in qa_manager_content:
         enforcement_start = qa_manager_content.find("**Single-story enforcement:**")

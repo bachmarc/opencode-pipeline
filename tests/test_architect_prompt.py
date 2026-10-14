@@ -58,7 +58,7 @@ def parse_frontmatter(text: str, filename: str) -> dict[str, str]:
 
 def test_no_write_requirements_instruction() -> None:
     """agent/architect.md does NOT contain instructions to write docs/requirements.md as primary source."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -80,7 +80,7 @@ def test_no_write_requirements_instruction() -> None:
 
 def test_no_write_design_primary() -> None:
     """agent/architect.md does NOT instruct writing design.md as primary source."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -101,7 +101,7 @@ def test_no_write_design_primary() -> None:
 
 def test_references_feature_template() -> None:
     """agent/architect.md references _feature_template.md."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -113,7 +113,7 @@ def test_references_feature_template() -> None:
 
 def test_references_story_template() -> None:
     """agent/architect.md references _story_template.md."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -125,7 +125,7 @@ def test_references_story_template() -> None:
 
 def test_instructs_read_features_md() -> None:
     """agent/architect.md instructs reading FEATURES.md (not requirements.md)."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -143,7 +143,7 @@ def test_instructs_read_features_md() -> None:
 
 def test_architecture_guidance_preserved() -> None:
     """agent/architect.md preserves key architecture guidance phrases."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -163,7 +163,7 @@ def test_architecture_guidance_preserved() -> None:
 
 def test_output_phase_lists_features_stories() -> None:
     """'Output after Phase 1+2' section lists feature files and story files."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")
@@ -200,7 +200,7 @@ def test_output_phase_lists_features_stories() -> None:
 
 def test_valid_frontmatter() -> None:
     """agent/architect.md has valid YAML frontmatter without model: key."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")

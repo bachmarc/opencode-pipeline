@@ -26,7 +26,7 @@ FORBIDDEN_RUNNERS = ("pytest", "rspec", "jest", "gradle", "maven")
 # runner-name scan. Kept per directory; empty means zero exemptions.
 # NOT for portable prompts — documented escape hatch only.
 ALLOWLIST: dict[str, tuple[str, ...]] = {
-    "agent": ("Do NOT run",),  # Story 20-03: explicit prohibition of direct pytest invocation
+    "agents": ("Do NOT run",),  # Story 20-03: explicit prohibition of direct pytest invocation
     "command": (),  # no legitimate runner mentions in command prompts
 }
 
@@ -56,7 +56,7 @@ def _runner_violations(directory: str) -> list[str]:
 
 def test_no_runner_names_in_agent_prompts() -> None:
     """Every agent/*.md: no occurrence of pytest/rspec/jest/gradle/maven (case-insensitive)."""
-    violations = _runner_violations("agent")
+    violations = _runner_violations("agents")
     assert not violations, (
         "runner names found in agent prompts — genericize to "
         "'the project's configured test suite' / qa_config.json:\n"
@@ -76,17 +76,17 @@ def test_no_runner_names_in_command_prompts() -> None:
 
 def test_generic_testsuite_wording_present() -> None:
     """Prompts use the generic 'configured test suite' wording (semantics unchanged)."""
-    architect = (REPO_ROOT / "agent" / "architect.md").read_text(encoding="utf-8")
+    architect = (REPO_ROOT / "agents" / "architect.md").read_text(encoding="utf-8")
     assert "Do NOT run the test suite yourself" in architect, (
         "architect.md missing 'Do NOT run the test suite yourself' rule"
     )
 
-    qa_manager = (REPO_ROOT / "agent" / "qa-manager.md").read_text(encoding="utf-8")
+    qa_manager = (REPO_ROOT / "agents" / "qa-manager.md").read_text(encoding="utf-8")
     assert (
         "configured test suite" in qa_manager or "configured checkers" in qa_manager
     ), "qa-manager.md missing 'configured test suite' / 'configured checkers' wording"
 
-    developer = (REPO_ROOT / "agent" / "developer.md").read_text(encoding="utf-8")
+    developer = (REPO_ROOT / "agents" / "developer.md").read_text(encoding="utf-8")
     assert "configured test suite" in developer, (
         "developer.md missing 'configured test suite' wording"
     )

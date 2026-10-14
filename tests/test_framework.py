@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # --- Check 1: agent frontmatter -------------------------------------------------
 
-AGENT_DIR = REPO_ROOT / "agent"
+AGENT_DIR = REPO_ROOT / "agents"
 FRONTMATTER_REQUIRED_KEYS = ("description", "mode")
 FRONTMATTER_FORBIDDEN_KEYS = ("model",)
 
@@ -83,7 +83,7 @@ def test_agent_frontmatter() -> None:
 
 # --- Check 2: no model names in portable files -----------------------------------
 
-PORTABLE_DIRS = ("agent", "command", "skills", "templates", "scripts")
+PORTABLE_DIRS = ("agents", "command", "skills", "templates", "scripts")
 PORTABLE_SUFFIXES = (".md", ".sh", ".py", ".txt", ".json")
 
 # Case-insensitive forbidden patterns: concrete model/provider names.

@@ -17,7 +17,7 @@ def test_developer_prompt_forbids_postcommit_run() -> None:
     Acceptance: The file must contain "do not run" or "Do NOT run" (case-insensitive)
     near "qa_compress" and "after"/"commit".
     """
-    dev_path = REPO_ROOT / "agent" / "developer.md"
+    dev_path = REPO_ROOT / "agents" / "developer.md"
     assert dev_path.exists(), f"{dev_path} not found"
     
     content = dev_path.read_text(encoding="utf-8")

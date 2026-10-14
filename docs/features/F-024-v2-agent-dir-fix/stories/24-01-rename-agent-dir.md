@@ -1,6 +1,6 @@
 # Story 24-01 — Rename agent/ to agents/ and remove deprecated temperature frontmatter
 
-Status: In Progress
+Status: Done
 Feature: V2 Agent Directory Fix (F-024)
 
 ## Context / Purpose

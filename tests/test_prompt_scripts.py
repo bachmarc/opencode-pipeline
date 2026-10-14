@@ -14,7 +14,7 @@ from __future__ import annotations
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-AGENT_DIR = REPO_ROOT / "agent"
+AGENT_DIR = REPO_ROOT / "agents"
 TEMPLATE_PATH = REPO_ROOT / "templates" / "AGENTS.md"
 
 
@@ -105,7 +105,7 @@ def test_template_has_recovery() -> None:
 
 def test_no_model_names() -> None:
     """Existing model-name check still passes (no concrete model/provider names)."""
-    PORTABLE_DIRS = ("agent", "command", "skills", "templates", "scripts")
+    PORTABLE_DIRS = ("agents", "command", "skills", "templates", "scripts")
     PORTABLE_SUFFIXES = (".md", ".sh", ".py", ".txt", ".json")
     
     FORBIDDEN_PATTERNS = (

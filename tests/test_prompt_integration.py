@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 def test_architect_prompt_mentions_plugin() -> None:
     """agent/architect.md contains reference to enforcement plugin."""
-    architect_path = REPO_ROOT / "agent" / "architect.md"
+    architect_path = REPO_ROOT / "agents" / "architect.md"
     assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
 
     content = architect_path.read_text(encoding="utf-8")

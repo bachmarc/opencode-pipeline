@@ -54,7 +54,7 @@ def _find_direct_pytest_invocations(path: Path) -> list[tuple[int, str]]:
 
 def test_developer_md_no_direct_pytest() -> None:
     """agent/developer.md must not contain direct pytest invocations."""
-    dev_path = REPO_ROOT / "agent" / "developer.md"
+    dev_path = REPO_ROOT / "agents" / "developer.md"
     assert dev_path.exists(), f"{dev_path} not found"
     
     violations = _find_direct_pytest_invocations(dev_path)
@@ -66,7 +66,7 @@ def test_developer_md_no_direct_pytest() -> None:
 
 def test_qa_manager_md_no_direct_pytest() -> None:
     """agent/qa-manager.md must not contain direct pytest invocations."""
-    qa_path = REPO_ROOT / "agent" / "qa-manager.md"
+    qa_path = REPO_ROOT / "agents" / "qa-manager.md"
     assert qa_path.exists(), f"{qa_path} not found"
     
     violations = _find_direct_pytest_invocations(qa_path)
@@ -78,7 +78,7 @@ def test_qa_manager_md_no_direct_pytest() -> None:
 
 def test_qa_compress_mentioned_in_developer() -> None:
     """agent/developer.md must mention qa_compress.py as the test runner."""
-    dev_path = REPO_ROOT / "agent" / "developer.md"
+    dev_path = REPO_ROOT / "agents" / "developer.md"
     assert dev_path.exists(), f"{dev_path} not found"
     
     content = dev_path.read_text(encoding="utf-8")
@@ -89,7 +89,7 @@ def test_qa_compress_mentioned_in_developer() -> None:
 
 def test_qa_compress_mentioned_in_qa_manager() -> None:
     """agent/qa-manager.md must mention qa_compress.py as the test runner."""
-    qa_path = REPO_ROOT / "agent" / "qa-manager.md"
+    qa_path = REPO_ROOT / "agents" / "qa-manager.md"
     assert qa_path.exists(), f"{qa_path} not found"
     
     content = qa_path.read_text(encoding="utf-8")
@@ -100,7 +100,7 @@ def test_qa_compress_mentioned_in_qa_manager() -> None:
 
 def test_developer_md_references_qa_compress_py() -> None:
     """agent/developer.md must contain qa_compress.py (story 20-03)."""
-    dev_path = REPO_ROOT / "agent" / "developer.md"
+    dev_path = REPO_ROOT / "agents" / "developer.md"
     assert dev_path.exists(), f"{dev_path} not found"
     
     content = dev_path.read_text(encoding="utf-8")
@@ -111,7 +111,7 @@ def test_developer_md_references_qa_compress_py() -> None:
 
 def test_qa_manager_md_references_qa_compress_py() -> None:
     """agent/qa-manager.md must contain qa_compress.py (story 20-03)."""
-    qa_path = REPO_ROOT / "agent" / "qa-manager.md"
+    qa_path = REPO_ROOT / "agents" / "qa-manager.md"
     assert qa_path.exists(), f"{qa_path} not found"
     
     content = qa_path.read_text(encoding="utf-8")
@@ -122,8 +122,8 @@ def test_qa_manager_md_references_qa_compress_py() -> None:
 
 def test_no_qa_compress_sh_in_prompts() -> None:
     """Neither agent/developer.md nor agent/qa-manager.md should contain qa_compress.sh (story 20-03)."""
-    dev_path = REPO_ROOT / "agent" / "developer.md"
-    qa_path = REPO_ROOT / "agent" / "qa-manager.md"
+    dev_path = REPO_ROOT / "agents" / "developer.md"
+    qa_path = REPO_ROOT / "agents" / "qa-manager.md"
     
     assert dev_path.exists(), f"{dev_path} not found"
     assert qa_path.exists(), f"{qa_path} not found"
@@ -141,7 +141,7 @@ def test_no_qa_compress_sh_in_prompts() -> None:
 
 def test_developer_md_references_qa_compress_py() -> None:
     """agent/developer.md must contain qa_compress.py (story 20-03)."""
-    dev_path = REPO_ROOT / "agent" / "developer.md"
+    dev_path = REPO_ROOT / "agents" / "developer.md"
     assert dev_path.exists(), f"{dev_path} not found"
     
     content = dev_path.read_text(encoding="utf-8")
@@ -152,7 +152,7 @@ def test_developer_md_references_qa_compress_py() -> None:
 
 def test_qa_manager_md_references_qa_compress_py() -> None:
     """agent/qa-manager.md must contain qa_compress.py (story 20-03)."""
-    qa_path = REPO_ROOT / "agent" / "qa-manager.md"
+    qa_path = REPO_ROOT / "agents" / "qa-manager.md"
     assert qa_path.exists(), f"{qa_path} not found"
     
     content = qa_path.read_text(encoding="utf-8")
@@ -163,8 +163,8 @@ def test_qa_manager_md_references_qa_compress_py() -> None:
 
 def test_no_qa_compress_sh_in_prompts() -> None:
     """Neither agent/developer.md nor agent/qa-manager.md should contain qa_compress.sh (story 20-03)."""
-    dev_path = REPO_ROOT / "agent" / "developer.md"
-    qa_path = REPO_ROOT / "agent" / "qa-manager.md"
+    dev_path = REPO_ROOT / "agents" / "developer.md"
+    qa_path = REPO_ROOT / "agents" / "qa-manager.md"
     
     assert dev_path.exists(), f"{dev_path} not found"
     assert qa_path.exists(), f"{qa_path} not found"

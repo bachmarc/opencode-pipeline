@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-AGENT_DIR = REPO_ROOT / "agent"
+AGENT_DIR = REPO_ROOT / "agents"
 SKILLS_DIR = REPO_ROOT / "skills"
 
 # Pattern to match `scripts/<name>.py` (with backticks or not)
