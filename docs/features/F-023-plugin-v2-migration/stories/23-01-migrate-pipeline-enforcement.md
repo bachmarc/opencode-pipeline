@@ -28,10 +28,14 @@ entrypoint and its package dependency change.
     session-recovery) is registered via `ctx.tool.hook("execute.before", ...)`.
   - `tool.execute.after` guard logic (story-status) is registered via
     `ctx.tool.hook("execute.after", ...)`.
-- The V1 context arguments (`directory`, `$`) are replaced by `ctx.location.directory` and a
-  locally-spawned child process respectively. [NEEDS CLARIFICATION: `rtk.ts` uses `$` (Bun
-  shell helper) for `which` and backtick execution — does `pipeline-enforcement.ts` also use
-  `$` for process spawning inside the guards, or do guards call Python scripts differently?]
+- The V1 context argument `directory` is replaced by `ctx.location.directory`.
+- The V1 context argument `$` (Bun shell helper) is passed through to two guards that use it:
+  - `session-recovery-guard.ts` uses `$` to run `python3 session_recovery.py --check`
+  - `documenter-guard.ts` uses `$` to run `git log main..<branch> --oneline --grep=...`
+  Both guards receive `$` as a parameter — they do not import it directly. In V2, `$` is no
+  longer provided by the plugin context. A `child_process`-based replacement must be passed
+  to these two guards in place of `$`, or the guards must be updated to use `execSync`/
+  `spawnSync` directly and the `$` parameter removed.
 - `plugins/package.json` dependency updated from `@opencode-ai/plugin` to `@opencode/plugin`.
 - The plugin loads without error in V2 (no `SchemaError` in server log).
 - No guard logic is removed, weakened, or silently swallowed.
@@ -50,6 +54,17 @@ entrypoint and its package dependency change.
     - `await ctx.tool.hook("execute.after", async (event) => { ... })` — story-status guard
   - The guard modules (`mergeGuard`, `devStartGuard`, etc.) are called identically — only the
     hook registration and context access changes in the entrypoint
+  - `sessionRecoveryGuard` and `documenterGuard` currently receive `$` as parameter — replace
+    by updating both guard files to use `execSync`/`spawnSync` from `child_process` directly
+    and removing the `$` parameter from their signatures; update call sites in the entrypoint
+- Edit `plugins/guards/session-recovery-guard.ts`:
+  - Remove `$: any` parameter, add `import { spawnSync } from "child_process"`
+  - Replace `await $\`python3 ${scriptPath} --check\`` with `spawnSync("python3", [scriptPath, "--check"], { encoding: "utf8" })`
+  - Update docstring
+- Edit `plugins/guards/documenter-guard.ts`:
+  - Remove `$: any` parameter, add `import { execSync } from "child_process"`
+  - Replace `await $\`${gitLogCommand}\`` with `execSync(gitLogCommand, { encoding: "utf8", cwd: directory })`
+  - Update docstring
 - Edit `plugins/package.json`:
   - Change `"@opencode-ai/plugin": "*"` to `"@opencode/plugin": "*"`
 - Edit `tests/test_plugin_scaffold.py`:
