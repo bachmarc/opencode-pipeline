@@ -271,3 +271,28 @@ def test_architect_prompt_has_scaffold_runtime_question() -> None:
     assert has_env_constraints, (
         "architect.md: missing 'Environment Constraints' in Gather requirements section"
     )
+
+
+def test_architect_prompt_has_pure_js_preference() -> None:
+    """agent/architect.md contains guidance about preferring pure-JS packages over native addons.
+    
+    Protects: ensures the class of native-addon breakage (bcrypt, node-gyp failures on version
+    mismatch, Docker/CI incompatibility) is explicitly addressed in the Architect's decision
+    framework — not left as tribal knowledge.
+    """
+    architect_path = REPO_ROOT / "agents" / "architect.md"
+    assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
+
+    content = architect_path.read_text(encoding="utf-8")
+
+    # Both markers required: the example (bcryptjs) and the problem area (native addon)
+    assert "bcryptjs" in content, (
+        "architect.md: missing 'bcryptjs' example for pure-JS package preference"
+    )
+    
+    # Check for "native addon" (case-insensitive, with or without hyphen)
+    content_lower = content.lower()
+    has_native_addon = "native addon" in content_lower or "native-addon" in content_lower
+    assert has_native_addon, (
+        "architect.md: missing 'native addon' guidance in dependency selection section"
+    )

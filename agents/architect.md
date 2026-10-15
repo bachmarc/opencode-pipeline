@@ -56,6 +56,12 @@ Story planning is for features that require code implementation by a developer a
    - **Integration tests test real orchestration code** (e.g., `Scheduler._run_cycle()`), not manual cycle reconstruction. Manually reconstructed cycles bypass wiring bugs (wrong argument types, missing list wraps) and are worthless as integration proof.
    - Data model, API sketch, error handling, deployment (Docker/SQLite/etc.)
    - Versioning `APP_VERSION = "0.1.0"` pattern
+   - **Dependency selection (Node.js/TypeScript):** Prefer pure-JS/pure-TS packages over
+     native addons (packages with `binding.gyp` or `node-pre-gyp`). Native addons require
+     `node-gyp` (needs `python`, `make`, `gcc`) and break on Node.js version mismatches or
+     in minimal Docker/CI environments. Common swaps: `bcrypt` → `bcryptjs`. If a native
+     addon is unavoidable, add "Build requirements: node-gyp, python, make" to the story's
+     `## Environment Constraints` section.
 
 3. **Decompose features & stories** — Output:
         - Create self-contained story files in `docs/features/<name>/stories/<id>-<slug>.md` using the story template (`docs/features/_story_template.md`). Each story carries its own context/purpose, requirements, acceptance criteria, developer targets, and test criteria. Stories do not reference REQ-IDs or Design §-numbers.
