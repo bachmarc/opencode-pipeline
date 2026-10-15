@@ -561,6 +561,157 @@ def html_check() -> tuple[str, int]:
     return compressed, 0
 
 
+def rubocop_check() -> tuple[str, int]:
+    """Run rubocop and return compressed output with exit code.
+    
+    Tries ``bundle exec rubocop`` first (Gemfile-locked version), falls back
+    to ``rubocop`` on PATH. If neither found: "rubocop not found\n", exit 1.
+    On success: "rubocop: 0 offenses\n".
+    On failure: offense count + first 20 offense lines.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Try bundle exec rubocop first (preferred for Gemfile-locked version)
+    rubocop_exe = None
+    rubocop_args = []
+    
+    bundle_exe = shutil.which("bundle")
+    if bundle_exe:
+        # Try bundle exec rubocop first
+        try:
+            result = subprocess.run(
+                [bundle_exe, "exec", "rubocop", "--version"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=10,
+            )
+            if result.returncode == 0:
+                # bundle exec rubocop exists and works
+                rubocop_args = [bundle_exe, "exec", "rubocop"]
+                rubocop_exe = bundle_exe
+        except subprocess.TimeoutExpired:
+            pass
+    
+    # Fall back to rubocop on PATH if bundle exec didn't work
+    if not rubocop_exe:
+        rubocop_exe = shutil.which("rubocop")
+        if not rubocop_exe:
+            return "rubocop not found\n", 1
+        rubocop_args = [rubocop_exe]
+    
+    try:
+        result = subprocess.run(
+            rubocop_args,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "rubocop timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    # Extract offense count: "X files inspected, Y offenses detected"
+    # or "X files inspected, no offenses detected"
+    summary_match = re.search(r"(\d+) files inspected, (no offenses|(\d+) offenses)", output)
+    
+    if summary_match:
+        if summary_match.group(2) == "no offenses":
+            compressed = "rubocop: 0 offenses\n"
+        else:
+            offense_count = summary_match.group(3)
+            compressed = f"rubocop: {offense_count} offenses\n"
+    else:
+        compressed = "rubocop: <no summary>\n"
+    
+    if exit_code != 0:
+        # Extract offense lines: "path/to/file.rb:LINE:COL: [LETTER]: Message"
+        offense_lines = re.findall(r"^.*\.rb:\d+:\d+:", output, re.MULTILINE)
+        if offense_lines:
+            compressed += "## offenses\n"
+            for line in offense_lines[-20:]:  # Last 20
+                compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
+def checkstyle_check() -> tuple[str, int]:
+    """Run Checkstyle and return compressed output with exit code.
+    
+    Tries ``./gradlew checkstyleMain checkstyleTest`` first (if gradlew present),
+    then ``mvn checkstyle:check``, then ``checkstyle`` on PATH.
+    Not found/not applicable: "checkstyle not found (no gradlew, mvn, or checkstyle binary)\n", exit 1.
+    On success: "checkstyle: 0 violations\n".
+    On failure: violation count + first 20 violation lines.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Try gradlew first (locally or on PATH)
+    cwd = Path.cwd()
+    gradlew_local = cwd / "gradlew"
+    checkstyle_args = []
+    
+    if gradlew_local.exists():
+        checkstyle_args = [str(gradlew_local), "checkstyleMain", "checkstyleTest"]
+    else:
+        # Try gradlew on PATH
+        gradlew_exe = shutil.which("gradlew")
+        if gradlew_exe:
+            checkstyle_args = [gradlew_exe, "checkstyleMain", "checkstyleTest"]
+        else:
+            # Try mvn on PATH
+            mvn_exe = shutil.which("mvn")
+            if mvn_exe:
+                checkstyle_args = [mvn_exe, "checkstyle:check"]
+            else:
+                # Try checkstyle on PATH
+                checkstyle_exe = shutil.which("checkstyle")
+                if checkstyle_exe:
+                    checkstyle_args = [checkstyle_exe]
+                else:
+                    return "checkstyle not found (no gradlew, mvn, or checkstyle binary)\n", 1
+    
+    try:
+        result = subprocess.run(
+            checkstyle_args,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "checkstyle timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    # For gradle/gradlew: look for "[ERROR]" lines (violations)
+    # For mvn: look for "[ERROR]" lines
+    # Count violations
+    error_lines = re.findall(r"^\[ERROR\]", output, re.MULTILINE)
+    violation_count = len(error_lines)
+    
+    if exit_code == 0 or violation_count == 0:
+        compressed = "checkstyle: 0 violations\n"
+    else:
+        compressed = f"checkstyle: {violation_count} violations\n"
+    
+    if exit_code != 0 and violation_count > 0:
+        # Extract violation lines: "[ERROR] /path/...java:LINE: Message"
+        violations = re.findall(r"^\[ERROR\] .*$", output, re.MULTILINE)
+        if violations:
+            compressed += "## violations\n"
+            for line in violations[-20:]:  # Last 20
+                compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
 # Registry: maps checker name -> checker function
 CHECKERS: dict[str, callable] = {
     "pytest": pytest_check,
@@ -571,6 +722,8 @@ CHECKERS: dict[str, callable] = {
     "json": json_check,
     "yaml": yaml_check,
     "html": html_check,
+    "rubocop": rubocop_check,
+    "checkstyle": checkstyle_check,
 }
 
 
