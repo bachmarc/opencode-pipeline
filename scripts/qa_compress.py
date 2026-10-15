@@ -14,6 +14,11 @@ Configurability (qa_config.json):
   - This script uses python3 for JSON parsing (python3 is a framework
     requirement, not a project requirement).
 
+Available checkers (names for qa_config.json):
+  - pytest, rspec, jest, gradle, maven — test runners.
+  - json, yaml, html — file format validators.
+  - mypy, ruff, black — Python linters and formatters.
+
 Modular checker registry pattern (flat, inline):
   - All checker functions are defined directly in this file (no plugin discovery).
   - Each check function runs the external tool via subprocess.run(), parses
