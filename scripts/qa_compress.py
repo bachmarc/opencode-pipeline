@@ -214,6 +214,257 @@ def jest_check() -> tuple[str, int]:
     return compressed, exit_code
 
 
+def _find_tool(name: str) -> str | None:
+    """Try to find a tool in this priority order:
+    1. node_modules/.bin/<name> (local npm install)
+    2. npx <name> (global npm or via npx fallback)
+    3. <name> on PATH
+    
+    Returns the executable path or None if not found.
+    """
+    # Try local node_modules/.bin first
+    local_bin = Path("node_modules") / ".bin" / name
+    if local_bin.exists():
+        return str(local_bin)
+    
+    # Try npx
+    npx_exe = shutil.which("npx")
+    if npx_exe:
+        return f"npx"
+    
+    # Try tool on PATH
+    exe = shutil.which(name)
+    if exe:
+        return exe
+    
+    return None
+
+
+def eslint_check() -> tuple[str, int]:
+    """Run eslint and return compressed output with exit code.
+    
+    Tries local node_modules/.bin/eslint first, then eslint on PATH, then npx.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Try local node_modules/.bin first
+    eslint_exe = Path("node_modules") / ".bin" / "eslint"
+    cmd = None
+    
+    if eslint_exe.exists():
+        cmd = [str(eslint_exe)]
+    else:
+        # Try PATH (for test fakes)
+        exe = shutil.which("eslint")
+        if exe:
+            cmd = [exe]
+        else:
+            # Try npx as fallback
+            npx_exe = shutil.which("npx")
+            if npx_exe:
+                cmd = [npx_exe, "eslint", "--no-install"]
+    
+    if not cmd:
+        return "eslint not found (checked: node_modules/.bin/eslint, npx, PATH)\n", 1
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "eslint timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    # Count errors: look for lines containing "error" or pattern like "X problems"
+    # ESLint output: "file:line:col: message (rule-name)"
+    error_lines = [line for line in output.split("\n") if line.strip() and ":" in line]
+    error_count = len(error_lines)
+    
+    # Also check for summary line like "3 errors in 2 files"
+    summary_match = re.search(r"(\d+)\s+errors?", output)
+    if summary_match:
+        error_count = int(summary_match.group(1))
+    
+    if exit_code == 0:
+        return "eslint: 0 errors\n", 0
+    
+    compressed = f"eslint: {error_count} errors\n"
+    if error_lines:
+        compressed += "## errors\n"
+        for line in error_lines[:20]:  # First 20
+            compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
+def tsc_check() -> tuple[str, int]:
+    """Run TypeScript compiler check (--noEmit) and return compressed output with exit code.
+    
+    Tries local node_modules/.bin/tsc first, then tsc on PATH, then npx.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Try local node_modules/.bin first
+    tsc_exe = Path("node_modules") / ".bin" / "tsc"
+    cmd = None
+    
+    if tsc_exe.exists():
+        cmd = [str(tsc_exe), "--noEmit"]
+    else:
+        # Try PATH (for test fakes)
+        exe = shutil.which("tsc")
+        if exe:
+            cmd = [exe, "--noEmit"]
+        else:
+            # Try npx as fallback
+            npx_exe = shutil.which("npx")
+            if npx_exe:
+                cmd = [npx_exe, "tsc", "--noEmit"]
+    
+    if not cmd:
+        return "tsc not found\n", 1
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "tsc timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    # Count errors: tsc outputs "file(line,col): error TSxxxx: message"
+    error_lines = [line for line in output.split("\n") if "error TS" in line]
+    error_count = len(error_lines)
+    
+    if exit_code == 0:
+        return "tsc: 0 errors\n", 0
+    
+    compressed = f"tsc: {error_count} errors\n"
+    if error_lines:
+        compressed += "## errors\n"
+        for line in error_lines[:20]:  # First 20
+            compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
+def prettier_check() -> tuple[str, int]:
+    """Run Prettier in check mode and return compressed output with exit code.
+    
+    Tries local node_modules/.bin/prettier first, then prettier on PATH, then npx.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Try local node_modules/.bin first
+    prettier_exe = Path("node_modules") / ".bin" / "prettier"
+    cmd = None
+    
+    if prettier_exe.exists():
+        cmd = [str(prettier_exe), "--check", "."]
+    else:
+        # Try PATH (for test fakes)
+        exe = shutil.which("prettier")
+        if exe:
+            cmd = [exe, "--check", "."]
+        else:
+            # Try npx as fallback
+            npx_exe = shutil.which("npx")
+            if npx_exe:
+                cmd = [npx_exe, "prettier", "--check", "."]
+    
+    if not cmd:
+        return "prettier not found\n", 1
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "prettier timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    if exit_code == 0:
+        return "prettier: all files formatted\n", 0
+    
+    # Parse unformatted files: prettier lists them line by line
+    file_lines = [line.strip() for line in output.split("\n") if line.strip() and not line.startswith("--")]
+    # Filter out summary lines
+    file_lines = [line for line in file_lines if not re.match(r"^\d+\s+", line)]
+    
+    compressed = f"prettier: {len(file_lines)} unformatted files\n"
+    if file_lines:
+        compressed += "## unformatted_files\n"
+        for line in file_lines[:20]:  # First 20
+            compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
+def npm_audit_check() -> tuple[str, int]:
+    """Run npm audit with high severity threshold and return compressed output with exit code.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    npm_exe = shutil.which("npm")
+    if not npm_exe:
+        return "npm not found\n", 1
+    
+    try:
+        result = subprocess.run(
+            [npm_exe, "audit", "--audit-level=high"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "npm audit timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    if exit_code == 0:
+        return "npm audit: 0 high/critical\n", 0
+    
+    # Parse vulnerability count from output like "found X vulnerabilities"
+    vuln_match = re.search(r"found\s+(\d+)\s+vulnerabilities?", output, re.IGNORECASE)
+    vuln_count = int(vuln_match.group(1)) if vuln_match else 0
+    
+    # Extract severity summary if present
+    severity_lines = [line for line in output.split("\n") if re.search(r"(high|critical)", line, re.IGNORECASE)]
+    
+    compressed = f"npm audit: {vuln_count} vulnerabilities\n"
+    if severity_lines:
+        compressed += "## vulnerabilities\n"
+        for line in severity_lines[:20]:  # First 20
+            if line.strip():
+                compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
 def gradle_check() -> tuple[str, int]:
     """Run gradle test and return compressed output with exit code.
     
@@ -566,6 +817,10 @@ CHECKERS: dict[str, callable] = {
     "pytest": pytest_check,
     "rspec": rspec_check,
     "jest": jest_check,
+    "eslint": eslint_check,
+    "tsc": tsc_check,
+    "prettier": prettier_check,
+    "npm-audit": npm_audit_check,
     "gradle": gradle_check,
     "maven": maven_check,
     "json": json_check,
