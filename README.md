@@ -1,5 +1,5 @@
 # opencode Pipeline
-<!-- synced_through: 27-01 | updated: 2026-10-15 -->
+<!-- synced_through: 27-02 | updated: 2026-10-15 -->
 
 **A multi-agent development pipeline as config-as-code** — for teams building software through structured dialogue, deterministic automation, and cheap-model mass work.
 
@@ -350,19 +350,20 @@ The QA gate works with **any language** — not just Python/pytest. Projects dec
 
 1. **Project declares its stack:** `qa_config.json` in the project root: `{"checkers": ["rspec", "gradle", "json"]}`. Missing file → default `["pytest"]` (backward compatible). Empty list → explicit opt-out (data-only repos). Invalid JSON or unknown checker → loud FAIL.
 
-2. **Checker plugins** live in `scripts/qa_checkers/`, one file per runner. Each registers itself:
+2. **Checker functions** are defined inline in `qa_compress.py`. Each function follows a uniform pattern:
 
 ```python
-# scripts/qa_checkers/mypy.py — one file per checker
-def mypy_check():
-    result = subprocess.run(["mypy", "."], capture_output=True)
-    return (compressed_output, result.returncode)
-register_check("mypy", mypy_check)
+def eslint_check() -> tuple[str, int]:
+    """Run ESLint and return (compressed_output: str, exit_code: int)."""
+    # Try node_modules/.bin/eslint, then npx eslint, then PATH
+    # Return clear error message if not found, compressed summary on success/failure
 ```
+
+All checker functions are registered in the `CHECKERS` dict in `qa_compress.py`.
 
 3. **`qa_compress.py` dispatches** the declared checkers serially with AND semantics (all must pass). Aggregation and exit code happen automatically.
 
-**Available checkers:** `pytest` (Python, default), `rspec` (Ruby), `jest` (JavaScript/TypeScript), `gradle` (Java/Kotlin), `maven` (Java), `json` (JSON syntax validation), `yaml` (YAML syntax validation), `html` (HTML syntax check — tag matching, attribute quoting, void element validation).
+**Available checkers:** `pytest` (Python, default), `rspec` (Ruby), `jest` (JavaScript/TypeScript), `eslint` (JavaScript/TypeScript linting), `tsc` (TypeScript type checking), `prettier` (code formatting check), `npm-audit` (npm security audit), `gradle` (Java/Kotlin), `maven` (Java), `json` (JSON syntax validation), `yaml` (YAML syntax validation), `html` (HTML syntax check — tag matching, attribute quoting, void element validation).
 
 **Runner abstraction extends everywhere:**
 - **Portable prompts** (`agents/*.md`, `command/*.md`) reference "the configured test suite / configured checkers" — never a concrete runner name. Enforced by `tests/test_no_runner_names_in_prompts.py`.
@@ -370,7 +371,7 @@ register_check("mypy", mypy_check)
 - **Commit metadata** (`prepare_commit_metadata.py`) derives the test command from `qa_config.json` and extracts symbols/affects in a language-aware way (Python, JS/TS, Bash, Ruby, Java).
 - **Architecture checking** (`check_architecture.py`) validates import boundaries across languages — Python, JS/TS, Ruby, Java — with per-language allowlists.
 
-New checkers = one plugin file + registration line. No shared-file edits, no merge conflicts.
+New checkers = one inline function + one CHECKERS dict entry. No shared-file edits, no merge conflicts.
 
 ### Documentation Model
 
