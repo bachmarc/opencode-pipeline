@@ -27,6 +27,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-024 | V2 Agent Directory Fix | **done** | — | 24-01 |
 | F-025 | Project Profile & QA Configuration | **done** | — | 25-01, 25-02, 25-03 |
 | F-026 | Codebase Snapshot in Stories | **done** | — | 26-01 |
+| F-027 | Tooling-Gate Bootstrap | planned | — | 27-01, 27-02, 27-03, 27-04, 27-05 |
 
 ## Feature status derivation
 

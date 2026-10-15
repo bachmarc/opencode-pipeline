@@ -214,3 +214,27 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   `export default Plugin.define({ id, setup })` from `@opencode/plugin`; replace Bun `$`
   shell helper with `child_process` in session-recovery and documenter guards. 1 story:
   - 23-01: Migrate `pipeline-enforcement.ts` + affected guard files
+- **Phase 24 (V2 Agent Directory Fix):** Agent prompts unreachable after V2 migration — `agents/`
+  directory not recognized. Fix: rename to `agent/` (V2 convention). 1 story:
+  - 24-01: Rename `agents/` → `agent/`, update all references
+- **Phase 25 (Project Profile & QA Configuration):** `/migrate` detects stack but never asks
+  about test command or deployment strategy. `provision_structure.py` creates dirs but never
+  writes `qa_config.json`. Old projects arrive without history handling. 3 stories, sequential:
+  - 25-01: `analyze_project.py` — test+deploy detection
+  - 25-02: migrate skill dialog + `qa_config.json` provisioning
+  - 25-03: history dialog (retro stories vs baseline vs clean start)
+- **Phase 26 (Codebase Snapshot in Stories):** Stories for existing code lacked navigation context.
+  Architect prompt + story template get mandatory `## Codebase Snapshot` section. 1 story:
+  - 26-01: Add Codebase Snapshot section to story template + architect prompt
+- **Phase 27 (Tooling-Gate Bootstrap):** QA passed VirtOffice Story 01-01 despite broken lint/
+  typecheck/format — no tooling gates in story template, no lint/typecheck checkers in
+  qa_compress.py, analyze_project.py writes only one checker. Fix: story template gets
+  mandatory Tooling Gates section; qa_compress.py gets eslint/tsc/prettier/npm-audit/mypy/ruff/
+  black/rubocop/checkstyle checkers; analyze_project.py writes complete checker list per stack;
+  provision_structure.py auto-detects TypeScript. Unknown stacks get bootstrap flag.
+  5 stories, Wave 1 then parallel Wave 2+3:
+  - 27-01: `_story_template.md` + `architect.md` + `qa-manager.md` — Tooling Gates section
+  - 27-02: `qa_compress.py` — eslint, tsc, prettier, npm-audit checkers (JS/TS)
+  - 27-03: `qa_compress.py` — mypy, ruff, black checkers (Python)
+  - 27-04: `qa_compress.py` — rubocop, checkstyle checkers (Ruby/Java)
+  - 27-05: `analyze_project.py` + `provision_structure.py` — complete qa_config.json per stack
