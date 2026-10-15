@@ -45,10 +45,10 @@ Present the analysis results to the user:
     - Present the detected `test_command` from the analysis
     - Ask: "Is this the correct test command for your project?"
     - Options:
-      - "Yes, confirmed" → Use detected command, derive `qa_checker` from it
-      - "No, correct it" → Ask for the correct command, derive `qa_checker` from corrected command
-      - "I'll configure manually later" → Set `qa_checker="unknown"`, skip qa_config.json generation
-    - Store the confirmed test command and derived `qa_checker` for Phase 4
+      - "Yes, confirmed" → Use detected command, derive `qa_checkers` from it
+      - "No, correct it" → Ask for the correct command, derive `qa_checkers` from corrected command
+      - "I'll configure manually later" → Set `qa_checkers=[]`, skip qa_config.json generation
+    - Store the confirmed test command and derived `qa_checkers` for Phase 4
 
 4. **Confirm deployment method:**
     - Present the detected `deploy_hints` from the analysis
@@ -97,7 +97,7 @@ Generate the AGENTS.md file for the project:
 Create the missing directory structure and template files:
 
 ```bash
-python provision_structure.py <path> <analysis_json> --qa-checker "<qa_checker>" --deploy-methods "<method1>" "<method2>" ...
+python provision_structure.py <path> <analysis_json> --qa-checkers "<checker1>" "<checker2>" ... --deploy-methods "<method1>" "<method2>" ...
 ```
 
 Or call it programmatically with the confirmed values from Phase 2:
@@ -107,7 +107,7 @@ from scripts.provision_structure import provision_structure
 provision_structure(
     target_path=<path>,
     analysis=<analysis_dict>,
-    qa_checker="<qa_checker>",  # From Phase 2 test command confirmation
+    qa_checkers=[<checkers_list>],  # From Phase 2 test command confirmation
     deploy_methods=["<method1>", "<method2>", ...]  # From Phase 2 deploy method confirmation
 )
 ```
@@ -116,7 +116,7 @@ This script:
 - Creates missing directories: `docs/features/`, `STORIES.md`, `tests/fakes/`, `.pipeline/`, etc.
 - Creates template files: `docs/features/_feature_template.md`, `docs/features/_story_template.md`
 - Creates `.gitignore` if missing
-- Writes `qa_config.json` if `qa_checker` is provided and not "unknown"
+- Writes `qa_config.json` with the complete checker list (either from `qa_checkers` param or derived from stack). For unknown stack, adds `_bootstrap_needed: true` flag
 - Appends `## Deployment` section to `AGENTS.md` if `deploy_methods` is provided
 - Does NOT overwrite existing files
 

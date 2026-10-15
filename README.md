@@ -1,5 +1,5 @@
 # opencode Pipeline
-<!-- synced_through: 27-01 | updated: 2026-10-15 -->
+<!-- synced_through: 27-05 | updated: 2026-10-15 -->
 
 **A multi-agent development pipeline as config-as-code** — for teams building software through structured dialogue, deterministic automation, and cheap-model mass work.
 
@@ -406,13 +406,13 @@ Existing projects that were not started with the pipeline can be onboarded inter
 
 **The six phases:**
 
-1. **Analyze** — `scripts/analyze_project.py` scans the project: stack detection (Python, JS, Ruby, Java, mixed, unknown), existing agent file (`AGENTS.md`, `CLAUDE.md`, or none), directory structure, git state. Output: structured JSON.
+1. **Analyze** — `scripts/analyze_project.py` scans the project: stack detection (Python, JS, Ruby, Java, mixed, unknown), existing agent file (`AGENTS.md`, `CLAUDE.md`, or none), directory structure, git state, and **complete QA checker list per stack** (e.g., TypeScript projects get `[jest, eslint, tsc, prettier, npm-audit]`; Python gets `[pytest, mypy, ruff]`). For unknown stacks, sets `qa_bootstrap_needed: true` flag. Output: structured JSON with `qa_checkers` list and `qa_bootstrap_needed` boolean.
 
 2. **Dialogue** — The Architect presents the analysis and asks the user to confirm/correct: stack, project name, core rules, architecture decisions. Interactive, not automated.
 
 3. **Generate AGENTS.md** — `scripts/prepare_agents_md.py` combines the template's constant sections (verbatim) with project-specific data from the analysis. `<TODO>` markers for undetermined fields. Existing agent file content preserved as comment block.
 
-4. **Provision structure** — `scripts/provision_structure.py` creates only what's missing: `.pipeline/`, `docs/features/`, `qa_config.json` (stack-aware), `.gitignore` merge. Never overwrites existing files.
+4. **Provision structure** — `scripts/provision_structure.py` creates only what's missing: `.pipeline/`, `docs/features/`, **complete `qa_config.json` with full checker list per stack** (never single checker), `.gitignore` merge. For unknown stacks (when `qa_bootstrap_needed: true`), writes placeholder config with `_bootstrap_needed` flag and `_reason` field. Never overwrites existing files.
 
 5. **Retro stories (optional)** — `scripts/create_retro_stories.py` documents pre-pipeline work as retro stories. Creates feature directory, feature.md, story files with "Retro-Done" status. Appends to FEATURES.md and STORIES.md.
 

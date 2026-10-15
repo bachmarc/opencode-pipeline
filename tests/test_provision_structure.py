@@ -490,7 +490,7 @@ def test_output_json_structure(tmp_path):
 
 
 def test_writes_qa_config_for_known_checker(tmp_path):
-    """qa_checker='pytest' passed → qa_config.json written with {"checkers": ["pytest"]}."""
+    """qa_checkers=['pytest'] passed → qa_config.json written with {"checkers": ["pytest"]}."""
     from scripts.provision_structure import provision_structure
     
     target = tmp_path / "test_project"
@@ -504,7 +504,7 @@ def test_writes_qa_config_for_known_checker(tmp_path):
     report = provision_structure(
         str(target),
         analysis,
-        qa_checker="pytest",
+        qa_checkers=["pytest"],
         deploy_methods=[]
     )
     
@@ -520,8 +520,8 @@ def test_writes_qa_config_for_known_checker(tmp_path):
     assert report["qa_config"] == "created", f"qa_config report should be 'created', got {report['qa_config']}"
 
 
-def test_no_qa_config_for_unknown_checker(tmp_path):
-    """qa_checker='unknown' passed → no qa_config.json created, reported as skipped."""
+def test_no_qa_config_for_empty_checkers(tmp_path):
+    """qa_checkers=[] passed + unknown stack → bootstrap config written."""
     from scripts.provision_structure import provision_structure
     
     target = tmp_path / "test_project"
@@ -530,22 +530,27 @@ def test_no_qa_config_for_unknown_checker(tmp_path):
     analysis = {
         "project_name": "test-project",
         "stack": "unknown",
+        "qa_bootstrap_needed": True
     }
     
     report = provision_structure(
         str(target),
         analysis,
-        qa_checker="unknown",
+        qa_checkers=[],
         deploy_methods=[]
     )
     
-    # Check qa_config.json was NOT created
+    # Check qa_config.json was created with bootstrap config
     qa_config_path = target / "qa_config.json"
-    assert not qa_config_path.exists(), "qa_config.json should not be created for unknown checker"
+    assert qa_config_path.exists(), "qa_config.json should be created for bootstrap"
+    
+    qa_config = json.loads(qa_config_path.read_text())
+    assert "_bootstrap_needed" in qa_config, "qa_config.json should have _bootstrap_needed flag"
+    assert qa_config["_bootstrap_needed"] == True, "_bootstrap_needed should be True"
     
     # Check report
     assert "qa_config" in report, "report missing 'qa_config' key"
-    assert report["qa_config"] == "skipped", f"qa_config report should be 'skipped', got {report['qa_config']}"
+    assert report["qa_config"] == "created", f"qa_config report should be 'created', got {report['qa_config']}"
 
 
 def test_does_not_overwrite_existing_qa_config(tmp_path):
@@ -568,7 +573,7 @@ def test_does_not_overwrite_existing_qa_config(tmp_path):
     report = provision_structure(
         str(target),
         analysis,
-        qa_checker="pytest",
+        qa_checkers=["pytest"],
         deploy_methods=[]
     )
     
@@ -601,7 +606,7 @@ def test_appends_deploy_section_to_agents_md(tmp_path):
     report = provision_structure(
         str(target),
         analysis,
-        qa_checker="pytest",
+        qa_checkers=["pytest"],
         deploy_methods=["docker"]
     )
     
@@ -635,7 +640,7 @@ def test_does_not_overwrite_existing_deploy_section(tmp_path):
     report = provision_structure(
         str(target),
         analysis,
-        qa_checker="pytest",
+        qa_checkers=["pytest"],
         deploy_methods=["docker"]
     )
     
@@ -663,10 +668,106 @@ def test_report_contains_qa_config_and_deploy_keys(tmp_path):
     report = provision_structure(
         str(target),
         analysis,
-        qa_checker="pytest",
+        qa_checkers=["pytest"],
         deploy_methods=["docker"]
     )
     
     # Check keys exist
     assert "qa_config" in report, "report missing 'qa_config' key"
     assert "deploy_section" in report, "report missing 'deploy_section' key"
+
+
+# New tests for Story 27-05: full qa_checkers list per stack
+
+def test_provision_writes_full_ts_checkers(tmp_path):
+    """Provision with TS checkers list → qa_config.json has all 5 checkers."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "javascript",
+    }
+    
+    # Provide TypeScript checkers list
+    ts_checkers = ["jest", "eslint", "tsc", "prettier", "npm-audit"]
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checkers=ts_checkers,
+        deploy_methods=[]
+    )
+    
+    # Check qa_config.json contains all checkers
+    qa_config_path = target / "qa_config.json"
+    assert qa_config_path.exists(), "qa_config.json not created"
+    
+    qa_config = json.loads(qa_config_path.read_text())
+    assert qa_config["checkers"] == ts_checkers, f"Expected all TS checkers, got {qa_config['checkers']}"
+    assert len(qa_config["checkers"]) == 5, f"Expected 5 checkers, got {len(qa_config['checkers'])}"
+
+
+def test_provision_unknown_stack_writes_bootstrap_flag(tmp_path):
+    """Provision with unknown stack → qa_config.json has _bootstrap_needed flag."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "unknown",
+        "qa_bootstrap_needed": True
+    }
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checkers=[],
+        deploy_methods=[]
+    )
+    
+    # Check qa_config.json has bootstrap flag
+    qa_config_path = target / "qa_config.json"
+    assert qa_config_path.exists(), "qa_config.json not created for bootstrap"
+    
+    qa_config = json.loads(qa_config_path.read_text())
+    assert "_bootstrap_needed" in qa_config, "Missing _bootstrap_needed flag"
+    assert qa_config["_bootstrap_needed"] == True, "_bootstrap_needed should be True"
+    assert "_reason" in qa_config, "Missing _reason field"
+    assert "unknown stack" in qa_config["_reason"], "_reason should mention unknown stack"
+
+
+def test_provision_python_full_checker_set(tmp_path):
+    """Provision Python project with full checker set → qa_config contains pytest, mypy, ruff."""
+    from scripts.provision_structure import provision_structure
+    
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "python",
+    }
+    
+    py_checkers = ["pytest", "mypy", "ruff"]
+    
+    report = provision_structure(
+        str(target),
+        analysis,
+        qa_checkers=py_checkers,
+        deploy_methods=[]
+    )
+    
+    # Check qa_config.json contains all Python checkers
+    qa_config_path = target / "qa_config.json"
+    assert qa_config_path.exists(), "qa_config.json not created"
+    
+    qa_config = json.loads(qa_config_path.read_text())
+    assert qa_config["checkers"] == py_checkers, f"Expected Python checkers, got {qa_config['checkers']}"
+    assert "pytest" in qa_config["checkers"]
+    assert "mypy" in qa_config["checkers"]
+    assert "ruff" in qa_config["checkers"]
