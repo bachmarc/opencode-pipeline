@@ -5,12 +5,15 @@ provision_structure.py — Deterministic structure provisioning for opencode pro
 Creates missing directories and files based on analysis JSON. Never overwrites existing files.
 Uses analysis from Story 12-02 to know what's already present.
 
-Accepts optional qa_checker and deploy_methods to write qa_config.json and append
+Accepts optional qa_checkers list and deploy_methods to write qa_config.json and append
 ## Deployment section to AGENTS.md.
+
+Updated in Story 27-05: Accepts qa_checkers (list) instead of qa_checker (string).
+Writes complete checker list to qa_config.json.
 
 Usage:
     python provision_structure.py <target_path> <analysis_json_file>
-    provision_structure(target_path, analysis, qa_checker="pytest", deploy_methods=["docker"])
+    provision_structure(target_path, analysis, qa_checkers=["pytest", "mypy"], deploy_methods=["docker"])
 
 Exit codes:
     0 — Success
@@ -22,15 +25,16 @@ import sys
 from pathlib import Path
 
 
-def provision_structure(target_path: str, analysis: dict, qa_checker: str = "", deploy_methods: list = []) -> dict:
+def provision_structure(target_path: str, analysis: dict, qa_checkers: list = [], deploy_methods: list = []) -> dict:
     """
     Create missing directories and files for a project.
     
     Args:
         target_path: Path to the project directory
         analysis: Analysis dict from Story 12-02 with structure info
-        qa_checker: Optional checker name (e.g., "pytest", "jest"). If set and not "unknown",
-                   qa_config.json is written with this checker
+        qa_checkers: Optional list of checker names (e.g., ["pytest", "mypy", "ruff"]).
+                    If set and not empty, qa_config.json is written with these checkers.
+                    If analysis contains "qa_bootstrap_needed": true, writes bootstrap config.
         deploy_methods: Optional list of deployment methods (e.g., ["docker", "scp"])
         
     Returns:
@@ -70,42 +74,52 @@ def provision_structure(target_path: str, analysis: dict, qa_checker: str = "", 
             dir_path.mkdir(parents=True, exist_ok=True)
             report["created"].append(dir_name)
     
-    # Stack to checker mapping
-    stack_to_checker = {
-        "python": "pytest",
-        "javascript": "jest",
-        "ruby": "rspec",
-        "java": "gradle",
-        "mixed": "pytest",
-        "unknown": "pytest"
+    # Stack to checkers mapping (full sets per stack)
+    stack_to_checkers = {
+        "python": ["pytest", "mypy", "ruff"],
+        "javascript": ["jest", "eslint", "prettier", "npm-audit"],
+        "ruby": ["rspec", "rubocop"],
+        "java": ["gradle", "checkstyle"],
+        "mixed": ["pytest"],
+        "unknown": ["pytest"]
     }
     
-    # Determine checker based on stack or use provided qa_checker
-    if qa_checker:
-        # Use provided qa_checker
-        checker = qa_checker
+    # Determine checkers based on qa_checkers param or analysis
+    checkers_to_use = []
+    if qa_checkers:
+        # Use provided qa_checkers list
+        checkers_to_use = qa_checkers
     else:
-        # Determine from stack
+        # Determine from stack in analysis
         stack = analysis.get("stack", "unknown")
-        checker = stack_to_checker.get(stack, "pytest")
+        checkers_to_use = stack_to_checkers.get(stack, ["pytest"])
     
-    # Create qa_config.json if qa_checker is provided and not "unknown"
+    # Create qa_config.json
     qa_config_path = target / "qa_config.json"
-    if qa_checker and qa_checker != "unknown":
+    
+    # Check if bootstrap is needed (unknown stack from analysis)
+    qa_bootstrap_needed = analysis.get("qa_bootstrap_needed", False)
+    
+    if qa_checkers or not qa_bootstrap_needed:
+        # Standard case: write qa_config.json with checkers
         if not qa_config_path.exists():
-            qa_config = {"checkers": [qa_checker]}
+            qa_config = {"checkers": checkers_to_use}
             qa_config_path.write_text(json.dumps(qa_config, indent=2))
             report["qa_config"] = "created"
         else:
             report["qa_config"] = "skipped"
-    elif not qa_checker:
-        # Legacy behavior: use stack-based checker if no qa_checker provided
+    elif qa_bootstrap_needed:
+        # Bootstrap case: write placeholder config with _bootstrap_needed flag
         if not qa_config_path.exists():
-            qa_config = {"checkers": [checker]}
+            qa_config = {
+                "checkers": ["pytest"],
+                "_bootstrap_needed": True,
+                "_reason": "unknown stack — architect must research test tooling and update qa_config.json"
+            }
             qa_config_path.write_text(json.dumps(qa_config, indent=2))
-            report["created"].append("qa_config.json")
+            report["qa_config"] = "created"
         else:
-            report["already_existed"].append("qa_config.json")
+            report["qa_config"] = "skipped"
     
     # Create .pipeline/intent.json if it doesn't exist
     intent_path = target / ".pipeline" / "intent.json"

@@ -3,7 +3,9 @@
 
 Scans a project and produces a structured JSON report: stack detection,
 agent file detection, directory structure analysis, git state, existing
-pipeline files, test command detection, and deployment hints.
+pipeline files, test command detection, QA checker list detection, and deployment hints.
+
+Changes in Story 27-05: Returns complete qa_checkers list per stack, not single qa_checker string.
 """
 
 import argparse
@@ -13,36 +15,51 @@ import sys
 from pathlib import Path
 
 
-def detect_test_command(target: Path) -> tuple[str, str]:
-    """Detect test command and corresponding qa_checker name.
+def detect_qa_checkers(target: Path) -> tuple[list[str], str]:
+    """Detect qa_checkers list and test command string.
     
     Args:
         target: Path to the project
     
     Returns:
-        Tuple of (test_command, qa_checker). Both are "unknown" if no match.
+        Tuple of (qa_checkers_list, test_command_string). 
+        Returns (["pytest"], "unknown") for unknown stack.
     
     Detection rules (highest-priority match wins):
-    - Gemfile → ("bundle exec rspec", "rspec")
-    - package.json → ("npm test", "jest")
-    - pom.xml → ("mvn test", "maven")
-    - build.gradle or build.gradle.kts → ("./gradlew test", "gradle")
-    - requirements.txt/pyproject.toml/setup.py → ("pytest", "pytest")
-    - none → ("unknown", "unknown")
+    - Gemfile → ["rspec", "rubocop"]
+    - package.json + (tsconfig.json OR .ts files) → ["jest", "eslint", "tsc", "prettier", "npm-audit"]
+    - package.json (plain JS) → ["jest", "eslint", "prettier", "npm-audit"]
+    - pom.xml → ["maven", "checkstyle"]
+    - build.gradle or build.gradle.kts → ["gradle", "checkstyle"]
+    - requirements.txt/pyproject.toml/setup.py → ["pytest", "mypy", "ruff"]
+    - none → (["pytest"], "unknown")
     """
     # Check in priority order
     if (target / "Gemfile").exists():
-        return ("bundle exec rspec", "rspec")
-    if (target / "package.json").exists():
-        return ("npm test", "jest")
-    if (target / "pom.xml").exists():
-        return ("mvn test", "maven")
-    if (target / "build.gradle").exists() or (target / "build.gradle.kts").exists():
-        return ("./gradlew test", "gradle")
-    if (target / "requirements.txt").exists() or (target / "pyproject.toml").exists() or (target / "setup.py").exists():
-        return ("pytest", "pytest")
+        return (["rspec", "rubocop"], "bundle exec rspec")
     
-    return ("unknown", "unknown")
+    if (target / "package.json").exists():
+        # Check for TypeScript markers
+        has_tsconfig = (target / "tsconfig.json").exists()
+        has_ts_files = any(target.glob("*.ts"))
+        if not has_ts_files and (target / "src").exists():
+            has_ts_files = any((target / "src").rglob("*.ts"))
+        
+        if has_tsconfig or has_ts_files:
+            return (["jest", "eslint", "tsc", "prettier", "npm-audit"], "npm test")
+        else:
+            return (["jest", "eslint", "prettier", "npm-audit"], "npm test")
+    
+    if (target / "pom.xml").exists():
+        return (["maven", "checkstyle"], "mvn test")
+    
+    if (target / "build.gradle").exists() or (target / "build.gradle.kts").exists():
+        return (["gradle", "checkstyle"], "./gradlew test")
+    
+    if (target / "requirements.txt").exists() or (target / "pyproject.toml").exists() or (target / "setup.py").exists():
+        return (["pytest", "mypy", "ruff"], "pytest")
+    
+    return (["pytest"], "unknown")
 
 
 def detect_deploy_hints(target: Path) -> list[str]:
@@ -113,7 +130,8 @@ def analyze_project(target_path: str) -> dict:
         - missing: List of missing pipeline directories
         - existing_pipeline_files: List of existing pipeline files
         - test_command: Detected or inferred test command string
-        - qa_checker: Corresponding qa_compress.py checker name
+        - qa_checkers: List of qa checker names (NEW in 27-05, replaces qa_checker)
+        - qa_bootstrap_needed: Boolean flag if stack is unknown (NEW in 27-05)
         - deploy_hints: List of deployment signals found
     """
     target = Path(target_path).resolve()
@@ -240,11 +258,14 @@ def analyze_project(target_path: str) -> dict:
         if file_path.exists():
             existing_files.append(file_name)
     
-    # Detect test command and qa_checker
-    test_command, qa_checker = detect_test_command(target)
+    # Detect qa_checkers and test_command
+    qa_checkers, test_command = detect_qa_checkers(target)
     
     # Detect deploy hints
     deploy_hints = detect_deploy_hints(target)
+    
+    # Determine if bootstrap is needed
+    qa_bootstrap_needed = (stack == "unknown")
     
     # Build result
     result = {
@@ -259,7 +280,8 @@ def analyze_project(target_path: str) -> dict:
         "missing": missing_dirs,
         "existing_pipeline_files": existing_files,
         "test_command": test_command,
-        "qa_checker": qa_checker,
+        "qa_checkers": qa_checkers,
+        "qa_bootstrap_needed": qa_bootstrap_needed,
         "deploy_hints": deploy_hints,
     }
     

@@ -396,7 +396,7 @@ def test_existing_pipeline_files(tmp_path):
 # Tests for test_command, qa_checker, and deploy_hints detection
 
 def test_detect_test_command_python(tmp_path):
-    """Project with requirements.txt → test_command='pytest', qa_checker='pytest'."""
+    """Project with requirements.txt → test_command='pytest', qa_checkers=['pytest', 'mypy', 'ruff']."""
     target = tmp_path / "python_project"
     target.mkdir()
     (target / "requirements.txt").write_text("pytest==7.0.0\n")
@@ -412,11 +412,11 @@ def test_detect_test_command_python(tmp_path):
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     output = json.loads(result.stdout)
     assert output["test_command"] == "pytest", f"Expected 'pytest', got {output['test_command']}"
-    assert output["qa_checker"] == "pytest", f"Expected 'pytest', got {output['qa_checker']}"
+    assert output["qa_checkers"] == ["pytest", "mypy", "ruff"], f"Expected ['pytest', 'mypy', 'ruff'], got {output['qa_checkers']}"
 
 
 def test_detect_test_command_ruby(tmp_path):
-    """Project with Gemfile → test_command='bundle exec rspec', qa_checker='rspec'."""
+    """Project with Gemfile → test_command='bundle exec rspec', qa_checkers=['rspec', 'rubocop']."""
     target = tmp_path / "ruby_project"
     target.mkdir()
     (target / "Gemfile").write_text("gem 'rspec'\n")
@@ -432,11 +432,11 @@ def test_detect_test_command_ruby(tmp_path):
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     output = json.loads(result.stdout)
     assert output["test_command"] == "bundle exec rspec", f"Expected 'bundle exec rspec', got {output['test_command']}"
-    assert output["qa_checker"] == "rspec", f"Expected 'rspec', got {output['qa_checker']}"
+    assert output["qa_checkers"] == ["rspec", "rubocop"], f"Expected ['rspec', 'rubocop'], got {output['qa_checkers']}"
 
 
 def test_detect_test_command_node(tmp_path):
-    """Project with package.json → test_command='npm test', qa_checker='jest'."""
+    """Project with package.json (plain JS) → test_command='npm test', qa_checkers=['jest', 'eslint', 'prettier', 'npm-audit']."""
     target = tmp_path / "node_project"
     target.mkdir()
     (target / "package.json").write_text('{"name": "test", "scripts": {"test": "jest"}}\n')
@@ -452,11 +452,11 @@ def test_detect_test_command_node(tmp_path):
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     output = json.loads(result.stdout)
     assert output["test_command"] == "npm test", f"Expected 'npm test', got {output['test_command']}"
-    assert output["qa_checker"] == "jest", f"Expected 'jest', got {output['qa_checker']}"
+    assert output["qa_checkers"] == ["jest", "eslint", "prettier", "npm-audit"], f"Expected JS checkers, got {output['qa_checkers']}"
 
 
 def test_detect_test_command_maven(tmp_path):
-    """Project with pom.xml → test_command='mvn test', qa_checker='maven'."""
+    """Project with pom.xml → test_command='mvn test', qa_checkers=['maven', 'checkstyle']."""
     target = tmp_path / "maven_project"
     target.mkdir()
     (target / "pom.xml").write_text("<project></project>\n")
@@ -472,11 +472,11 @@ def test_detect_test_command_maven(tmp_path):
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     output = json.loads(result.stdout)
     assert output["test_command"] == "mvn test", f"Expected 'mvn test', got {output['test_command']}"
-    assert output["qa_checker"] == "maven", f"Expected 'maven', got {output['qa_checker']}"
+    assert output["qa_checkers"] == ["maven", "checkstyle"], f"Expected ['maven', 'checkstyle'], got {output['qa_checkers']}"
 
 
 def test_detect_test_command_gradle(tmp_path):
-    """Project with build.gradle → test_command='./gradlew test', qa_checker='gradle'."""
+    """Project with build.gradle → test_command='./gradlew test', qa_checkers=['gradle', 'checkstyle']."""
     target = tmp_path / "gradle_project"
     target.mkdir()
     (target / "build.gradle").write_text("plugins {}\n")
@@ -492,11 +492,11 @@ def test_detect_test_command_gradle(tmp_path):
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     output = json.loads(result.stdout)
     assert output["test_command"] == "./gradlew test", f"Expected './gradlew test', got {output['test_command']}"
-    assert output["qa_checker"] == "gradle", f"Expected 'gradle', got {output['qa_checker']}"
+    assert output["qa_checkers"] == ["gradle", "checkstyle"], f"Expected ['gradle', 'checkstyle'], got {output['qa_checkers']}"
 
 
 def test_detect_test_command_unknown(tmp_path):
-    """Empty project → test_command='unknown', qa_checker='unknown'."""
+    """Empty project → test_command='unknown', qa_checkers=['pytest'], qa_bootstrap_needed=true."""
     target = tmp_path / "empty_project"
     target.mkdir()
     
@@ -511,7 +511,8 @@ def test_detect_test_command_unknown(tmp_path):
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     output = json.loads(result.stdout)
     assert output["test_command"] == "unknown", f"Expected 'unknown', got {output['test_command']}"
-    assert output["qa_checker"] == "unknown", f"Expected 'unknown', got {output['qa_checker']}"
+    assert output["qa_checkers"] == ["pytest"], f"Expected ['pytest'], got {output['qa_checkers']}"
+    assert output["qa_bootstrap_needed"] == True, f"Expected qa_bootstrap_needed=True for unknown stack"
 
 
 def test_deploy_hints_github_actions(tmp_path):
@@ -677,9 +678,156 @@ def test_existing_fields_unchanged(tmp_path):
         "missing",
         "existing_pipeline_files",
         "test_command",
-        "qa_checker",
+        "qa_checkers",
+        "qa_bootstrap_needed",
         "deploy_hints"
     ]
     
     for key in required_keys:
         assert key in output, f"Missing required key: {key}"
+
+
+# New tests for Story 27-05: full qa_checkers list per stack
+
+def test_typescript_project_gets_tsc_checker(tmp_path):
+    """Project with package.json + tsconfig.json → 'tsc' in qa_checkers."""
+    target = tmp_path / "ts_project"
+    target.mkdir()
+    (target / "package.json").write_text('{"name": "test"}\n')
+    (target / "tsconfig.json").write_text('{"compilerOptions": {"target": "es2020"}}\n')
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "tsc" in output["qa_checkers"], f"Expected 'tsc' in {output['qa_checkers']}"
+    assert output["qa_checkers"] == ["jest", "eslint", "tsc", "prettier", "npm-audit"], \
+        f"Expected full TS checker set, got {output['qa_checkers']}"
+
+
+def test_typescript_project_with_ts_files(tmp_path):
+    """Project with package.json + .ts file in root → 'tsc' in qa_checkers."""
+    target = tmp_path / "ts_project2"
+    target.mkdir()
+    (target / "package.json").write_text('{"name": "test"}\n')
+    (target / "index.ts").write_text("console.log('test');\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "tsc" in output["qa_checkers"], f"Expected 'tsc' in {output['qa_checkers']}"
+
+
+def test_typescript_project_with_src_ts_files(tmp_path):
+    """Project with package.json + .ts file in src/ → 'tsc' in qa_checkers."""
+    target = tmp_path / "ts_project3"
+    target.mkdir()
+    (target / "package.json").write_text('{"name": "test"}\n')
+    (target / "src").mkdir()
+    (target / "src" / "index.ts").write_text("console.log('test');\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "tsc" in output["qa_checkers"], f"Expected 'tsc' in {output['qa_checkers']}"
+
+
+def test_javascript_project_no_tsc(tmp_path):
+    """Project with only package.json (no tsconfig, no .ts files) → no 'tsc'."""
+    target = tmp_path / "js_only_project"
+    target.mkdir()
+    (target / "package.json").write_text('{"name": "test"}\n')
+    (target / "index.js").write_text("console.log('test');\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert "tsc" not in output["qa_checkers"], f"'tsc' should not be in {output['qa_checkers']}"
+    assert output["qa_checkers"] == ["jest", "eslint", "prettier", "npm-audit"], \
+        f"Expected plain JS checker set, got {output['qa_checkers']}"
+
+
+def test_python_project_gets_full_checker_set(tmp_path):
+    """Project with requirements.txt → qa_checkers=['pytest', 'mypy', 'ruff']."""
+    target = tmp_path / "py_project"
+    target.mkdir()
+    (target / "requirements.txt").write_text("pytest==7.0.0\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["qa_checkers"] == ["pytest", "mypy", "ruff"], \
+        f"Expected full Python checker set, got {output['qa_checkers']}"
+
+
+def test_ruby_project_gets_full_checker_set(tmp_path):
+    """Project with Gemfile → qa_checkers=['rspec', 'rubocop']."""
+    target = tmp_path / "rb_project"
+    target.mkdir()
+    (target / "Gemfile").write_text("gem 'rspec'\n")
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["qa_checkers"] == ["rspec", "rubocop"], \
+        f"Expected full Ruby checker set, got {output['qa_checkers']}"
+
+
+def test_unknown_stack_has_bootstrap_flag(tmp_path):
+    """Empty temp dir → qa_bootstrap_needed=True."""
+    target = tmp_path / "unknown_project"
+    target.mkdir()
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output["qa_bootstrap_needed"] == True, f"Expected qa_bootstrap_needed=True, got {output.get('qa_bootstrap_needed')}"
+    assert output["stack"] == "unknown", f"Expected stack='unknown', got {output['stack']}"
