@@ -139,6 +139,13 @@
       "done": true,
       "worktree": ".worktrees/25-03-history-dialog",
       "branch": "feature/25-03-history-dialog"
+    },
+    {
+      "story_id": "F-027",
+      "agent": "architect",
+      "step": "planning",
+      "started_at": "2026-10-15T12:46:22.187751+00:00",
+      "done": false
     }
   ]
 }
