@@ -74,6 +74,8 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 2. **Stories**: `STORIES.md` (index) + `docs/features/*/stories/*.md`.
    Every story is self-contained (context, requirements, acceptance criteria, targets, tests) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
+   Tooling gates (lint, typecheck, format-check, audit) are mandatory QA gates — same
+   level as tests. Configured in `qa_config.json`. QA checks ALL of them.
 3. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.
    Write tests first, the project's configured test suite must be green.
 4. **QA gate (MANDATORY before every merge)**: Architect spawns `qa-manager` for every

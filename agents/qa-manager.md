@@ -36,6 +36,11 @@ on cheap models.
     - If you can't uniquely classify cause with compact result (test name + assertion enough) → **strong model as fallback**: delegate cause analysis to `architect` (strong model, locally configured) with compact list, NOT raw log spam.
     - **Test criteria** of story met? Tests existed BEFORE code and use fakes (no real external systems). If tests missing = FAIL.
 
+2b. **Tooling gates green?**
+    - Story has a `## Tooling Gates` section? If missing → FAIL.
+    - All configured gates verified (lint, typecheck, format, audit)?
+      Unverified gate = FAIL. Gate command not found = FAIL (not skip).
+
 3. **Architecture separation maintained?**
    - `src/core/` has **zero imports** from framework/IO (`appdaemon`, `hass`, `httpx`, `sqlalchemy`, `modbus` etc.) — only stdlib + domain. Like `intesis_modbus/klimasteuerung.py` (pure `KlimaGeraet` class).
    - `src/adapters/` is thin wrapper (3-10 lines), delegates to core. Like `intesis_modbus/klima_geraet.py` (`KlimaRaum`).
