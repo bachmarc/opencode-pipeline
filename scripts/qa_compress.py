@@ -561,6 +561,137 @@ def html_check() -> tuple[str, int]:
     return compressed, 0
 
 
+def mypy_check() -> tuple[str, int]:
+    """Run mypy type checker and return compressed output with exit code.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Find mypy on PATH
+    mypy_exe = shutil.which("mypy")
+    if not mypy_exe:
+        return "mypy not found\n", 1
+    
+    # Determine target: use 'src/' if it exists, else '.'
+    target = "src" if Path("src").is_dir() else "."
+    
+    try:
+        result = subprocess.run(
+            [mypy_exe, target],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "mypy timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    # Extract error count from "Found N errors in M files" or similar
+    error_count_match = re.search(r"Found (\d+) errors?", output)
+    error_count = error_count_match.group(1) if error_count_match else "0"
+    
+    if exit_code == 0:
+        compressed = f"mypy: {error_count} errors\n"
+    else:
+        # Extract error lines: "FILE:LINE:COL: error: MESSAGE"
+        error_lines = re.findall(r"^[^:]+:\d+:\d+: error: .*$", output, re.MULTILINE)
+        
+        compressed = f"mypy: {error_count} errors found\n"
+        if error_lines:
+            compressed += "## type_errors\n"
+            for line in error_lines[-20:]:  # Last 20
+                compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
+def ruff_check() -> tuple[str, int]:
+    """Run ruff linter and return compressed output with exit code.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Find ruff on PATH
+    ruff_exe = shutil.which("ruff")
+    if not ruff_exe:
+        return "ruff not found\n", 1
+    
+    try:
+        result = subprocess.run(
+            [ruff_exe, "check", "."],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "ruff timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    # Extract error count from "Found N errors" or similar
+    error_count_match = re.search(r"Found (\d+) errors?", output)
+    error_count = error_count_match.group(1) if error_count_match else "0"
+    
+    if exit_code == 0:
+        compressed = f"ruff: {error_count} violations\n"
+    else:
+        # Extract violation lines: "FILE:LINE:COL: CODE MESSAGE"
+        violation_lines = re.findall(r"^[^:]+:\d+:\d+: [A-Z]\d+ .*$", output, re.MULTILINE)
+        
+        compressed = f"ruff: {error_count} violations found\n"
+        if violation_lines:
+            compressed += "## violations\n"
+            for line in violation_lines[-20:]:  # Last 20
+                compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
+def black_check() -> tuple[str, int]:
+    """Run black formatter check and return compressed output with exit code.
+    
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    # Find black on PATH
+    black_exe = shutil.which("black")
+    if not black_exe:
+        return "black not found\n", 1
+    
+    try:
+        result = subprocess.run(
+            [black_exe, "--check", "."],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "black timed out\n", 1
+    
+    output = result.stdout + result.stderr
+    exit_code = result.returncode
+    
+    if exit_code == 0:
+        compressed = "black: all files formatted\n"
+    else:
+        # Extract "would reformat" lines
+        reformat_lines = re.findall(r"^would reformat .*$", output, re.MULTILINE)
+        
+        compressed = "black: files would be reformatted\n"
+        if reformat_lines:
+            compressed += "## reformattable_files\n"
+            for line in reformat_lines[-20:]:  # Last 20
+                compressed += line + "\n"
+    
+    return compressed, exit_code
+
+
 # Registry: maps checker name -> checker function
 CHECKERS: dict[str, callable] = {
     "pytest": pytest_check,
@@ -571,6 +702,9 @@ CHECKERS: dict[str, callable] = {
     "json": json_check,
     "yaml": yaml_check,
     "html": html_check,
+    "mypy": mypy_check,
+    "ruff": ruff_check,
+    "black": black_check,
 }
 
 
