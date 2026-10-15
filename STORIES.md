@@ -238,3 +238,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   - 27-03: `qa_compress.py` — mypy, ruff, black checkers (Python)
   - 27-04: `qa_compress.py` — rubocop, checkstyle checkers (Ruby/Java)
   - 27-05: `analyze_project.py` + `provision_structure.py` — complete qa_config.json per stack
+- **Phase 28 (Pure-JS Dependency Preference):** Architect should default to pure-JS npm packages
+  over native addons (bcrypt→bcryptjs, etc.) to avoid node-gyp build failures in CI/Docker.
+  1 story:
+  - 28-01: `architect.md` — dependency selection guidance + test
