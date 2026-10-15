@@ -14,6 +14,18 @@ Configurability (qa_config.json):
   - This script uses python3 for JSON parsing (python3 is a framework
     requirement, not a project requirement).
 
+Available checkers (register in qa_config.json):
+  - pytest: Python test framework
+  - rspec: Ruby test framework (uses `bundle exec rspec`)
+  - jest: JavaScript/TypeScript test framework
+  - gradle: Java/Kotlin build tool with tests
+  - maven: Java build tool with tests
+  - json: JSON schema validation
+  - yaml: YAML schema validation
+  - html: HTML tag stack validation
+  - rubocop: Ruby linting (tries `bundle exec rubocop`, falls back to `rubocop`)
+  - checkstyle: Java static analysis (tries gradlew, mvn, then binary)
+
 Modular checker registry pattern (flat, inline):
   - All checker functions are defined directly in this file (no plugin discovery).
   - Each check function runs the external tool via subprocess.run(), parses
