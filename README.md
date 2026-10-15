@@ -1,5 +1,5 @@
 # opencode Pipeline
-<!-- synced_through: 24-01 | updated: 2026-10-14 -->
+<!-- synced_through: 27-01 | updated: 2026-10-15 -->
 
 **A multi-agent development pipeline as config-as-code** — for teams building software through structured dialogue, deterministic automation, and cheap-model mass work.
 
