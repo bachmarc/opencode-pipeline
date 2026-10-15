@@ -39,6 +39,10 @@ Story planning is for features that require code implementation by a developer a
    - Problem, target audience, scope boundaries (what does NOT belong)
    - Create feature files (`docs/features/<name>/feature.md`) with vision + context. Use the feature template (`docs/features/_feature_template.md`).
    - Open questions immediately to user, never guess
+   - **Scaffold stories (new project, 01-xx, setup):** Before writing the story, ask:
+     runtime version (Node.js, Python, Ruby, JVM), package manager (npm/yarn/pnpm/bundler),
+     existing tooling constraints (CI, internal registry, proxy). Add answers as
+     `## Environment Constraints` to the story — version mismatches become explicit targets.
 
 2. **Design architecture** — Document architecture decisions in the feature's context and story requirements. Architecture guidance (function vs connectivity, fakes, integration tests) is written into the relevant feature/story files, not into a central design.md. Architecture decisions live in the feature and story files themselves.
    - **Separation of function vs connectivity** (like intesis_modbus/CLAUDE.md):

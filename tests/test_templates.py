@@ -127,3 +127,25 @@ def test_story_template_has_codebase_snapshot_section():
         assert snapshot_idx < context_idx, (
             "Codebase Snapshot section must come before Context / Purpose section"
         )
+
+
+def test_story_template_has_tooling_gates_section():
+    """Test that story template has a ## Tooling Gates section after Test criteria."""
+    template_path = Path("docs/features/_story_template.md")
+    assert template_path.exists(), f"{template_path} does not exist"
+    
+    content = template_path.read_text()
+    
+    # Check for the section
+    assert "## Tooling Gates" in content, (
+        "Story template missing '## Tooling Gates' section"
+    )
+    
+    # Check that it comes after "## Test criteria"
+    test_criteria_idx = content.find("## Test criteria")
+    tooling_gates_idx = content.find("## Tooling Gates")
+    
+    assert test_criteria_idx != -1, "Story template missing '## Test criteria' section"
+    assert tooling_gates_idx > test_criteria_idx, (
+        "Tooling Gates section must come after Test criteria section"
+    )

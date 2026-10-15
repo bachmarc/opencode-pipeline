@@ -35,3 +35,13 @@ Feature: <feature-name> (<feature-id>)
 ## Test criteria (must exist BEFORE implementation)
 
 - <Tests written first — file, test name, expected behavior>
+
+## Tooling Gates (mandatory — QA checks ALL of these)
+
+Commands come from `qa_config.json` in the project root.
+
+- [ ] Tests green (configured checkers in `qa_config.json`)
+- [ ] Lint clean (e.g. `eslint`, `rubocop`, `ruff`)
+- [ ] Typecheck clean (e.g. `tsc`, `mypy`) — if typed language
+- [ ] Format check clean (e.g. `prettier`, `black`) — if formatter configured
+- [ ] Audit clean (e.g. `npm-audit`, `bundler-audit`) — 0 high/critical

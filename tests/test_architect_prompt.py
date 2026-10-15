@@ -248,3 +248,26 @@ def test_architect_prompt_has_test_scenario_review_rule() -> None:
         "architect.md: missing guidance about presenting non-trivial test scenarios "
         "with explanation at the Planning Checkpoint"
     )
+
+
+def test_architect_prompt_has_scaffold_runtime_question() -> None:
+    """agent/architect.md contains requirement to ask for runtime/environment in Gather requirements section."""
+    architect_path = REPO_ROOT / "agents" / "architect.md"
+    assert architect_path.is_file(), f"missing {architect_path.relative_to(REPO_ROOT)}"
+
+    content = architect_path.read_text(encoding="utf-8")
+
+    # Check for scaffold/runtime interview requirement
+    has_scaffold = "scaffold" in content.lower() or "01-" in content or "setup" in content.lower()
+    has_runtime = "runtime" in content.lower() or "runtime version" in content.lower()
+    has_env_constraints = "Environment Constraints" in content
+
+    assert has_scaffold, (
+        "architect.md: missing mention of scaffold/setup stories in Gather requirements section"
+    )
+    assert has_runtime, (
+        "architect.md: missing mention of runtime version interview in Gather requirements section"
+    )
+    assert has_env_constraints, (
+        "architect.md: missing 'Environment Constraints' in Gather requirements section"
+    )
