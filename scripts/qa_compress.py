@@ -16,6 +16,8 @@ Configurability (qa_config.json):
 
 Modular checker registry pattern (flat, inline):
   - All checker functions are defined directly in this file (no plugin discovery).
+  - Supported checkers: pytest, rspec, jest, eslint, tsc, prettier, npm-audit,
+    gradle, maven, json, yaml, html.
   - Each check function runs the external tool via subprocess.run(), parses
     output with re, and returns (compressed_output: str, exit_code: int).
   - Only CONFIGURED checkers run (serially). Overall status = FAIL as soon as
