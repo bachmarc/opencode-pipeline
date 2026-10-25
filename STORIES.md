@@ -242,3 +242,14 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   over native addons (bcrypt→bcryptjs, etc.) to avoid node-gyp build failures in CI/Docker.
   1 story:
   - 28-01: `architect.md` — dependency selection guidance + test
+- **Phase 29 (Worktree Hygiene):** `worktree_setup.py` creates story worktrees; nothing ever
+  removes them. VirtOffice incident (2026-10-25): 7 git-registered stale worktrees survived
+  ~30 merged stories, and the opencode server spawns a Playwright-MCP server + watchers for
+  EVERY git-registered worktree at every server start (verified in opencode.log) - heavy
+  process load per restart, plus ~50 unregistered leftover folders and 25 uncleanable stale
+  opencode records (the tool refuses when the directory is gone). Fix: deterministic
+  zero-token cleanup script (classify merged/dirty -> dry-run default -> `--apply` removes
+  with labeled stash protection; `--purge-folders` for unregistered remnants) + staleness
+  block in `session_recovery.py` so every session start shows the state. Never touches
+  unmerged branches. 1 story:
+  - 29-01: `scripts/worktree_cleanup.py` + `session_recovery.py` staleness block + tests
