@@ -243,7 +243,7 @@
       "agent": "developer",
       "step": "writing tests/test_qa_checkers_process.py (test-first)",
       "started_at": "2026-10-30T22:28:05.934411+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-03",
