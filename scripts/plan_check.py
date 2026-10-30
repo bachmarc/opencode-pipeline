@@ -45,8 +45,11 @@ Verb heuristic (textual, deterministic):
     the path is referenced as already present, so it must exist.
   - Verb lookup: the text BEFORE the token on the same line (any position),
     else the first two words AFTER the token (the "- `path` — existing ..."
-    snapshot idiom). Tokens that are globs ("*"), contain whitespace, angle
-    brackets, or are directory mentions (trailing "/") are never checked.
+    snapshot idiom). The after-lookup only applies to tokens containing "/"
+    (real repo paths); suffix-only name mentions (e.g. "`process.json`
+    exists.") stay unclassified. Tokens that are globs ("*"), contain
+    whitespace, angle brackets, or are directory mentions (trailing "/")
+    are never checked.
 
 JSON contract (stdout):
   {"result": "PASS" | "FAIL",
