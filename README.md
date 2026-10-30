@@ -21,16 +21,16 @@ The pipeline orchestrates four specialized agents:
 The repository contains:
 
 - **`agents/`** — The four role definitions (architect, developer, qa-manager, documenter). Each is a Markdown file with frontmatter (description, mode) and a prompt. Roles are portable; model assignment is local.
-- **`scripts/`** — 15+ deterministic Python scripts with modular checker plugins in `scripts/qa_checkers/`. Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks, template migration, polyglot commit metadata, and watermark tracking. `qa_compress.py` is the sole test entry point (replaces bash).
+- **`scripts/`** — 20+ deterministic Python scripts with modular checker plugins in `scripts/qa_checkers/`. Automation for worktree setup, story management, QA routing, session recovery, feature claiming, project scaffolding, architecture checks, template migration, polyglot commit metadata, and watermark tracking. `qa_compress.py` is the sole test entry point (replaces bash). Notable additions: `driver.py` (deterministic process orchestration from `.pipeline/` state + `process.json` profile), `plan_check.py` (deterministic planning QA on story files), `model_assign.py` (deterministic tier→model appliance for the local config).
 - **`plugins/`** — Pipeline enforcement plugin (TypeScript, `plugins/pipeline-enforcement.ts`). Six deterministic guards that block process violations at the tool-call level: merge without QA-PASS, dev-start without story, architect editing code, story status after merge, session start without recovery, merge without documenter. Deploys to `~/.config/opencode/plugins/` via release branch.
 - **`templates/`** — Skeletons for new projects: `AGENTS.md` (project knowledge template) and `.gitignore`.
 - **`command/`** — Invokable commands that orchestrate the flow: `/new-project`, `/requirements`, `/decompose`, `/implement`, `/qa-check`, `/status`, `/qa_summary`, `/document`.
 - **`docs/features/`** — Hierarchical planning structure: features contain stories, stories contain developer targets and test criteria.
-- **`.pipeline/`** — Persistent pipeline state: intent tracking (`intent.json`), QA verdicts (`qa-state/`).
+- **`.pipeline/`** — Persistent pipeline state: intent tracking (`intent.json`), QA verdicts (`qa-state/`), escalation ledger (`escalations.json`), per-project process profile (`process.json`).
 
 ### Design principles
 
-1. **Cheap models for mass work** — Developer and QA-Manager run on lean models. Only the Architect (reasoning) and fallback diagnostics use strong models. This keeps costs low while maintaining quality gates.
+1. **Cheap models for mass work** — Developer, QA-Manager and Documenter run on cheap models by default. The Architect also defaults to cheap and escalates to a strong model only at defined triggers (planning audit on new process mechanics, `BLOCKED_Design` diagnosis, repeated dev failure). Model assignment is local and deterministic (see `model_assign.py` below). This keeps costs low while maintaining quality gates.
 
 2. **Deterministic scripts over LLM free-hand** — QA is not a thinker; it's a judge. Test compression (`qa_compress.py`) reduces 20,000 lines of pytest spam to ≤200 tokens. Verdicts are strict JSON, no monologues.
 
@@ -99,6 +99,8 @@ This checkpoint exists both as a **prompt rule** (behavioral) and as a **technic
 
 Once you give the go, the pipeline runs **autonomously for a long time** without needing you:
 
+0. **The driver decides, not the model** — before any orchestration step, `python3 scripts/driver.py next` computes the next actions deterministically from `.pipeline/` state (intents, QA verdicts, story statuses) and the project's `process.json` profile. The architect consults it first and acts on its output; if the driver cannot run, it says so explicitly and decides with a documented reason. The driver is read-only/advisory — merge authority stays exclusively with `merge_if_passed.py` (QA-PASS gate).
+
 1. **Developer** (cheap model) picks up a story, creates branch `feature/<story-id>-<slug>`, and works in its own Git worktree (`.worktrees/<story-id>-<slug>/`).
    - Reads the story's developer targets and test criteria
    - **Writes tests first** (using fake interfaces — no real external systems)
@@ -107,7 +109,8 @@ Once you give the go, the pipeline runs **autonomously for a long time** without
 
 2. **QA-Manager** (cheap model) checks the branch — **deterministically, not by thinking**:
     - Runs `qa_compress.py` which compresses pytest output to ≤200 tokens (exit code + failed test names + assertions — no log spam)
-    - Evaluates the compressed result against acceptance criteria
+    - Runs the **Tier D process checkers** first (deterministic, script-side): `worktree_discipline` (commits must come from the story's registered worktree) and `metadata_affects` (commit metadata ↔ actual diff, over ALL branch commits since merge-base) — both OFF by default, enabled per project via `qa_config.json`
+    - Judges **only the non-automatable remainder** (criterion-to-test adequacy, fake parity, cross-story semantics) and marks each check's provenance: `tier-d` or `tier-k`
     - Checks architecture separation (no IO imports in core, fake parity, integration tests call real orchestration code)
     - Returns a **strict JSON verdict**: `{"status": "PASS|FAIL|BLOCKED_*", "reason": "...", "failed_tests": [...]}`
 
@@ -193,14 +196,13 @@ Create `~/.config/opencode/opencode.jsonc` (e.g.):
   // V2: "providers" (plural), "settings" replaces "options"
   "providers": { /* your model provider, e.g. Anthropic via proxy */ },
   "model": "provider/model",            // primary/dialogue model
-  // V2: "agents" (plural), model variant suffix #high/#medium replaces reasoningEffort
-  "agents": {
+  // V2: "agent" (singular), permission.task gates subagent spawning
+  "agent": {
     "architect": {
       "model": "provider/strong#high",
-      "permissions": [
-        { "action": "task", "resource": "developer", "effect": "ask" },
-        { "action": "task", "resource": "qa-manager", "effect": "ask" }
-      ]
+      "permission": {
+        "task": { "developer": "ask", "qa-manager": "ask" }
+      }
     },
     "developer":  { "model": "provider/cheap#medium" },
     "qa-manager": { "model": "provider/cheap#high"   },
@@ -228,15 +230,24 @@ This section is a reference for deeper topics. Links from the Installation secti
 The four role files (`agents/architect.md`, `developer.md`, `qa-manager.md`, `documenter.md`) no longer set a model (previously hardcoded as `model:`). Instead there's a **separation: role vs. machine**:
 
 - **Role (portable, in Git):** *who does what* — mode, prompt, rules. In `agents/*.md`.
-- **Machine (local, gitignored):** *which model* for *what*. In `~/.config/opencode/opencode.jsonc` under `agents`.
+- **Machine (local, gitignored):** *which model* for *what*. In `~/.config/opencode/opencode.jsonc` under `agent` (singular — the OpenCode v2 config key).
 
 **Why:**
 - Other machines have different APIs/providers wired up and different model names. When the model was hardcoded in the role file, the role core had to be touched.
 - Now a **single local file** (`opencode.jsonc`) suffices — provider endpoints, model names **and** the `agent` assignment. On a clone on a new machine you only create/adjust this file; the roles stay identical.
 
+**Deterministic appliance — `model_assign.py`:**
+
+Model changes should be an *assignment*, never a discussion. The script makes the change:
+
+1. `~/.pipeline/model_map.json` (gitignored, machine-local) maps each role → `{"tier": "cheap|strong", "provider_model": "provider/model-id"}`.
+2. `python3 scripts/model_assign.py --show` prints the map; `--init` creates a minimal default map (refuses to overwrite).
+3. `python3 scripts/model_assign.py --apply` patches ONLY the `agent.<role>.model` lines in your local `opencode.jsonc` (legacy `agents` object supported as fallback; both keys present → exit 1 without writing). JSONC comments are preserved byte-identically.
+4. Ambiguous input → exit 1, file unchanged. The script contains no model/provider names — roles are portable, machines are not.
+
 **Concrete procedure per machine:**
 1. `git clone git@github.com:bachmarc/opencode-pipeline.git ~/.config/opencode`
-2. Create `opencode.jsonc` (see above) with your provider + the `agents` mapping entries matching your available models.
+2. Create `opencode.jsonc` (see above) with your provider + the `agent` mapping entries matching your available models — or run `model_assign.py --init` and `--apply`.
 3. Restart `opencode` — the config is loaded at startup; changes are not hot-reloaded.
 4. If a mapping entry is missing, opencode does not fail: an agent without an assigned model falls back to the global `model` as default.
 
@@ -249,12 +260,14 @@ Model choice and reasoning depth are two separate tuning axes. A cheap model wit
 The rule "no dev/QA without explicit user-go" lives in the prompts — but an LLM follows instructions probabilistically and can "overhear" them. The fix: opencode's `permissions[action=task]` system. When the architect tries to spawn a developer or qa-manager, a **UI approval dialog pops up for you** — every time. Your "allow" click **is** the user-go, technically enforced. The architect cannot silently start the machine.
 
 ```jsonc
-"agents": {
+"agent": {
   "architect": {
-    "permissions": [
-      { "action": "task", "resource": "developer",  "effect": "ask" },
-      { "action": "task", "resource": "qa-manager", "effect": "ask" }
-    ]
+    "permission": {
+      "task": {
+        "developer": "ask",
+        "qa-manager": "ask"
+      }
+    }
   }
 }
 ```
@@ -263,6 +276,26 @@ The rule "no dev/QA without explicit user-go" lives in the prompts — but an LL
 - Internal QA loops (QA → developer on FAIL fixes) are intentionally **not** gated — that autonomy should remain, since the wave was already started by you.
 - This block belongs in the local `opencode.jsonc` (it's config, not a role), so it travels with the model assignment on every machine.
 
+### <a id="process-driver"></a>Process Driver & Process Profiles
+
+The architect's orchestration (spawn whom, close which intent, merge what) is deterministic — so it's computed by a script, not improvised by an LLM:
+
+- **`scripts/driver.py next`** reads `.pipeline/` state (intents, QA verdicts, story statuses) plus `.pipeline/process.json` and prints the next actions as JSON: `intent-reminder`, `spawn-qa`, `merge-candidate`, `spawn-dev`, `no-action`. Read-only/advisory — it never mutates state; merge authority stays with `merge_if_passed.py`.
+- **`.pipeline/process.json`** declares the project's process: `workflow`, `test_strategy` (`unit-fake` | `e2e-docker` | custom), `escalation` thresholds. Missing file → built-in default profile. `driver.py validate` checks it.
+- **Escalation is rule-based:** consecutive QA-FAILs on one story cross the profile's threshold → the driver emits an `escalate-remedy` action (recommendation: debug story + strong-architect diagnosis), logged in `.pipeline/escalations.json`. Threshold 0 disables escalation.
+
+### <a id="plan-check"></a>Plan Check (deterministic planning QA)
+
+Planning itself is checked mechanically before any checkpoint — flash-class planning errors become script findings:
+
+- **`python3 scripts/plan_check.py`** scans all open story files (`docs/features/*/stories/*.md`, Status ≠ Done):
+  - **Ghost references** — backticked paths referenced as *existing* must exist in the repo.
+  - **Sequenced cross-references** — a story extending a path another open story *creates* → WARN (wave assignment required, exit unchanged).
+  - **Same-file conflicts** — open stories touching the same files → `conflict_candidates` list (plan waves accordingly).
+  - **Clarification markers** — unresolved `[NEEDS CLARIFICATION: ...]` → FAIL.
+  - **Section completeness** — required story sections present and non-empty → otherwise FAIL.
+- Single-story mode: `plan_check.py --story <file>`. Output is JSON: `{result, problems, conflict_candidates}`.
+
 ### The four agents in detail
 
 | | architect | developer | qa-manager | documenter |
@@ -270,7 +303,7 @@ The rule "no dev/QA without explicit user-go" lives in the prompts — but an LL
 | **Role** | Requirements-/Design-/Story partner, dialogue | Cheap story implementer | Deterministic gatekeeper | Documentation consistency |
 | **Model** | strong | cheap bulk | cheap (+ strong fallback via architect) | cheap |
 | **Reasoning depth** | high (deep design reasoning) | medium (speed over depth) | high (verdicts need scrutiny) | low (mechanical reconciliation) |
-| **Model source** | `opencode.jsonc` → `agents.architect.model` | `opencode.jsonc` → `agents.developer.model` | `opencode.jsonc` → `agents.qa-manager.model` | `opencode.jsonc` → `agents.documenter.model` |
+| **Model source** | `opencode.jsonc` → `agent.architect.model` | `opencode.jsonc` → `agent.developer.model` | `opencode.jsonc` → `agent.qa-manager.model` | `opencode.jsonc` → `agent.documenter.model` |
 | **Mode** | `all` (dialogue) | `subagent` | `all` | `subagent` |
 | **Output** | Docs / Stories | Branch + commit | JSON (`PASS/FAIL/BLOCKED_*`) | Updated docs + docstrings |
 | **Budget** | — | 1 story = 1 branch | max. 3 FAIL loops, then escalation | after QA-PASS, before merge |
@@ -313,7 +346,7 @@ Then **restart opencode** — the config is loaded once at startup, there is no 
 
 **Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
 
-**New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `agents.architect.permissions` block), **every machine** must add them to its local file once — see § "Model Assignment" above for the per-machine procedure.
+**New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `agent.architect.permission.task` block), **every machine** must add them to its local file once — see § "Model Assignment" above for the per-machine procedure.
 
 **Rollback:** check out a known-good version in the live clone and restart opencode:
 
