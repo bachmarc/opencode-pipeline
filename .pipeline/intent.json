@@ -187,7 +187,7 @@
       "agent": "developer",
       "step": "implementing story (wave 1 respawn, models switched to openrouter)",
       "started_at": "2026-10-30T22:18:52.421729+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-03",
@@ -201,14 +201,14 @@
       "agent": "developer",
       "step": "implementing story (wave 1 respawn, models switched to openrouter)",
       "started_at": "2026-10-30T22:18:52.539958+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "31-01",
       "agent": "developer",
       "step": "implementing story (wave 1 respawn, models switched to openrouter)",
       "started_at": "2026-10-30T22:18:52.595477+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-06",
@@ -236,7 +236,7 @@
       "agent": "developer",
       "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
       "started_at": "2026-10-30T23:08:50.213523+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-03",
@@ -250,7 +250,7 @@
       "agent": "developer",
       "step": "implementation done, preparing commit",
       "started_at": "2026-10-30T22:32:42.454428+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "31-01",
