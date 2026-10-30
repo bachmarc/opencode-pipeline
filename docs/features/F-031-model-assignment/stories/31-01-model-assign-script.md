@@ -1,6 +1,6 @@
 # Story 31-01 — model_assign.py: deterministic tier→model appliance
 
-Status: Planned
+Status: Done
 Feature: Model Assignment (F-031)
 
 ## Codebase Snapshot
@@ -38,9 +38,13 @@ interaction.
      — user fills in). Exit 1 if the map already exists (no silent
      overwrite).
    - `--apply`: patch local `opencode.jsonc`: for every role present in BOTH
-     the map and the config's `agents` object, set `model` to the map's
-     `provider_model`. Print JSON result:
-     `{result: "PASS", applied: {"architect": "opencode/x", ...}}`.
+     the map and the config's `agent` object (official OpenCode v2 config
+     key, singular), set `model` to the map's `provider_model`. The legacy
+     `agents` (plural) key is patched only as a deterministic fallback when
+     `agent` is absent; a config with BOTH keys is refused as ambiguous
+     (exit 1, no write); a config with NEITHER key reports every role as
+     `skipped`. Print JSON result:
+     `{result: "PASS", applied: {"architect": "opencode/x", ...}, skipped: [...]}`.
 2. Paths overridable: `--map <path>` (default `~/.pipeline/model_map.json`),
    `--config <path>` (default `~/.config/opencode/opencode.jsonc`).
 3. JSONC safety: `opencode.jsonc` may contain comments. Patch ONLY
@@ -68,8 +72,11 @@ interaction.
 - `--show` on a valid fixture map prints exactly the mapping JSON, exit 0.
 - `--apply` on a fixture opencode.jsonc changes ONLY the three `agent.*.model`
   lines; all other config content byte-identical; comments preserved.
-- `--apply` with a map role NOT present in config's agents → that role is
-  skipped, reported in result as `skipped`.
+- `--apply` with a map role NOT present in config's `agent` object (or
+  legacy `agents` fallback) → that role is skipped, reported in result as
+  `skipped`.
+- `--apply` with a config containing BOTH `agent` and `agents` keys →
+  exit 1, file unchanged.
 - `--apply` with ambiguous config (duplicated model key) → exit 1, file
   unchanged.
 - `grep -rE "(ollama|openrouter)" scripts/model_assign.py` finds NOTHING
