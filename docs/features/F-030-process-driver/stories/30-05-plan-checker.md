@@ -1,6 +1,6 @@
 # Story 30-05 — plan_check.py: deterministic planning QA
 
-Status: Planned
+Status: Done
 Feature: Process Driver (F-030)
 
 ## Codebase Snapshot
