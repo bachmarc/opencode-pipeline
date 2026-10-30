@@ -1,6 +1,6 @@
 # Story 30-01 — Driver core: process profiles + compute next actions
 
-Status: Planned
+Status: Done
 Feature: Process Driver (F-030)
 
 ## Codebase Snapshot
@@ -42,7 +42,8 @@ deviations are configuration, never improvisation.
      stories: `[{id, status}]`, qa_state: `{story_id: [verdict...]}`,
      intents: `[intent...]`, worktrees: `[names...]`.
    - Profile keys consumed by this story: `workflow: "default"|"custom"`,
-     `test_strategy: "unit-fake"|"e2e-docker"|"hybrid"`, plus arbitrary
+     `test_strategy: "unit-fake"|"e2e-docker"|"hybrid"`,
+     `intent_max_age_hours` (int, default 72), plus arbitrary
      additional keys which the core IGNORES silently (extensibility rule).
 2. Computed action kinds (each `{kind, story_id?, reason}`):
    - `intent-reminder`: an intent exists that is older than
@@ -61,7 +62,8 @@ deviations are configuration, never improvisation.
 4. Profile validation: missing `workflow` key → `driver.py validate` exits 1
    with a clear error naming the missing key (fails loudly; exit 2 reserved
    for usage errors — audit fix 2026-10-30: unify with acceptance criteria).
-   Unknown extra keys → stdout warning, still valid.
+   Unknown extra keys → warning (inside the validate JSON payload on stdout;
+   stderr note for `next`), still valid (exit 0).
 5. CLI (driver v1 is READ-ONLY — it advises, it never mutates):
    - `driver.py next` — loads state + profile, prints actions as JSON array,
      exit 0 regardless of action kinds. Story statuses are parsed from the
