@@ -153,6 +153,20 @@
       "step": "implementing core checkers",
       "started_at": "2026-10-15T13:26:48.727551+00:00",
       "done": true
+    },
+    {
+      "story_id": "31-01",
+      "agent": "developer",
+      "step": "writing tests for model_assign",
+      "started_at": "2026-10-30T22:19:55.256316+00:00",
+      "done": true
+    },
+    {
+      "story_id": "31-01",
+      "agent": "developer",
+      "step": "running qa_compress",
+      "started_at": "2026-10-30T22:27:47.093932+00:00",
+      "done": true
     }
   ]
 }
