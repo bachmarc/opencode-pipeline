@@ -60,6 +60,15 @@ deterministic assignment path.
    is applied via escalation paths only (planning checkpoint uncertainty,
    `BLOCKED_Design`, driver `escalate-remedy` diagnosis recommendation from
    F-030 30-02).
+5. **QA tier triggers** (added 2026-10-30): cheap tier is the QA default;
+   strong-tier QA passes REQUIRED on first pass of new-process-mechanics
+   stories, `BLOCKED_Design` diagnosis, and `max_escalations`/breaking-change
+   final gates; the qa-manager emits `strong_review_recommended` in its
+   verdict, the architect applies the switch — no-discussion rule applies.
+   Rationale: QA is the highest-frequency agent (cost) AND its false-PASS
+   launders merges (failure asymmetry) — cheap default with bounded strong
+   exceptions is the only policy satisfying both. The `provenance` markers
+   from F-030 30-04 make tier adequacy measurable over time.
 
 ## Architecture decisions
 
