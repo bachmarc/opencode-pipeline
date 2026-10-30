@@ -215,20 +215,27 @@
       "agent": "developer",
       "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
       "started_at": "2026-10-30T23:05:59.203586+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-06",
       "agent": "developer",
       "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
       "started_at": "2026-10-30T23:06:10.129821+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-06",
       "agent": "developer",
       "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
       "started_at": "2026-10-30T23:08:07.518857+00:00",
+      "done": true
+    },
+    {
+      "story_id": "30-06",
+      "agent": "developer",
+      "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
+      "started_at": "2026-10-30T23:08:50.213523+00:00",
       "done": false
     }
   ]
