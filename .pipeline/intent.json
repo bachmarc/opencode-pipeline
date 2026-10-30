@@ -181,6 +181,34 @@
       "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
       "started_at": "2026-10-30T22:10:49.301576+00:00",
       "done": true
+    },
+    {
+      "story_id": "30-01",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.421729+00:00",
+      "done": false
+    },
+    {
+      "story_id": "30-03",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.480541+00:00",
+      "done": false
+    },
+    {
+      "story_id": "30-05",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.539958+00:00",
+      "done": false
+    },
+    {
+      "story_id": "31-01",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.595477+00:00",
+      "done": false
     }
   ]
 }
