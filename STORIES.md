@@ -107,7 +107,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 30-04-tier-k-scoping-prompts | qa-manager two-tier verdict + provenance; architect driver-first; templates process profile | Planned | F-030 process-driver |
 | 30-05-plan-checker | `scripts/plan_check.py`: deterministic planning QA (ghost refs, same-file conflicts, clarification markers) | Planned | F-030 process-driver |
 | 31-01-model-assign-script | `scripts/model_assign.py` (--show/--init/--apply) + tests | Planned | F-031 model-assignment |
-| 31-02-architect-tier-policy | architect: cheap-tier default + escalation points + no-discussion rule | Planned | F-031 model-assignment |
+| 31-02-architect-tier-policy | architect cheap-tier default + escalation points + no-discussion rule; QA tier triggers (strong on new-mechanics/BLOCKED/max_escalations) | Planned | F-031 model-assignment |
 
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
 
@@ -301,4 +301,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   continuous loop; strong tokens are the bounded exception. 2 stories:
   - 31-01: `scripts/model_assign.py` (--show/--init/--apply, JSONC-safe patches) + tests
   - 31-02: `agents/architect.md` — cheap-tier-default policy + escalation points incl.
-    planning audit + no-discussion rule (starts after 30-04 merged — same file)
+    planning audit + no-discussion rule; `agents/qa-manager.md` — QA tier triggers
+    (cheap default; strong REQUIRED on new-process-mechanics first pass / BLOCKED_Design /
+    max_escalations; strong_review_recommended flag) — starts after 30-04 merged (same
+    files, W3)
