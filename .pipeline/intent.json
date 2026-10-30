@@ -223,6 +223,20 @@
       "step": "running qa_compress",
       "started_at": "2026-10-30T22:19:55.256316+00:00",
       "done": true
+    },
+    {
+      "story_id": "31-01",
+      "agent": "developer",
+      "step": "agent-key follow-up fix: adapting script + tests",
+      "started_at": "2026-10-30T22:50:59.062589+00:00",
+      "done": true
+    },
+    {
+      "story_id": "31-01",
+      "agent": "developer",
+      "step": "agent-key follow-up fix: script + tests adapted, 9/9 green, committed c11cc7c",
+      "started_at": "2026-10-30T22:55:29.658436+00:00",
+      "done": true
     }
   ]
 }
