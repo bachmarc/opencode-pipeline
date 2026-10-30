@@ -279,6 +279,15 @@
       "step": "agent-key follow-up fix: script + tests adapted, 9/9 green, committed c11cc7c",
       "started_at": "2026-10-30T22:55:29.658436+00:00",
       "done": true
+    },
+    {
+      "story_id": "30-04",
+      "agent": "developer",
+      "step": "writing tests (test_agent_profile_awareness.py)",
+      "started_at": "2026-10-30T23:37:45.593460+00:00",
+      "done": true,
+      "worktree": "/mnt/content_main/Development/opencode-pipeline/.worktrees/30-04-tier-k-scoping-prompts",
+      "branch": "feature/30-04-tier-k-scoping-prompts"
     }
   ]
 }

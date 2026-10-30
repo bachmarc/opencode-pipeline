@@ -18,6 +18,11 @@
 - <… more, taken from feature.md Context sections>
 - The project's `qa_config.json` declares the QA checkers; missing file → pytest default.
 - **Fake requirement:** For EVERY external dependency (`<API>`, `<DB>`, `<HA>`, …) there exists a fake in `tests/fakes/` — tests run without real systems.
+- **Process Profile:** `.pipeline/process.json` declares the project's process
+  profile (`workflow`, `test_strategy` — e.g. `unit-fake` (default) vs.
+  `e2e-docker`, `escalation`). The pipeline's QA gate and driver read it —
+  a project deviates from the default workflow by editing the profile, never
+  by being unserved.
 
 ## Architecture: function vs connectivity
 
