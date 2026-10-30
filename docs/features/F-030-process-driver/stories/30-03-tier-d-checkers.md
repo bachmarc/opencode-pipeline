@@ -110,6 +110,11 @@ token cost, machine-readable verdicts.
 - `tests/test_qa_checkers_process.py::test_worktree_discipline_wrong_dir` —
   worktree registered under unexpected path (not `.worktrees/<id>-*`) → exit
   1.
+- `tests/test_qa_checkers_process.py::test_worktree_discipline_branch_in_main_checkout` —
+  story branch checked out in the MAIN worktree, none under
+  `.worktrees/<id>-*` (the real owner Fundfall: dev worked outside the story
+  worktree; audit fix 2026-10-30 added this missing case) → exit 1, FAIL
+  reason names the worktree-root expectation.
 - `tests/test_qa_checkers_process.py::test_metadata_pass` — well-formed
   metadata commit (symbols/affects match diff) → exit 0.
 - `tests/test_qa_checkers_process.py::test_metadata_missing_affects` — code

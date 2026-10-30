@@ -278,7 +278,10 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   report findings) + strong-architect diagnosis. Planning itself gets Tier D too:
   `plan_check.py` validates open story files (ghost refs, same-file conflicts → wave
   assignment, clarification markers, section completeness) before any checkpoint —
-  flash-class planning errors become script-detected. 5 stories:
+  flash-class planning errors become script-detected. Waves: W1 = 30-01 +
+  30-03 + 30-05 + 31-01 parallel (file-disjoint, new files only); W2 = 30-02
+  + 30-04 after ALL W1 merged (audit fix 2026-10-30: uniform gate); W3 =
+  31-02 after 30-04 merged. 5 stories:
   - 30-01: `scripts/driver.py` — process profiles + pure core `compute_next_actions` + CLI
   - 30-02: escalation rules + ledger + `create_story.py --type debug` + story template comment block
   - 30-03: Tier D checkers `worktree_discipline` + `metadata_affects` in qa_compress

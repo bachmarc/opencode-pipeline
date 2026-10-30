@@ -125,10 +125,14 @@ diagnosis recommendation — instead of endless cheap retries.
   merges belong to `merge_if_passed.py`) — dropped. Escalation history lives
   in `.pipeline/escalations.json`, appended by debug-story creation, counted
   by the stateless driver.
-- **Same-file wave discipline:** 30-02 extends `scripts/driver.py` (starts
-  after 30-01 merges); 31-02 edits `agents/architect.md` (starts after 30-04
-  merges). Wave 1 (30-01, 30-03, 30-05, 31-01) is file-disjoint and runs
-  parallel; plan_check would flag any violation of this topology.
+- **Same-file wave discipline:** Wave 1 (30-01, 30-03, 30-05, 31-01) is
+  file-disjoint (new files only) and runs parallel. **Wave 2 (30-02, 30-04)
+  starts only after ALL Wave-1 stories merged — uniform gate** (audit fix
+  2026-10-30): 30-02 extends `scripts/driver.py` (30-01), 30-04's prompt
+  integration references `plan_check.py` (30-05) and tier-D checker names
+  (30-03). Wave 3 (31-02) starts after 30-04 merges (same file
+  `agents/architect.md`) and transitively after Wave 1 — 31-02 references
+  `model_assign.py` (31-01). plan_check flags violations of this topology.
 - **qa_compress pattern reuse:** new process checkers follow the existing
   flat checker-registry pattern (check function returning `tuple[str, int]`),
   config-selected via `qa_config.json` — no new test entry point.

@@ -16,9 +16,9 @@ Feature: Process Driver (F-030)
   "started_at", "done"}]}`.
 - `scripts/qa_route.py` + `.pipeline/qa-state/*.json` — verdict files keyed by
   story id with `verdicts: [{verdict, branch, commit, tests, timestamp}]`.
-- `scripts/intent.py` — intent start/done commands; the driver's `--apply`
-  mode shells out to nothing but may emit actions that the architect fulfills
-  via `intent.py done`.
+- `scripts/intent.py` — intent start/done commands; the architect fulfills
+  intent-reminder actions via `intent.py done` (driver v1 is read-only — no
+  `--apply` mode exists).
 - `tests/` — framework self-checks read repo files and run scripts via
   subprocess; no test currently covers pipeline_status/session_recovery state
   reading (pattern: `tests/test_framework.py` style).
@@ -58,9 +58,10 @@ deviations are configuration, never improvisation.
 3. Multiple findings produce multiple actions, in a STABLE order:
    intent-reminder, spawn-qa, merge-candidate, spawn-dev (deterministic for
    tests).
-4. Profile validation: missing `workflow` key → driver exits code 2 with a
-   clear error (fails loudly). Unknown extra keys → stdout warning, still
-   valid.
+4. Profile validation: missing `workflow` key → `driver.py validate` exits 1
+   with a clear error naming the missing key (fails loudly; exit 2 reserved
+   for usage errors — audit fix 2026-10-30: unify with acceptance criteria).
+   Unknown extra keys → stdout warning, still valid.
 5. CLI (driver v1 is READ-ONLY — it advises, it never mutates):
    - `driver.py next` — loads state + profile, prints actions as JSON array,
      exit 0 regardless of action kinds. Story statuses are parsed from the
@@ -85,9 +86,9 @@ deviations are configuration, never improvisation.
 - Create `tests/test_driver_core.py` covering the core ONLY (pure function,
   no filesystem) and `tests/test_driver_cli.py` covering CLI behavior against
   a fixture temp repo (`.pipeline/` populated, fake `process.json`).
-- Update `scripts/README`-adjacent docs if a scripts index exists — verify
-  with `grep -r "pipeline_status" scripts/ docs/` and only touch a file if it
-  lists scripts (keep list entries consistent).
+- NO doc updates in this story — the STORIES.md phase-30 block already
+  documents the script (audit fix 2026-10-30: removed the open-ended
+  "README-adjacent docs if exists" clause; deterministic targets only).
 
 ## Acceptance criteria (checked by qa-manager)
 

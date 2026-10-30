@@ -49,7 +49,13 @@ checkpoint) ships in 30-04, not here — same-file discipline.
      path (contains `/` or a known file suffix) AND is referenced as
      EXISTING (Codebase Snapshot lines; verbs "extend"/"existing") must
      exist in the repo. "Create <path>" targets are exempt (they are the
-     story's own deliverables).
+     story's own deliverables). **Sequenced cross-references** (audit fix
+     2026-10-30): a path with extend/existing verbs that does NOT exist
+     today but is a create-target of ANOTHER open story →
+     `sequenced-reference` WARN entry (exit code unchanged), never a
+     ghost-FAIL. Deterministic: create-target set = union of all open
+     stories' Developer Targets "Create" lines (real case: 30-02 extends
+     `scripts/driver.py`, which open 30-01 creates).
    - **Same-file conflicts:** build the touched-file set per story (paths
      in Developer Targets Create/Edit lines); a file touched by more than
      one OPEN story → `conflict_candidates` entry. Severity WARN (exit code
@@ -90,6 +96,8 @@ checkpoint) ships in 30-04, not here — same-file discipline.
   not fail).
 - Clean story → `{result: PASS, problems: [], conflict_candidates: []}`,
   exit 0.
+- Sequenced cross-reference (story extends a path that another OPEN story
+  creates) → `sequenced-reference` WARN, exit unchanged (not ghost-FAIL).
 - The script parses THIS repo's real story files without error (self-check:
   run against `docs/features/F-030-process-driver/stories/`).
 
@@ -104,6 +112,10 @@ checkpoint) ships in 30-04, not here — same-file discipline.
 - `tests/test_plan_check.py::test_done_stories_skipped`
 - `tests/test_plan_check.py::test_clean_story_passes`
 - `tests/test_plan_check.py::test_single_story_mode`
+- `tests/test_plan_check.py::test_sequenced_cross_reference_warns` — open
+  story A creates `scripts/shared.py`, open story B extends
+  `scripts/shared.py` → WARN `sequenced-reference`, exit unchanged (audit fix
+  2026-10-30).
 
 ## Tooling Gates (mandatory — QA checks ALL of these)
 

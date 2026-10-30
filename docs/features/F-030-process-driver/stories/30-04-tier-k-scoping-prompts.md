@@ -18,9 +18,12 @@ Feature: Process Driver (F-030)
 - `templates/AGENTS.md` — project-level instructions: fake requirements
   (~lines 20, 33-40), QA gate description (~line 83). Gains a Process Profile
   subsection so downstream projects know `process.json` exists.
-- `tests/test_framework.py` (and neighbours ~`tests/test_agent_prompts.py` if
-  present — verify via `grep -rl "qa-manager" tests/`) — self-checks asserting
-  prompt structure; must be updated where they pin current wording.
+- `tests/test_framework.py` and `tests/test_check_scripts.py` — the latter
+  covers `scripts/check_template_constancy.py` (CONSTANT_SECTIONS: Workflow,
+  Git conventions, Languages, Prohibitions — verified 2026-10-30; the
+  earlier draft named a nonexistent `tests/test_template_constancy.py` —
+  ghost reference caught in audit). Both must stay green; update only where
+  they pin prompt wording.
 
 ## Context / Purpose
 
@@ -67,8 +70,10 @@ architect's orchestration role is re-based on the driver.
      conflict candidates → sequential waves declared in the STORIES.md
      phase block.
 
-**Sequencing:** starts after 30-01 (`driver.py` must exist — the prompt
-references `driver.py next`) AND 30-03 (tier-D checker names) are merged. The
+**Sequencing:** starts after ALL Wave-1 stories merged: 30-01 (`driver.py`
+must exist — the prompt references `driver.py next`), 30-03 (tier-D checker
+names) AND 30-05 (`plan_check.py` must exist — the prompt integration
+references it; audit fix 2026-10-30 added this missing dependency). The
 `agents/architect.md` plan_check step ships HERE (not in 30-05) — same-file
 discipline.
 3. `templates/AGENTS.md`: new short "Process Profile" paragraph in a
@@ -115,7 +120,8 @@ discipline.
   clause.
 - `tests/test_agent_profile_awareness.py::test_template_process_profile` —
   `templates/AGENTS.md` contains the `process.json` mention; AND
-  `tests/test_template_constancy.py` (existing) still passes unchanged.
+  `tests/test_check_scripts.py` (the real constancy coverage — audit fix
+  2026-10-30) still passes unchanged.
 - Existing prompt self-checks (grep-located) updated to match new wording.
 
 ## Tooling Gates (mandatory — QA checks ALL of these)
