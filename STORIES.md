@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix → 22 QA Compress Fast Mode → 23 Plugin V2 Migration → 24 V2 Agent Dir Fix → 25 Project Profile & QA Configuration → 26 Codebase Snapshot in Stories
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix → 22 QA Compress Fast Mode → 23 Plugin V2 Migration → 24 V2 Agent Dir Fix → 25 Project Profile & QA Configuration → 26 Codebase Snapshot in Stories → 30 Process Driver → 31 Model Assignment
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -101,6 +101,12 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 25-02-migrate-dialog-and-qa-config | /migrate Phase 2+4: test+deploy dialog, qa_config.json, deploy doc | Done (QA PASS) | F-025 project-profile |
 | 25-03-history-dialog | /migrate Phase 5: granular retro / baseline / clean-start dialog | Done (QA PASS) | F-025 project-profile |
 | 26-01-codebase-snapshot-in-story-template | Story template + Architect + Developer: ## Codebase Snapshot section | Done (QA PASS) | F-026 codebase-snapshot |
+| 30-01-driver-core | `scripts/driver.py`: process profiles + pure core compute_next_actions + CLI | Planned | F-030 process-driver |
+| 30-02-escalation-debug-story | Driver escalation rules + create_story --type debug | Planned | F-030 process-driver |
+| 30-03-tier-d-checkers | qa_compress: worktree_discipline + metadata_affects checkers | Planned | F-030 process-driver |
+| 30-04-tier-k-scoping-prompts | qa-manager two-tier verdict + provenance; architect driver-first; templates process profile | Planned | F-030 process-driver |
+| 31-01-model-assign-script | `scripts/model_assign.py` (--show/--init/--apply) + tests | Planned | F-031 model-assignment |
+| 31-02-architect-tier-policy | architect: cheap-tier default + escalation points + no-discussion rule | Planned | F-031 model-assignment |
 
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
 
@@ -253,3 +259,32 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   block in `session_recovery.py` so every session start shows the state. Never touches
   unmerged branches. 1 story:
   - 29-01: `scripts/worktree_cleanup.py` + `session_recovery.py` staleness block + tests
+- **Phase 30 (Process Driver):** The architect performs two jobs: planner/consultant (its
+  value) AND deterministic process work (spawning, intents, state tracking, story
+  orchestration) — an LLM as state machine that lost two open intents for ~2 weeks and
+  burns expensive tokens on mechanics (owner findings 2026-10-30). Fix: a deterministic
+  driver computes next actions from `.pipeline/` state + a per-project process profile
+  (`process.json`: workflow, test_strategy incl. `e2e-docker` — the framework's historical
+  flexibility becomes declared configuration). QA splits into Tier D (deterministic
+  process checkers in the qa_compress registry: worktree discipline, commit metadata
+  affects-checks — two checks the LLM QA repeatedly performed at token cost) and Tier K
+  (LLM judges ONLY the non-automatable remainder, with `provenance` in verdicts).
+  Escalation on repeated dev failure is rule-based and uses the historically proven
+  pattern: debug story (investigation story for the cheap developer, report findings) +
+  strong-architect diagnosis. 4 stories:
+  - 30-01: `scripts/driver.py` — process profiles + pure core `compute_next_actions` + CLI
+  - 30-02: escalation rules + `create_story.py --type debug` + story template comment block
+  - 30-03: Tier D checkers `worktree_discipline` + `metadata_affects` in qa_compress
+  - 30-04: qa-manager two-tier verdict + provenance; architect driver-first orchestration;
+    templates/AGENTS.md process profile paragraph
+- **Phase 31 (Model Assignment):** Token scarcity forces frequent model/provider
+  reassignments (ollama, openrouter, opencode...); today this turns into endless LLM
+  discussion about "how/where". Also: architect ran on the strong tier by default although
+  user tests show the cheap tier suffices ~99%. Fix: local gitignored `model_map.json`
+  (role → tier/provider_model) + `scripts/model_assign.py` patching the local
+  `opencode.jsonc` deterministically; architect prompts get the no-discussion rule and the
+  policy flip (cheap tier default, strong tier only at defined escalation points).
+  2 stories:
+  - 31-01: `scripts/model_assign.py` (--show/--init/--apply, JSONC-safe patches) + tests
+  - 31-02: `agents/architect.md` — cheap-tier-default policy + escalation points +
+    no-discussion rule
