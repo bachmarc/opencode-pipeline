@@ -145,14 +145,14 @@
       "agent": "architect",
       "step": "planning",
       "started_at": "2026-10-15T12:46:22.187751+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "27-02",
       "agent": "developer",
       "step": "implementing core checkers",
       "started_at": "2026-10-15T13:26:48.727551+00:00",
-      "done": false
+      "done": true
     }
   ]
 }
