@@ -237,6 +237,20 @@
       "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
       "started_at": "2026-10-30T23:08:50.213523+00:00",
       "done": false
+    },
+    {
+      "story_id": "30-03",
+      "agent": "developer",
+      "step": "writing tests/test_qa_checkers_process.py (test-first)",
+      "started_at": "2026-10-30T22:28:05.934411+00:00",
+      "done": false
+    },
+    {
+      "story_id": "30-03",
+      "agent": "developer",
+      "step": "implementation done, preparing commit",
+      "started_at": "2026-10-30T22:32:42.454428+00:00",
+      "done": false
     }
   ]
 }

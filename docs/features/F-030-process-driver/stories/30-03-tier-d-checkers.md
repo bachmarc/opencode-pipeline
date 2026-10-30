@@ -1,6 +1,6 @@
 # Story 30-03 — Tier D process checkers: worktree discipline + metadata affects
 
-Status: Planned
+Status: Done
 Feature: Process Driver (F-030)
 
 ## Codebase Snapshot

@@ -40,6 +40,22 @@ Modular checker registry pattern (flat, inline):
   - Only CONFIGURED checkers run (serially). Overall status = FAIL as soon as
     ONE checker is non-zero (AND semantics).
 
+Process checkers (Tier D, OFF by default — projects opt in per profile):
+  - worktree_discipline: derives the story id from the CURRENT git branch
+    (feature/<story-id>-<slug>; qa_config.json process_checker.story_id as
+    fallback override for out-of-worktree runs) and requires a registered
+    worktree under process_checker.worktree_root (default ".worktrees",
+    resolved against the main worktree) that has the story branch checked
+    out. Detects work done outside the story worktree.
+  - metadata_affects: validates commit metadata across ALL branch commits
+    since the merge base with the default branch (main, fallback master) —
+    every affects: path must exist in the repo, and every changed src/ or
+    tests/ file must be declared in some commit's symbols:/affects: values
+    (docs/planning-only branches pass without declarations).
+  - Config: optional qa_config.json block "process_checker" with string keys
+    "story_id" and "worktree_root"; unknown keys inside the block fail
+    validation like unknown checker names.
+
 Fast mode (--fast flag):
   - Detects changed files via `git diff main..<branch> --name-only`.
   - Falls back to `git diff HEAD~1 --name-only` if not on a feature branch.
@@ -1088,6 +1104,266 @@ def black_check() -> tuple[str, int]:
     return compressed, exit_code
 
 
+# --- Process checkers (Tier D): inspect git state, no tool binaries needed ---
+
+# Allowed keys in the optional qa_config.json "process_checker" block.
+_PROCESS_CHECKER_KEYS = ("story_id", "worktree_root")
+_DEFAULT_WORKTREE_ROOT = ".worktrees"
+
+
+def _git_out(*args: str) -> str | None:
+    """Run a git command in the project cwd and return stripped stdout.
+
+    Returns:
+        Stripped stdout on exit code 0, else None (including timeouts and
+        missing git binary).
+    """
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
+def _read_process_checker_config() -> dict[str, str]:
+    """Re-read the optional qa_config.json "process_checker" block.
+
+    ``_load_config()`` already validated this block (unknown keys and
+    non-string values exit loudly), so a silent fallback to an empty dict is
+    safe here.
+
+    Returns:
+        The process_checker mapping, or {} when absent or unreadable.
+    """
+    try:
+        with open(Path("qa_config.json"), encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    block = data.get("process_checker")
+    return dict(block) if isinstance(block, dict) else {}
+
+
+def _fail_json(reason: str) -> str:
+    """Format a checker FAIL verdict with reason as one JSON line."""
+    return json.dumps({"result": "FAIL", "reason": reason}) + "\n"
+
+
+def _parse_commit_metadata(message: str) -> dict[str, str]:
+    """Extract the pipe-separated key-value metadata segments from a message.
+
+    Convention (scripts/prepare_commit_metadata.py): a body line like
+    ``symbols: a, b | breaks: none | affects: x y | tests: N passed``.
+    First occurrence of a key wins; unknown keys are ignored.
+
+    Args:
+        message: Full commit message (subject + body).
+
+    Returns:
+        Mapping of recognized keys (symbols/affects/breaks/tests) to their
+        raw string values.
+    """
+    meta: dict[str, str] = {}
+    for line in message.splitlines():
+        for chunk in line.split("|"):
+            match = re.match(r"\s*(symbols|affects|breaks|tests)\s*:\s*(.+?)\s*$", chunk)
+            if match and match.group(1) not in meta:
+                meta[match.group(1)] = match.group(2)
+    return meta
+
+
+def worktree_discipline() -> tuple[str, int]:
+    """Check story worktree discipline (Tier D).
+
+    The story id is derived from the CURRENT git branch
+    (``feature/<story-id>-<slug>``); the optional ``process_checker.story_id``
+    config key is a fallback override for out-of-worktree runs. Rule:
+    ``git worktree list --porcelain`` must contain a worktree whose
+    checked-out branch matches the story branch AND whose path is under
+    ``<worktree_root>/<story-id>-*`` (``worktree_root`` defaults to
+    ``.worktrees``, resolved against the main worktree).
+
+    FAIL reasons: no worktree registered for the story / story branch checked
+    out outside the expected worktree root.
+
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    branch = _git_out("rev-parse", "--abbrev-ref", "HEAD")
+    if branch is None:
+        return _fail_json("cannot determine current git branch"), 1
+
+    config = _read_process_checker_config()
+    story_id: str | None = None
+    branch_match = re.match(r"^feature/(\d+-\d+)-", branch)
+    if branch_match:
+        story_id = branch_match.group(1)
+    if story_id is None:
+        # Fallback override for out-of-worktree runs (e.g. QA on the main
+        # checkout with an explicit story id).
+        story_id = config.get("story_id")
+    if not story_id:
+        return _fail_json(
+            f"cannot derive story id from branch '{branch}' "
+            "(expected feature/<story-id>-<slug>); set process_checker.story_id "
+            "override in qa_config.json"
+        ), 1
+
+    worktree_root = config.get("worktree_root", _DEFAULT_WORKTREE_ROOT)
+    listing = _git_out("worktree", "list", "--porcelain")
+    if listing is None:
+        return _fail_json("git worktree list failed"), 1
+
+    # Parse porcelain entries: worktree <path> / branch refs/heads/<name>.
+    entries: list[tuple[str, str | None]] = []
+    current_path: str | None = None
+    current_branch: str | None = None
+    for line in listing.splitlines():
+        if line.startswith("worktree "):
+            if current_path is not None:
+                entries.append((current_path, current_branch))
+            current_path = line[len("worktree "):].strip()
+            current_branch = None
+        elif line.startswith("branch ") and current_path is not None:
+            current_branch = line[len("branch "):].strip().removeprefix("refs/heads/")
+    if current_path is not None:
+        entries.append((current_path, current_branch))
+
+    if not entries:
+        return _fail_json("no worktrees registered"), 1
+
+    # The main worktree is always listed first; worktree_root resolves
+    # against it.
+    expected_root = Path(entries[0][0]) / worktree_root
+    branch_pattern = re.compile(rf"^feature/{re.escape(story_id)}(-|$)")
+    matches = [
+        (path, entry_branch)
+        for path, entry_branch in entries
+        if entry_branch is not None and branch_pattern.match(entry_branch)
+    ]
+
+    if not matches:
+        return _fail_json(
+            f"no worktree registered for story {story_id}: no worktree has a "
+            f"branch matching feature/{story_id}-* checked out"
+        ), 1
+
+    worktree_path, checked_out_branch = matches[0]
+    candidate = Path(worktree_path)
+    if not (
+        candidate.is_relative_to(expected_root)
+        and candidate.name.startswith(f"{story_id}-")
+    ):
+        return _fail_json(
+            f"story branch '{checked_out_branch}' checked out outside expected "
+            f"worktree root {expected_root}/{story_id}-* (worktree: {worktree_path})"
+        ), 1
+
+    output = json.dumps(
+        {"result": "PASS", "branch": checked_out_branch, "worktree": worktree_path},
+        sort_keys=True,
+    ) + "\n"
+    return output, 0
+
+
+def metadata_affects() -> tuple[str, int]:
+    """Check commit metadata consistency for the whole story branch (Tier D).
+
+    Scope: ALL commits between the merge base with the default branch (main,
+    fallback master) and HEAD — not just the last commit — so fix-loop
+    follow-ups stay covered. Rules:
+
+    1. Every path listed in a commit's ``affects:`` must exist in the repo
+       (the sentinels ``nothing``/``none`` are skipped).
+    2. Every changed ``src/``/``tests/`` file across the branch (via
+       ``git diff --name-only <merge-base>..HEAD``) must be declared in some
+       commit's ``symbols:``/``affects:`` values — OR the branch is
+       docs/planning-only (no code paths changed) and passes without
+       declarations.
+
+    Returns:
+        Tuple of (compressed_output: str, exit_code: int).
+    """
+    branch = _git_out("rev-parse", "--abbrev-ref", "HEAD")
+    if branch is None:
+        return _fail_json("cannot determine current git branch"), 1
+
+    merge_base: str | None = None
+    for default_branch in ("main", "master"):
+        merge_base = _git_out("merge-base", default_branch, "HEAD")
+        if merge_base is not None:
+            break
+    if merge_base is None:
+        return _fail_json("cannot determine merge base (main/master merge-base failed)"), 1
+
+    log_output = _git_out("log", f"{merge_base}..HEAD", "--format=%x1f%s%x1f%B%x1e")
+    if log_output is None:
+        return _fail_json("git log failed"), 1
+    diff_output = _git_out("diff", "--name-only", f"{merge_base}..HEAD")
+    if diff_output is None:
+        return _fail_json("git diff failed"), 1
+
+    changed_files = [line.strip() for line in diff_output.splitlines() if line.strip()]
+    code_files = [
+        path for path in changed_files
+        if path.startswith("src/") or path.startswith("tests/")
+    ]
+
+    # Parse the metadata segments of EVERY branch commit (multi-commit scope).
+    symbols_values: list[str] = []
+    affects_values: list[str] = []
+    for record in log_output.split("\x1e"):
+        parts = record.split("\x1f")
+        if len(parts) < 2:
+            continue
+        subject = parts[1]
+        body = parts[2] if len(parts) > 2 else ""
+        meta = _parse_commit_metadata(subject + "\n" + body)
+        if "symbols" in meta:
+            symbols_values.append(meta["symbols"])
+        if "affects" in meta:
+            affects_values.append(meta["affects"])
+
+    errors: list[str] = []
+    checks = 0
+
+    # Rule 1: every declared affects path must exist in the repo.
+    for value in affects_values:
+        for token in re.split(r"[\s,]+", value):
+            token = token.strip()
+            if not token or token in ("nothing", "none"):
+                continue
+            checks += 1
+            if not Path(token).exists():
+                errors.append(f"declared affects path does not exist: {token}")
+
+    # Rule 2: changed src//tests files must be declared somewhere on the branch.
+    declared = " ".join(symbols_values + affects_values)
+    for path in code_files:
+        checks += 1
+        if path not in declared:
+            errors.append(
+                f"changed code file not declared in any commit's "
+                f"symbols:/affects:: {path}"
+            )
+
+    if errors:
+        return json.dumps({"result": "FAIL", "errors": errors}) + "\n", 1
+
+    output = json.dumps({"result": "PASS", "checks": checks}, sort_keys=True) + "\n"
+    return output, 0
+
+
 # Registry: maps checker name -> checker function
 
 
@@ -1110,24 +1386,28 @@ CHECKERS: dict[str, callable] = {
     "mypy": mypy_check,
     "ruff": ruff_check,
     "black": black_check,
+    "worktree_discipline": worktree_discipline,
+    "metadata_affects": metadata_affects,
 }
 
 
-def _load_config() -> list[str]:
+def _load_config() -> tuple[list[str], object]:
     """Load and parse qa_config.json.
-    
+
     Returns:
-        List of configured checker names.
-        
+        Tuple of (configured checker names, raw "process_checker" block).
+        The block is passed through UNVALIDATED — call
+        ``_validate_configured_checkers()`` on it; it is None when absent.
+
     Raises:
         SystemExit: On invalid JSON or missing "checkers" key.
     """
     config_file = Path("qa_config.json")
-    
+
     if not config_file.exists():
         # Default: ["pytest"]
-        return ["pytest"]
-    
+        return ["pytest"], None
+
     try:
         with open(config_file, encoding="utf-8") as fh:
             data = json.load(fh)
@@ -1137,24 +1417,61 @@ def _load_config() -> list[str]:
     except OSError as exc:
         print(f"qa_config.json: unreadable: {exc}", file=sys.stderr)
         sys.exit(1)
-    
+
     if not isinstance(data, dict) or "checkers" not in data:
         print('qa_config.json: missing key "checkers"', file=sys.stderr)
         sys.exit(1)
-    
+
     names = data["checkers"]
     if not isinstance(names, list) or not all(isinstance(n, str) for n in names):
         print('qa_config.json: "checkers" must be a list of strings', file=sys.stderr)
         sys.exit(1)
-    
-    return names
+
+    return names, data.get("process_checker")
 
 
-def _validate_configured_checkers(configured: list[str]) -> None:
-    """Validate that all configured checker names are registered.
-    
+def _validate_process_checker_block(block: object) -> None:
+    """Validate the optional qa_config.json "process_checker" block.
+
+    Allowed keys: "story_id" and "worktree_root", both strings (story_id is
+    a fallback override for out-of-worktree runs, worktree_root defaults to
+    ".worktrees"). Unknown keys fail validation like unknown checker names.
+
     Raises:
-        SystemExit: If an unknown checker is configured.
+        SystemExit: On non-object block, unknown key, or non-string value.
+    """
+    if block is None:
+        return
+    if not isinstance(block, dict):
+        print('qa_config.json: "process_checker" must be an object', file=sys.stderr)
+        sys.exit(1)
+    for key, value in block.items():
+        if key not in _PROCESS_CHECKER_KEYS:
+            allowed = ", ".join(_PROCESS_CHECKER_KEYS)
+            print(
+                f"unknown process_checker key: {key} (allowed: {allowed})",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        if not isinstance(value, str):
+            print(
+                f'qa_config.json: "process_checker.{key}" must be a string',
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+
+def _validate_configured_checkers(
+    configured: list[str],
+    process_checker: object = None,
+) -> None:
+    """Validate that all configured checker names are registered.
+
+    Also validates the optional process_checker block (unknown keys inside
+    it fail like unknown checker names).
+
+    Raises:
+        SystemExit: If an unknown checker or process_checker key is configured.
     """
     for name in configured:
         if name not in CHECKERS:
@@ -1164,6 +1481,7 @@ def _validate_configured_checkers(configured: list[str]) -> None:
                 file=sys.stderr,
             )
             sys.exit(1)
+    _validate_process_checker_block(process_checker)
 
 
 def get_changed_test_modules(repo_root: Path) -> list[str]:
@@ -1270,10 +1588,10 @@ def main() -> int:
     args = parser.parse_args()
     
     # Load configuration
-    configured = _load_config()
-    
-    # Validate configured checkers
-    _validate_configured_checkers(configured)
+    configured, process_checker = _load_config()
+
+    # Validate configured checkers (+ optional process_checker block)
+    _validate_configured_checkers(configured, process_checker)
     
     # Handle explicit opt-out
     if not configured:
