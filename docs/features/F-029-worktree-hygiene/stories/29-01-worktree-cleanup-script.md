@@ -1,6 +1,8 @@
 # Story 29-01: `worktree_cleanup.py` + Session-Recovery Staleness Check
 
-## Context & Purpose
+Feature: F-029 worktree-hygiene
+
+## Context / Purpose
 
 `worktree_setup.py` creates a worktree per story; nothing ever removes them.
 The VirtOffice incident (F-029 Context) showed the accumulation cost: every
