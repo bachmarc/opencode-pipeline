@@ -1,0 +1,26 @@
+# local state
+node_modules
+package.json
+package-lock.json
+bun.lock
+plugins/node_modules/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# machine-specific — local only, never committed
+opencode.json
+opencode.jsonc
+cron.db
+.pipeline/config.json
+
+# optional third-party plugins (local install, not framework)
+plugins/rtk.ts
+
+# pipeline worktrees
+.worktrees/
+
+# local run artifacts
+qa_output.log
+test_version_main.txt
+.mypy_cache/
