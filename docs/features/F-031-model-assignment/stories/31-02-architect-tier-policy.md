@@ -7,8 +7,8 @@ Feature: Model Assignment (F-031)
 
 - `agents/architect.md` — current session prompt. Model-related line:
   "**Cut stories so cheap mass models (locally configured via
-  `agents.developer.model`) can implement them … Expensive/strong model only
-  as fallback (locally via `agents.architect.model`), not for mass
+  `agent.developer.model`) can implement them … Expensive/strong model only
+  as fallback (locally via `agent.architect.model`), not for mass
   implementation**" — the policy line this story flips. Story planning /
   review checkpoint sections establish where escalation points live (planning
   checkpoint, BLOCKED_Design handling under "Autonomous Design Repair").
@@ -75,7 +75,7 @@ both stories edit `agents/architect.md`.
        ambiguous or a design gap is suspected; the ARCHITECT applies the
        tier switch locally (`model_assign.py`) and re-runs QA — under the
        same no-discussion rule as model assignment.
-5. Backwards texture: the existing developer-model line (`agents.developer`
+5. Backwards texture: the existing developer-model line (`agent.developer`
    mass-model note) stays untouched — this is architect- and QA-scoped.
 
 ## Developer Targets (exactly, no more / no less)
