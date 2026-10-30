@@ -27,7 +27,7 @@
 - **Template constancy:** Constant sections of `templates/AGENTS.md` (workflow, git conventions,
   languages, prohibitions) are the binding interface — do not modify them in projects.
 - **Phase-0 checkpoint is technically enforced:** `permissions[action=task]` gates architect → developer /
-  qa-manager spawns (`{ "action": "task", "resource": "developer", "effect": "ask" }` in the local JSON under `agents.architect.permissions`).
+  qa-manager spawns (`{ "action": "task", "resource": "developer", "effect": "ask" }` in the local JSON under `agent.architect.permissions`).
 
 ## Architecture: function vs connectivity
 

@@ -44,7 +44,7 @@ interaction.
 2. Paths overridable: `--map <path>` (default `~/.pipeline/model_map.json`),
    `--config <path>` (default `~/.config/opencode/opencode.jsonc`).
 3. JSONC safety: `opencode.jsonc` may contain comments. Patch ONLY
-   `agents.<role>.model` value patterns (`"model": "..."` lines inside the
+   `agent.<role>.model` value patterns (`"model": "..."` lines inside the
    role object). If the file cannot be patched unambiguously (role missing,
    two `model` keys in one role block, trailing syntax uncertainty), exit 1
    WITHOUT writing.
@@ -66,7 +66,7 @@ interaction.
 
 - No `[NEEDS CLARIFICATION]` markers remain in this story.
 - `--show` on a valid fixture map prints exactly the mapping JSON, exit 0.
-- `--apply` on a fixture opencode.jsonc changes ONLY the three `agents.*.model`
+- `--apply` on a fixture opencode.jsonc changes ONLY the three `agent.*.model`
   lines; all other config content byte-identical; comments preserved.
 - `--apply` with a map role NOT present in config's agents → that role is
   skipped, reported in result as `skipped`.

@@ -48,7 +48,7 @@ deterministic assignment path.
    Tier semantics (`cheap`/`strong`) are user-local conventions; the concrete
    `provider_model` string is opaque to the pipeline.
 2. **Applier script:** `scripts/model_assign.py` — `--show`, `--init`, and
-   `--apply`: writes the `agents.<role>.model` fields of the LOCAL
+   `--apply`: writes the `agent.<role>.model` fields of the LOCAL
    `opencode.jsonc` from the map (textual, deterministic; keeps all other
    config intact). Never contains model names.
 3. **No-discussion rule** in `agents/architect.md`: model/provider assignment
@@ -60,6 +60,15 @@ deterministic assignment path.
    is applied via escalation paths only (planning checkpoint uncertainty,
    `BLOCKED_Design`, driver `escalate-remedy` diagnosis recommendation from
    F-030 30-02).
+5. **QA tier triggers** (added 2026-10-30): cheap tier is the QA default;
+   strong-tier QA passes REQUIRED on first pass of new-process-mechanics
+   stories, `BLOCKED_Design` diagnosis, and `max_escalations`/breaking-change
+   final gates; the qa-manager emits `strong_review_recommended` in its
+   verdict, the architect applies the switch — no-discussion rule applies.
+   Rationale: QA is the highest-frequency agent (cost) AND its false-PASS
+   launders merges (failure asymmetry) — cheap default with bounded strong
+   exceptions is the only policy satisfying both. The `provenance` markers
+   from F-030 30-04 make tier adequacy measurable over time.
 
 ## Architecture decisions
 
@@ -68,7 +77,7 @@ deterministic assignment path.
   overridable via `--map` / `--config` flags for testability); stdlib-only;
   no network, no validation of provider availability.
 - **JSONC safety:** `opencode.jsonc` may contain comments; the applier edits
-  ONLY the `agents.<role>.model` value lines via targeted regex, and refuses
+  ONLY the `agent.<role>.model` value lines via targeted regex, and refuses
   to run when the file contains a syntax it cannot safely patch (fail loudly,
   ask for `--init` which writes a fresh minimal map).
 - **Portable-file cleanliness:** guard test proves NO model/provider name

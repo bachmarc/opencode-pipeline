@@ -155,6 +155,62 @@
       "done": true
     },
     {
+      "story_id": "30-01",
+      "agent": "developer",
+      "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
+      "started_at": "2026-10-30T22:10:48.332914+00:00",
+      "done": true
+    },
+    {
+      "story_id": "30-03",
+      "agent": "developer",
+      "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
+      "started_at": "2026-10-30T22:10:48.412183+00:00",
+      "done": true
+    },
+    {
+      "story_id": "30-05",
+      "agent": "developer",
+      "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
+      "started_at": "2026-10-30T22:10:48.481075+00:00",
+      "done": true
+    },
+    {
+      "story_id": "31-01",
+      "agent": "developer",
+      "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
+      "started_at": "2026-10-30T22:10:49.301576+00:00",
+      "done": true
+    },
+    {
+      "story_id": "30-01",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.421729+00:00",
+      "done": false
+    },
+    {
+      "story_id": "30-03",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.480541+00:00",
+      "done": false
+    },
+    {
+      "story_id": "30-05",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.539958+00:00",
+      "done": false
+    },
+    {
+      "story_id": "31-01",
+      "agent": "developer",
+      "step": "implementing story (wave 1 respawn, models switched to openrouter)",
+      "started_at": "2026-10-30T22:18:52.595477+00:00",
+      "done": false
+    },
+    {
       "story_id": "31-01",
       "agent": "developer",
       "step": "writing tests for model_assign",
@@ -165,7 +221,7 @@
       "story_id": "31-01",
       "agent": "developer",
       "step": "running qa_compress",
-      "started_at": "2026-10-30T22:27:47.093932+00:00",
+      "started_at": "2026-10-30T22:19:55.256316+00:00",
       "done": true
     }
   ]

@@ -7,8 +7,8 @@ Feature: Model Assignment (F-031)
 
 - `agents/architect.md` — current session prompt. Model-related line:
   "**Cut stories so cheap mass models (locally configured via
-  `agents.developer.model`) can implement them … Expensive/strong model only
-  as fallback (locally via `agents.architect.model`), not for mass
+  `agent.developer.model`) can implement them … Expensive/strong model only
+  as fallback (locally via `agent.architect.model`), not for mass
   implementation**" — the policy line this story flips. Story planning /
   review checkpoint sections establish where escalation points live (planning
   checkpoint, BLOCKED_Design handling under "Autonomous Design Repair").
@@ -57,8 +57,26 @@ both stories edit `agents/architect.md`.
    ONE line. Suggestions about 'how' or 'where' to put it are prohibited."
 3. Escalation points reference must be consistent with F-030 terminology
    (`escalate-remedy`, `BLOCKED_Design`) — use those exact strings.
-4. Backwards texture: the existing developer-model line (`agents.developer`
-   mass-model note) stays untouched — this is architect-scoped only.
+4. **QA tier triggers** (design decision 2026-10-30, audit of cost vs
+   failure asymmetry — QA is the highest-frequency agent and its false-PASS
+   launders merges via `merge_if_passed.py`):
+   - `agents/qa-manager.md` gains a tier-trigger paragraph — role-abstract:
+     tier SEMANTICS only, NO model/provider names in the prompt (concrete
+     models live in the local map, applied via `model_assign.py`):
+     - CHEAP tier is the QA default (routine passes, fix-loop round 2+
+       re-verifications).
+     - STRONG tier QA passes REQUIRED at: (a) the FIRST QA pass of a story
+       introducing new process mechanics (new script category, new checker
+       type, new workflow — real case: this Phase 30/31 wave itself),
+       (b) `BLOCKED_Design` diagnosis, (c) `max_escalations` reached /
+       breaking-change final gate.
+     - The qa-manager cannot reassign its own model: it emits
+       `strong_review_recommended: true` in the verdict when criteria prove
+       ambiguous or a design gap is suspected; the ARCHITECT applies the
+       tier switch locally (`model_assign.py`) and re-runs QA — under the
+       same no-discussion rule as model assignment.
+5. Backwards texture: the existing developer-model line (`agent.developer`
+   mass-model note) stays untouched — this is architect- and QA-scoped.
 
 ## Developer Targets (exactly, no more / no less)
 
@@ -66,6 +84,11 @@ both stories edit `agents/architect.md`.
   policy block (cheap default + 3 escalation points + assignment script
   reference) and ADD the no-discussion paragraph. Update any self-referential
   description line mentioning the model tier if present.
+- `agents/qa-manager.md`: ADD the tier-trigger paragraph (req 4: cheap
+  default, three REQUIRED strong points, `strong_review_recommended` flag
+  semantics, no-discussion application via the architect). This file is
+  written by 30-04 in Wave 2 — this story runs Wave 3 AFTER 30-04 merged
+  (same-file discipline, verified in the planning audit).
 - Update affected prompt-structure self-check tests (grep-locate first; e.g.
   tests asserting the old "only as fallback" policy line).
 
@@ -75,6 +98,9 @@ both stories edit `agents/architect.md`.
 - `agents/architect.md` contains the strings: `cheap tier`, `planning audit`,
   `escalate-remedy`, `BLOCKED_Design`, `plan_check.py`, `model_assign.py`, and
   the prohibition paragraph (case-sensitive grep).
+- `agents/qa-manager.md` contains the tier-trigger paragraph (grep: `cheap`,
+  `strong_review_recommended`, `new process mechanics`) and NO model/provider
+  name patterns (role abstraction).
 - No changes to `agents/developer.md`, `agents/qa-manager.md`, templates.
 - All framework self-check tests green.
 
@@ -89,6 +115,10 @@ both stories edit `agents/architect.md`.
   - `test_planning_audit_trigger_stated` — file states WHEN the strong-model
     audit is REQUIRED (unresolved plan_check conflicts / new process
     mechanics) versus OPTIONAL (routine replans).
+- `tests/test_architect_model_policy.py::test_qa_tier_triggers_present` —
+  `agents/qa-manager.md` mentions the cheap default, the three REQUIRED
+  strong points and the `strong_review_recommended` flag; and contains NO
+  model/provider name patterns (role abstraction grep).
   - `test_no_discussion_rule_present` — the prohibition paragraph exists
     (matching a normalized whitespace substring).
 - Existing test(s) pinning the old policy line updated in the SAME commit.
