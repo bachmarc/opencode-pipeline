@@ -108,7 +108,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 30-05-plan-checker | `scripts/plan_check.py`: deterministic planning QA (ghost refs, same-file conflicts, clarification markers) | Planned | F-030 process-driver |
 | 31-01-model-assign-script | `scripts/model_assign.py` (--show/--init/--apply) + tests | Planned | F-031 model-assignment |
 | 31-02-architect-tier-policy | architect cheap-tier default + escalation points + no-discussion rule; QA tier triggers (strong on new-mechanics/BLOCKED/max_escalations) | Planned | F-031 model-assignment |
-| 30-06-fix-preexisting-fails | Fix pre-existing test failures: test_merge_if_passed sys.executable + story 29-01 Feature: line | In Progress | F-030 process-driver |
+| 30-06-fix-preexisting-fails | Fix pre-existing test failures: test_merge_if_passed sys.executable + story 29-01 Feature: line | Done (QA PASS) | F-030 process-driver |
 
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
 
