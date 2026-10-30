@@ -153,6 +153,20 @@
       "step": "implementing core checkers",
       "started_at": "2026-10-15T13:26:48.727551+00:00",
       "done": true
+    },
+    {
+      "story_id": "30-03",
+      "agent": "developer",
+      "step": "writing tests/test_qa_checkers_process.py (test-first)",
+      "started_at": "2026-10-30T22:28:05.934411+00:00",
+      "done": false
+    },
+    {
+      "story_id": "30-03",
+      "agent": "developer",
+      "step": "implementation done, preparing commit",
+      "started_at": "2026-10-30T22:32:42.454428+00:00",
+      "done": false
     }
   ]
 }
