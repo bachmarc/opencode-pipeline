@@ -206,11 +206,14 @@ def test_sequenced_cross_reference_warns(tmp_path):
 
 def test_f030_self_check_each_story_exit_zero():
     """Self-check: plan_check parses THIS repo's real F-030 story files without
-    error and each of the five open stories yields exit 0 (WARN semantics only:
-    sequenced references and conflict candidates must not fail the run)."""
+    error and each open story yields exit 0 (WARN semantics only: sequenced
+    references and conflict candidates must not fail the run)."""
     stories_dir = REPO_ROOT / "docs" / "features" / "F-030-process-driver" / "stories"
     story_files = sorted(stories_dir.glob("*.md"))
-    assert len(story_files) == 5, [f.name for f in story_files]
+    # Count-agnostic on purpose: new stories may be added to the feature over
+    # time (30-06 was added after this test was written); the invariant is
+    # "every story in the dir parses cleanly", not a fixed count.
+    assert len(story_files) >= 5, [f.name for f in story_files]
     for story_file in story_files:
         result = run_plan_check(REPO_ROOT, "--story", str(story_file))
         assert result.returncode == 0, (
