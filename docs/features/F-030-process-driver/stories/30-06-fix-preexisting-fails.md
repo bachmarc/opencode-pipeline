@@ -1,6 +1,6 @@
 # Story 30-06 — Fix pre-existing test failures (merge-gate unblock)
 
-Status: In Progress
+Status: Done
 Feature: Process Driver (F-030)
 
 ## Codebase Snapshot

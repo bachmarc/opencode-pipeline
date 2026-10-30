@@ -1,7 +1,9 @@
 """Tests for merge_if_passed.py script.
 
 Tests the QA-PASS and documenter-reconcile checks before git merge.
-Uses subprocess to run the script with mocked file system and git commands.
+Uses subprocess to run the script with mocked file system and git commands,
+invoking the script via ``sys.executable`` (the machine may not have a bare
+``python`` on PATH).
 Verifies that documenter commits are scoped to branch-exclusive commits only
 (commits on the feature branch but not on main).
 """
@@ -11,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -46,7 +49,7 @@ def test_missing_qa_pass_exits_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     
     # Run script
     result = subprocess.run(
-        ["python", str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
@@ -78,7 +81,7 @@ def test_fail_verdict_exits_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     _create_fake_git_script(bin_dir, "git", "")
     
     result = subprocess.run(
-        ["python", str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
@@ -110,7 +113,7 @@ def test_missing_documenter_commit_exits_1(tmp_path: Path, monkeypatch: pytest.M
     _create_fake_git_script(bin_dir, "git", "", exit_code=1)
     
     result = subprocess.run(
-        ["python", str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
@@ -213,7 +216,7 @@ def test_both_checks_pass_calls_git_merge(tmp_path: Path, monkeypatch: pytest.Mo
     )
     
     result = subprocess.run(
-        ["python", str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
@@ -320,7 +323,7 @@ def test_documenter_commit_on_main_not_sufficient(tmp_path: Path, monkeypatch: p
     )
     
     result = subprocess.run(
-        ["python", str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
@@ -427,7 +430,7 @@ def test_documenter_commit_on_branch_sufficient(tmp_path: Path, monkeypatch: pyt
     )
     
     result = subprocess.run(
-        ["python", str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
         cwd=str(tmp_path),
         capture_output=True,
         text=True,
