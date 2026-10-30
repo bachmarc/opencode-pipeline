@@ -1,9 +1,11 @@
 """Tests for scripts/model_assign.py (Story 31-01).
 
 Deterministic tier-to-model appliance: reads a role map JSON and patches the
-local opencode config's agents.<role>.model lines. All tests are hermetic —
-they pass explicit --map/--config flags pointing at fixture files in tmp_path.
-No external systems, no HOME manipulation.
+local opencode config's agent.<role>.model lines. The official OpenCode v2
+config key is "agent" (singular); the legacy "agents" (plural) key is patched
+as a deterministic fallback, and a config carrying BOTH keys is refused as
+ambiguous. All tests are hermetic — they pass explicit --map/--config flags
+pointing at fixture files in tmp_path. No external systems, no HOME fiddling.
 """
 
 from __future__ import annotations
@@ -30,7 +32,7 @@ CONFIG_BEFORE = """{
     }
   },
 
-  "agents": {
+  "agent": {
     "architect": {
       "model": "fake-provider/fake-model-a",
       "reasoningEffort": "high"
@@ -80,7 +82,7 @@ def run_script(args: list[str]) -> tuple[int, str, str]:
 
 
 def test_apply_patches_model_lines(tmp_path: Path) -> None:
-    """Only agents.<role>.model lines change; every other line stays byte-identical."""
+    """Only agent.<role>.model lines change; every other line stays byte-identical."""
     map_path, config_path = write_fixtures(tmp_path)
 
     exit_code, stdout, stderr = run_script(
@@ -91,9 +93,18 @@ def test_apply_patches_model_lines(tmp_path: Path) -> None:
     result = json.loads(stdout)
     assert result["result"] == "PASS"
     assert result["applied"] == {
-        "architect": "fake-provider/fake-model-x",
-        "developer": "fake-provider/fake-model-y",
-        "qa-manager": "fake-provider/fake-model-z",
+        "architect": {
+            "model": "fake-provider/fake-model-x",
+            "key": "agent",
+        },
+        "developer": {
+            "model": "fake-provider/fake-model-y",
+            "key": "agent",
+        },
+        "qa-manager": {
+            "model": "fake-provider/fake-model-z",
+            "key": "agent",
+        },
     }
 
     after_lines = config_path.read_text(encoding="utf-8").splitlines()
@@ -143,7 +154,7 @@ def test_apply_refuses_ambiguous(tmp_path: Path) -> None:
 
 
 def test_apply_skips_missing_roles(tmp_path: Path) -> None:
-    """Map role not present in config's agents -> reported as skipped, exit 0."""
+    """Map role not present in config's agent object -> reported as skipped, exit 0."""
     map_data = dict(MAP)
     map_data["documenter"] = {"tier": "cheap", "provider_model": "fake-provider/fake-model-d"}
     map_path, config_path = write_fixtures(tmp_path, map_data=map_data)
@@ -158,7 +169,51 @@ def test_apply_skips_missing_roles(tmp_path: Path) -> None:
     assert result["result"] == "PASS"
     assert result["skipped"] == ["documenter"]
     assert set(result["applied"]) == {"architect", "developer", "qa-manager"}
+    assert all(
+        entry["key"] == "agent" for entry in result["applied"].values()
+    )
     assert config_path.read_bytes() != before_bytes, "present roles must be patched"
+
+
+def test_apply_patches_legacy_agents_key(tmp_path: Path) -> None:
+    """Legacy 'agents' (plural) only config -> patched there; key field is 'agents'."""
+    map_path, config_path = write_fixtures(
+        tmp_path, config_text=CONFIG_BEFORE.replace('"agent": {', '"agents": {')
+    )
+
+    exit_code, stdout, stderr = run_script(
+        ["--apply", "--map", str(map_path), "--config", str(config_path)]
+    )
+    assert exit_code == 0, f"apply failed: {stderr}"
+
+    result = json.loads(stdout)
+    assert result["result"] == "PASS"
+    assert all(
+        entry["key"] == "agents" for entry in result["applied"].values()
+    ), "legacy plural key must be reported"
+    assert result["applied"]["architect"] == {
+        "model": "fake-provider/fake-model-x",
+        "key": "agents",
+    }
+    text_after = config_path.read_text(encoding="utf-8")
+    assert '"model": "fake-provider/fake-model-x"' in text_after
+
+
+def test_apply_refuses_both_keys(tmp_path: Path) -> None:
+    """Config with BOTH 'agent' and 'agents' objects -> exit 1, bytes unchanged."""
+    ambiguous = CONFIG_BEFORE.replace(
+        '  "provider": {',
+        '  "agents": {\n    "architect": {\n      "model": "fake-provider/fake-model-old"\n    }\n  },\n  "provider": {',
+    )
+    map_path, config_path = write_fixtures(tmp_path, config_text=ambiguous)
+    before_bytes = config_path.read_bytes()
+
+    exit_code, stdout, stderr = run_script(
+        ["--apply", "--map", str(map_path), "--config", str(config_path)]
+    )
+    assert exit_code == 1, f"expected exit 1, got {exit_code}; stdout={stdout}"
+    assert stderr.strip(), "an error message is expected on stderr"
+    assert config_path.read_bytes() == before_bytes, "file must be untouched"
 
 
 # --- --show --------------------------------------------------------------------

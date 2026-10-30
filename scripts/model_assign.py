@@ -2,9 +2,11 @@
 """Deterministic tier-to-model appliance (Story 31-01).
 
 Reads a local role map (JSON: ``{role: {tier, provider_model}}``) and patches
-the local opencode config's ``agents.<role>.model`` lines accordingly. The
-architect never discusses model assignments in conversation; running this
-script IS the assignment.
+the local opencode config's ``agent.<role>.model`` lines accordingly. The
+official OpenCode v2 config key is ``agent`` (singular); the legacy ``agents``
+(plural) key is patched only as a deterministic fallback, and a config with
+BOTH keys is refused as ambiguous. The architect never discusses model
+assignments in conversation; running this script IS the assignment.
 
 Subcommands (mutually exclusive flags):
     --show    print the current role map as JSON
@@ -12,19 +14,19 @@ Subcommands (mutually exclusive flags):
               qa-manager; tier "cheap"; empty provider_model). Refuses to
               overwrite an existing map.
     --apply   patch the config: for every role present in BOTH the map and
-              the config's ``agents`` object, set ``model`` to the map's
-              ``provider_model``. Roles in the map but not in the config are
-              reported as ``skipped``.
+              the config's ``agent`` object (legacy ``agents`` as fallback),
+              set ``model`` to the map's ``provider_model``. Roles in the
+              map but not in the config are reported as ``skipped``.
 
 Conventions:
     - Paths: ``--map`` (default ``~/.pipeline/model_map.json``),
       ``--config`` (default ``~/.config/opencode/opencode.jsonc``).
     - JSONC safety: the config may contain comments. Only the
-      ``agents.<role>.model`` value lines are patched — comments and all
-      other lines stay byte-identical. On any ambiguity (missing ``agents``
-      object, duplicate role block, duplicate ``model`` key inside a role
-      block, non-string/unsafe model value) the script exits 1 WITHOUT
-      writing.
+      ``agent.<role>.model`` value lines are patched — comments and all
+      other lines stay byte-identical. On any ambiguity (both ``agent`` and
+      ``agents`` keys, duplicate role block, duplicate ``model`` key inside
+      a role block, non-string/unsafe model value) the script exits 1
+      WITHOUT writing.
     - Model strings are opaque: they are copied verbatim, never validated
       or padded.
     - No concrete model or provider names appear in this script (role
@@ -50,6 +52,10 @@ DEFAULT_ROLES = ("architect", "developer", "qa-manager")
 DEFAULT_TIER = "cheap"
 
 # Structure patterns (matched against comment-stripped lines).
+# Primary config key is "agent" (singular, OpenCode v2 docs); the legacy
+# plural "agents" is patched only as a deterministic fallback. Both keys
+# present = ambiguous = refuse.
+RE_AGENT_KEY = re.compile(r'^\s*"agent"\s*:\s*\{')
 RE_AGENTS_KEY = re.compile(r'^\s*"agents"\s*:\s*\{')
 RE_ROLE_KEY = re.compile(r'^\s*"([^"]+)"\s*:\s*\{')
 RE_MODEL_KEY = re.compile(r'^\s*"model"\s*:')
@@ -216,21 +222,37 @@ def cmd_init(map_path: Path) -> int:
 # --- config patching --------------------------------------------------------------
 
 
-def _locate_agents_object(
+def _locate_agent_object(
     code: list[str], blank: list[str]
-) -> tuple[int, int, int]:
-    """Find the ``agents`` object.
+) -> tuple[int, int, int, str] | None:
+    """Find the agent object: ``agent`` (primary) or legacy ``agents``.
 
-    Returns (open_line, close_line, depth_before_open) or raises PatchError.
+    Deterministic key policy (no heuristics): exactly one ``agent`` object ->
+    patch it; no ``agent`` but exactly one legacy ``agents`` object -> patch
+    that; both keys present -> ambiguity, refuse. Neither key -> ``None``
+    (every role is then reported as skipped, nothing to patch).
+
+    Returns (open_line, close_line, depth_before_open, key) or ``None``.
+    Raises PatchError on the both-keys ambiguity.
     """
-    matches = [i for i, line in enumerate(code) if RE_AGENTS_KEY.match(line)]
+    primary = [i for i, line in enumerate(code) if RE_AGENT_KEY.match(line)]
+    legacy = [i for i, line in enumerate(code) if RE_AGENTS_KEY.match(line)]
+    if primary and legacy:
+        raise PatchError(
+            "ambiguous config: both 'agent' and 'agents' objects present; "
+            "refusing to patch"
+        )
+    if not primary and not legacy:
+        return None
+    matches = primary if primary else legacy
+    key = "agent" if primary else "agents"
     if len(matches) != 1:
         raise PatchError(
-            f"expected exactly one '\"agents\"' object in config, "
+            f"expected exactly one '\"{key}\"' object in config, "
             f"found {len(matches)}"
         )
     start = matches[0]
-    # brace depth accumulated by all lines before the agents key line
+    # brace depth accumulated by all lines before the agent key line
     depth = 0
     for i in range(start):
         for ch in blank[i]:
@@ -239,45 +261,48 @@ def _locate_agents_object(
             elif ch in "}]":
                 depth -= 1
     end = _depth_scan(blank, start, depth)
-    return start, end, depth
+    return start, end, depth, key
 
 
 def _collect_patches(
     lines: list[str],
     code: list[str],
     blank: list[str],
-    agents_start: int,
-    agents_end: int,
-    agents_depth: int,
+    agent_start: int,
+    agent_end: int,
+    agent_depth: int,
+    config_key: str,
     role_model: dict[str, str],
-) -> tuple[dict[int, str], dict[str, str], list[str]]:
+) -> tuple[dict[int, str], dict[str, dict[str, str]], list[str]]:
     """Compute the new model lines for each role present in the config.
 
-    Returns (patches: {line_index: new_line}, applied, skipped_roles). Raises
-    PatchError on any ambiguity. Nothing is written here.
+    Returns (patches: {line_index: new_line}, applied, skipped_roles) where
+    each applied entry is ``{"model": <new value>, "key": config_key}``
+    recording which top-level object was patched. Raises PatchError on any
+    ambiguity. Nothing is written here.
     """
     patches: dict[int, str] = {}
-    applied: dict[str, str] = {}
+    applied: dict[str, dict[str, str]] = {}
     skipped: list[str] = []
 
-    # find role blocks at the direct child level of the agents object
+    # find role blocks at the direct child level of the agent object
     role_openers: dict[str, int] = {}
-    depth = agents_depth
-    for i in range(agents_start, agents_end + 1):
+    depth = agent_depth
+    for i in range(agent_start, agent_end + 1):
         pre_depth = depth
         for ch in blank[i]:
             if ch in "{[":
                 depth += 1
             elif ch in "}]":
                 depth -= 1
-        if i == agents_start:
-            continue  # the agents key line itself
-        if pre_depth == agents_depth + 1:
+        if i == agent_start:
+            continue  # the agent key line itself
+        if pre_depth == agent_depth + 1:
             match = RE_ROLE_KEY.match(code[i])
             if match and blank[i].rstrip().endswith("{"):
                 role = match.group(1)
                 if role in role_openers:
-                    raise PatchError(f"duplicate agents role block: {role!r}")
+                    raise PatchError(f"duplicate agent role block: {role!r}")
                 role_openers[role] = i
 
     for role in role_model:
@@ -286,11 +311,11 @@ def _collect_patches(
             skipped.append(role)
             continue
         block_start = role_openers[role]
-        block_end = _depth_scan(blank, block_start, agents_depth + 1)
+        block_end = _depth_scan(blank, block_start, agent_depth + 1)
 
         # find the model lines inside this role block (direct key level)
         model_lines: list[int] = []
-        depth = agents_depth + 1
+        depth = agent_depth + 1
         for i in range(block_start, block_end + 1):
             pre_depth = depth
             for ch in blank[i]:
@@ -298,7 +323,7 @@ def _collect_patches(
                     depth += 1
                 elif ch in "}]":
                     depth -= 1
-            if pre_depth == agents_depth + 2 and RE_MODEL_KEY.match(code[i]):
+            if pre_depth == agent_depth + 2 and RE_MODEL_KEY.match(code[i]):
                 model_lines.append(i)
 
         if len(model_lines) != 1:
@@ -325,13 +350,19 @@ def _collect_patches(
                 f"refusing to write"
             )
         patches[line_idx] = match.group(1) + '"' + new_model + '"' + match.group(3) + eol
-        applied[role] = new_model
+        applied[role] = {"model": new_model, "key": config_key}
 
     return patches, applied, skipped
 
 
 def cmd_apply(map_path: Path, config_path: Path) -> int:
-    """Patch the config's agents.<role>.model lines from the role map."""
+    """Patch the config's agent.<role>.model lines from the role map.
+
+    Key policy: patch the primary ``agent`` object; fall back to the legacy
+    ``agents`` object only when ``agent`` is absent; refuse (exit 1, no
+    write) when both are present. No agent object at all -> every role is
+    reported as skipped.
+    """
     data = load_map(map_path)
     role_model = {role: entry["provider_model"] for role, entry in data.items()}
 
@@ -347,12 +378,21 @@ def cmd_apply(map_path: Path, config_path: Path) -> int:
     lines = text.splitlines(keepends=True)
     try:
         code, blank = _strip_comments(lines)
-        agents_start, agents_end, agents_depth = _locate_agents_object(
-            code, blank
-        )
-        patches, applied, skipped = _collect_patches(
-            lines, code, blank, agents_start, agents_end, agents_depth, role_model
-        )
+        located = _locate_agent_object(code, blank)
+        if located is None:
+            patches, applied, skipped = {}, {}, sorted(role_model)
+        else:
+            agent_start, agent_end, agent_depth, config_key = located
+            patches, applied, skipped = _collect_patches(
+                lines,
+                code,
+                blank,
+                agent_start,
+                agent_end,
+                agent_depth,
+                config_key,
+                role_model,
+            )
     except PatchError as exc:
         print(f"error: cannot patch config unambiguously: {exc}", file=sys.stderr)
         return 1
@@ -387,7 +427,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Deterministic tier-to-model appliance: patches the local opencode "
-            "config's agents.<role>.model values from a role map file."
+            "config's agent.<role>.model values from a role map file (legacy "
+            "'agents' plural key patched only as fallback; both keys = refuse)."
         )
     )
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -404,7 +445,7 @@ def main() -> int:
     mode.add_argument(
         "--apply",
         action="store_true",
-        help="patch agents.<role>.model in the local opencode config",
+        help="patch agent.<role>.model in the local opencode config",
     )
     parser.add_argument(
         "--map",
