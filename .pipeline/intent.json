@@ -223,6 +223,13 @@
       "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
       "started_at": "2026-10-30T23:06:10.129821+00:00",
       "done": false
+    },
+    {
+      "story_id": "30-06",
+      "agent": "developer",
+      "step": "fix pre-existing test failures (test_merge_if_passed sys.executable + story 29-01 Feature line)",
+      "started_at": "2026-10-30T23:08:07.518857+00:00",
+      "done": false
     }
   ]
 }
