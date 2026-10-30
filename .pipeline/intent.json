@@ -159,28 +159,28 @@
       "agent": "developer",
       "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
       "started_at": "2026-10-30T22:10:48.332914+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-03",
       "agent": "developer",
       "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
       "started_at": "2026-10-30T22:10:48.412183+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-05",
       "agent": "developer",
       "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
       "started_at": "2026-10-30T22:10:48.481075+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "31-01",
       "agent": "developer",
       "step": "implementing story per wave 1 (audit-approved planning d1c73ba)",
       "started_at": "2026-10-30T22:10:49.301576+00:00",
-      "done": false
+      "done": true
     }
   ]
 }
