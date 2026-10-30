@@ -30,14 +30,23 @@ nothing about how model CHANGE requests are handled, so they turn into
 token-burning discussions. This story flips the policy and hard-codes the
 no-discussion rule.
 
+**Sequencing (same-file discipline):** starts only AFTER 30-04 is merged —
+both stories edit `agents/architect.md`.
+
 ## Requirements
 
 1. `agents/architect.md` policy flip:
    - Architect runs on the CHEAP tier by default (locally configured).
    - Strong tier is applied ONLY at defined escalation points:
-     (a) planning checkpoint with genuinely new/dangerous design territory,
-     (b) `BLOCKED_Design` repair after QA, (c) driver `escalate-remedy`
-     diagnosis recommendation (F-030). Otherwise stay cheap.
+     (a) **planning audit** — strong-model review of planning artifacts
+     (stories + `plan_check.py` output) before dev start; REQUIRED when
+     plan_check reports unresolved conflict candidates or the feature
+     introduces new process mechanics (new script category, new workflow),
+     OPTIONAL for routine replans (user choice at checkpoint),
+     (b) `BLOCKED_Design` repair after QA,
+     (c) driver `escalate-remedy` diagnosis recommendation (F-030).
+     Otherwise stay cheap: weak models run the continuous loop
+     (plan→dev→QA→merge), and only these triggers pull in strong tokens.
    - The reassignment mechanism is `model_assign.py --apply` (31-01) — one
      line, no dialogue.
 2. No-discussion rule (verbatim paragraph in `agents/architect.md`):
@@ -63,9 +72,9 @@ no-discussion rule.
 ## Acceptance criteria (checked by qa-manager)
 
 - No `[NEEDS CLARIFICATION]` markers remain in this story.
-- `agents/architect.md` contains the strings: `cheap tier`,
-  `escalate-remedy`, `BLOCKED_Design`, `model_assign.py`, and the prohibition
-  paragraph (case-sensitive grep).
+- `agents/architect.md` contains the strings: `cheap tier`, `planning audit`,
+  `escalate-remedy`, `BLOCKED_Design`, `plan_check.py`, `model_assign.py`, and
+  the prohibition paragraph (case-sensitive grep).
 - No changes to `agents/developer.md`, `agents/qa-manager.md`, templates.
 - All framework self-check tests green.
 
@@ -74,8 +83,12 @@ no-discussion rule.
 - `tests/test_architect_model_policy.py` (new, file-reading):
   - `test_cheap_default_stated` — file states the cheap-tier default for the
     architect.
-  - `test_escalation_points_referenced` — exact strings `(a) planning`,
-    `escalate-remedy`, `BLOCKED_Design`, `model_assign.py` present.
+  - `test_escalation_points_referenced` — exact strings `planning audit`,
+    `plan_check.py`, `escalate-remedy`, `BLOCKED_Design`, `model_assign.py`
+    present.
+  - `test_planning_audit_trigger_stated` — file states WHEN the strong-model
+    audit is REQUIRED (unresolved plan_check conflicts / new process
+    mechanics) versus OPTIONAL (routine replans).
   - `test_no_discussion_rule_present` — the prohibition paragraph exists
     (matching a normalized whitespace substring).
 - Existing test(s) pinning the old policy line updated in the SAME commit.

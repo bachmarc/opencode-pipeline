@@ -105,6 +105,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 30-02-escalation-debug-story | Driver escalation rules + create_story --type debug | Planned | F-030 process-driver |
 | 30-03-tier-d-checkers | qa_compress: worktree_discipline + metadata_affects checkers | Planned | F-030 process-driver |
 | 30-04-tier-k-scoping-prompts | qa-manager two-tier verdict + provenance; architect driver-first; templates process profile | Planned | F-030 process-driver |
+| 30-05-plan-checker | `scripts/plan_check.py`: deterministic planning QA (ghost refs, same-file conflicts, clarification markers) | Planned | F-030 process-driver |
 | 31-01-model-assign-script | `scripts/model_assign.py` (--show/--init/--apply) + tests | Planned | F-031 model-assignment |
 | 31-02-architect-tier-policy | architect: cheap-tier default + escalation points + no-discussion rule | Planned | F-031 model-assignment |
 
@@ -265,26 +266,36 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   burns expensive tokens on mechanics (owner findings 2026-10-30). Fix: a deterministic
   driver computes next actions from `.pipeline/` state + a per-project process profile
   (`process.json`: workflow, test_strategy incl. `e2e-docker` — the framework's historical
-  flexibility becomes declared configuration). QA splits into Tier D (deterministic
-  process checkers in the qa_compress registry: worktree discipline, commit metadata
-  affects-checks — two checks the LLM QA repeatedly performed at token cost) and Tier K
-  (LLM judges ONLY the non-automatable remainder, with `provenance` in verdicts).
-  Escalation on repeated dev failure is rule-based and uses the historically proven
-  pattern: debug story (investigation story for the cheap developer, report findings) +
-  strong-architect diagnosis. 4 stories:
+  flexibility becomes declared configuration). Driver v1 is READ-ONLY/advisory (no
+  `--apply` — merge authority stays with `merge_if_passed.py`). QA splits into Tier D
+  (deterministic process checkers in the qa_compress registry: worktree discipline
+  branch-derived from the current branch, commit metadata affects-checks over ALL
+  branch commits since merge-base — two checks the LLM QA repeatedly performed at token
+  cost) and Tier K (LLM judges ONLY the non-automatable remainder, with `provenance` in
+  verdicts). Escalation on repeated dev failure is rule-based with an escalation ledger
+  (`.pipeline/escalations.json`, appended by debug-story creation) and uses the
+  historically proven pattern: debug story (investigation story for the cheap developer,
+  report findings) + strong-architect diagnosis. Planning itself gets Tier D too:
+  `plan_check.py` validates open story files (ghost refs, same-file conflicts → wave
+  assignment, clarification markers, section completeness) before any checkpoint —
+  flash-class planning errors become script-detected. 5 stories:
   - 30-01: `scripts/driver.py` — process profiles + pure core `compute_next_actions` + CLI
-  - 30-02: escalation rules + `create_story.py --type debug` + story template comment block
+  - 30-02: escalation rules + ledger + `create_story.py --type debug` + story template comment block
   - 30-03: Tier D checkers `worktree_discipline` + `metadata_affects` in qa_compress
-  - 30-04: qa-manager two-tier verdict + provenance; architect driver-first orchestration;
-    templates/AGENTS.md process profile paragraph
+  - 30-04: qa-manager two-tier verdict + provenance; architect driver-first orchestration
+    + plan_check step + advisory-only rule; templates/AGENTS.md process profile paragraph
+  - 30-05: `scripts/plan_check.py` — deterministic planning QA (ghost refs, same-file
+    conflicts, clarification markers, section completeness)
 - **Phase 31 (Model Assignment):** Token scarcity forces frequent model/provider
   reassignments (ollama, openrouter, opencode...); today this turns into endless LLM
   discussion about "how/where". Also: architect ran on the strong tier by default although
   user tests show the cheap tier suffices ~99%. Fix: local gitignored `model_map.json`
   (role → tier/provider_model) + `scripts/model_assign.py` patching the local
   `opencode.jsonc` deterministically; architect prompts get the no-discussion rule and the
-  policy flip (cheap tier default, strong tier only at defined escalation points).
-  2 stories:
+  policy flip (cheap tier default, strong tier ONLY at defined escalation points: planning
+  audit — REQUIRED on new process mechanics or unresolved plan_check conflicts, else
+  optional — plus BLOCKED_Design and escalate-remedy diagnosis). Weak models run the
+  continuous loop; strong tokens are the bounded exception. 2 stories:
   - 31-01: `scripts/model_assign.py` (--show/--init/--apply, JSONC-safe patches) + tests
-  - 31-02: `agents/architect.md` — cheap-tier-default policy + escalation points +
-    no-discussion rule
+  - 31-02: `agents/architect.md` — cheap-tier-default policy + escalation points incl.
+    planning audit + no-discussion rule (starts after 30-04 merged — same file)

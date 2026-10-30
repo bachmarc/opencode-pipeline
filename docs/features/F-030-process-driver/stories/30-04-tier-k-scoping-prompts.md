@@ -56,9 +56,21 @@ architect's orchestration role is re-based on the driver.
    - Session start + Phase 3: first deterministic step is calling
      `driver.py next` and basing orchestration decisions ONLY on its output
      (driver decides WHO is next and WHY the architect is consulted).
-   - Prohibition: no orchestra decisions from memory — if the driver cannot
-     run, say so and decide EXPLICITLY with a documented reason (fail-open
-     rule, one sentence).
+   - Prohibition: no orchestration decisions from memory — if the driver
+     cannot run, say so and decide EXPLICITLY with a documented reason
+     (fail-open rule, one sentence).
+   - **Advisory only** (design correction 2026-10-30): driver output NEVER
+     authorizes a merge — merge authority remains exclusively with
+     `merge_if_passed.py` (QA-PASS). The driver has no write path.
+   - **Planning QA step:** before presenting ANY planning checkpoint, run
+     `scripts/plan_check.py` (story 30-05) and resolve its findings —
+     conflict candidates → sequential waves declared in the STORIES.md
+     phase block.
+
+**Sequencing:** starts after 30-01 (`driver.py` must exist — the prompt
+references `driver.py next`) AND 30-03 (tier-D checker names) are merged. The
+`agents/architect.md` plan_check step ships HERE (not in 30-05) — same-file
+discipline.
 3. `templates/AGENTS.md`: new short "Process Profile" paragraph in a
    CONSTANT-safe position (project-specifics placeholder area): projects
    declare `.pipeline/process.json` with `workflow`/`test_strategy`/

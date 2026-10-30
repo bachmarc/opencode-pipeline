@@ -38,22 +38,35 @@ token cost, machine-readable verdicts.
 ## Requirements
 
 1. New checker `worktree_discipline()` in `scripts/qa_compress.py`:
-   - Input: commit/HEAD context is derived from the repo it runs in; the
-     required worktree path and branch come from `qa_config.json`
-     (`process_checker.story_id` + optional `process_checker.worktree_root`).
-   - Rule: for the story branch `feature/<story-id>-*`, the tip commit must be
-     reachable from a worktree registered at
-     `.worktrees/<story-id>-*` in `git worktree list` output.
+   - Input: the story id is derived from the CURRENT GIT BRANCH
+     (`feature/<story-id>-<slug>` — QA runs inside the story worktree, so no
+     per-story config edit is needed). Design correction 2026-10-30: a
+     per-story config ritual in `qa_config.json` is exactly the mechanical
+     work this feature removes. `qa_config.json` keys
+     `process_checker.story_id` (+ optional `process_checker.worktree_root`,
+     default `.worktrees`) remain as FALLBACK overrides for
+     out-of-worktree runs only.
+   - Rule: `git worktree list --porcelain` must contain a worktree whose
+     checked-out branch is the story branch AND whose path matches
+     `<worktree_root>/<story-id>-*`. FAIL reasons: no worktree registered
+     for the story / story branch checked out outside the expected
+     worktree root.
    - PASS output: `{"result": "PASS", "branch": ..., "worktree": ...}`;
      FAIL: reason string (branch missing from worktree list / no worktree
      registered for story / branch tip not from expected worktree).
 2. New checker `metadata_affects()` in `scripts/qa_compress.py`:
-   - Reads the LAST commit's message, extracts `symbols:`, `affects:`,
-     `breaks:`, `tests:` segments (pipe-separated key-value convention).
-   - Rule: every path listed in `affects:` must exist in the repo; the
-     changed files in the commit (via `git show --name-only`) that live in
-     `src/`/`tests/` must appear in `symbols:`/`affects:` declarations OR the
-     commit must be docs/planning-only.
+   - Reads ALL commits on the story branch since the merge base with the
+     default branch (`git merge-base`, `git log`), extracts `symbols:`,
+     `affects:`, `breaks:`, `tests:` segments (pipe-separated key-value
+     convention) per commit. Design correction 2026-10-30: "last commit
+     only" misses fix-loop follow-ups — the real regression case
+     (dependent code blocks failing later) accumulates over multiple
+     commits on a branch.
+   - Rule: every path listed in `affects:` must exist in the repo; every
+     changed `src/`/`tests/` file across the branch commits (via
+     `git diff --name-only <merge-base>..<branch>`) must appear in some
+     commit's `symbols:`/`affects:` declarations OR the branch must be
+     docs/planning-only.
    - PASS: `{"result": "PASS", "checks": <n>}`; FAIL lists every inconsistent
      path.
 3. Both checkers are registry-selected via `qa_config.json` (names
@@ -103,6 +116,13 @@ token cost, machine-readable verdicts.
   change without affects/symbols declaration → exit 1, missing path listed.
 - `tests/test_qa_checkers_process.py::test_metadata_docs_only_commit` — docs
   commit changes no code paths → PASS without declarations.
+- `tests/test_qa_checkers_process.py::test_metadata_multi_commit_scope` — a
+  branch with two commits where only the second declares the `affects:`
+  paths still PASSes (scope = whole branch since merge base, not last
+  commit).
+- `tests/test_qa_checkers_process.py::test_worktree_story_id_from_branch` —
+  checked out on `feature/30-03-x` in a registered worktree without any
+  `process_checker.story_id` config → PASS (branch-derived).
 - `tests/test_qa_checkers_process.py::test_not_selected_checkers_dont_run` —
   config with only `["pytest"]` runs as before (registry unchanged).
 

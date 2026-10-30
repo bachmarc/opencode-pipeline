@@ -71,9 +71,11 @@ diagnosis recommendation — instead of endless cheap retries.
    list[action]` — zero I/O in core; receives state as data. Actions typed as
    JSON: `{kind, story_id, reason}`.
 2. **State adapter (thin):** reads `.pipeline/intent.json`,
-   `.pipeline/qa-state/*.json`, story statuses; assembles the state dict for
-   the core. CLI prints actions JSON; `--apply` executes only deterministic
-   actions that need no LLM.
+   `.pipeline/qa-state/*.json`, story statuses (parsed from the `Status:`
+   lines of the story files — pattern of `story_status.py`); assembles the
+   state dict for the core. CLI prints actions JSON — driver v1 is
+   READ-ONLY/advisory: no `--apply`, no write path; merge authority stays
+   exclusively with `merge_if_passed.py`.
 3. **Process profiles:** `.pipeline/process.json` declares the workflow
    variant (`unit-fake` default, `e2e-docker`, `hybrid`) and escalation
    thresholds. Driver behavior derives from this file. Projects deviate by
@@ -89,7 +91,17 @@ diagnosis recommendation — instead of endless cheap retries.
    with strong architect" — clearly labeled as RECOMMENDATION, requiring no
    user gate for the diagnosis attempt itself.
 7. **Debug story type:** `create_story.py --type debug` writes an
-   investigation story (explore, report findings; explicitly NOT fix).
+   investigation story (explore, report findings; explicitly NOT fix) and
+   appends the escalation event to `.pipeline/escalations.json` — the
+   stateless driver counts escalations from this ledger.
+8. **Planning QA — Tier D for plans:** `scripts/plan_check.py`
+   deterministically validates OPEN story files: ghost references (backticked
+   repo paths named as existing that don't exist), same-file conflicts across
+   open stories (→ architect assigns sequential waves), unresolved
+   `[NEEDS CLARIFICATION]` markers, missing/empty required sections. No
+   planning checkpoint without a plan_check run — weak models plan cheaply,
+   scripts enforce mechanical correctness, the strong-model audit (F-031
+   escalation point "(a) planning audit") reviews only the semantic rest.
 
 ## Architecture decisions
 
@@ -108,6 +120,15 @@ diagnosis recommendation — instead of endless cheap retries.
   declared dependent files; truly uncovered cross-story regressions remain
   Tier K (LLM judgment) — that is exactly where the qa-manager historically
   found real bugs.
+- **Read-only driver v1 (correction 2026-10-30):** the drafted `--apply` had
+  no defined deterministic side effect (escalations are recommendations,
+  merges belong to `merge_if_passed.py`) — dropped. Escalation history lives
+  in `.pipeline/escalations.json`, appended by debug-story creation, counted
+  by the stateless driver.
+- **Same-file wave discipline:** 30-02 extends `scripts/driver.py` (starts
+  after 30-01 merges); 31-02 edits `agents/architect.md` (starts after 30-04
+  merges). Wave 1 (30-01, 30-03, 30-05, 31-01) is file-disjoint and runs
+  parallel; plan_check would flag any violation of this topology.
 - **qa_compress pattern reuse:** new process checkers follow the existing
   flat checker-registry pattern (check function returning `tuple[str, int]`),
   config-selected via `qa_config.json` — no new test entry point.
@@ -118,6 +139,7 @@ diagnosis recommendation — instead of endless cheap retries.
 - 30-02-escalation-debug-story (planned)
 - 30-03-tier-d-checkers (planned)
 - 30-04-tier-k-scoping-prompts (planned)
+- 30-05-plan-checker (planned)
 
 ## Open questions / follow-ups
 

@@ -61,15 +61,18 @@ deviations are configuration, never improvisation.
 4. Profile validation: missing `workflow` key → driver exits code 2 with a
    clear error (fails loudly). Unknown extra keys → stdout warning, still
    valid.
-5. CLI:
+5. CLI (driver v1 is READ-ONLY — it advises, it never mutates):
    - `driver.py next` — loads state + profile, prints actions as JSON array,
-     exit 0 regardless of action kinds.
-   - `driver.py next --apply` — beyond printing, executes only actions with a
-     deterministic side effect that needs no LLM: for `intent-reminder` it
-     writes nothing (report-only in this story); `--apply` therefore only
-     re-reads state and exits 0 — full apply behavior lands with 30-02.
+     exit 0 regardless of action kinds. Story statuses are parsed from the
+     `Status:` lines of `docs/features/*/stories/*.md` (same pattern as
+     `scripts/story_status.py` — NOT from the STORIES.md markdown table).
    - `driver.py validate` — validates `process.json` only, prints JSON
      `{result: PASS}` or detailed error, exit 0/1.
+   - **No `--apply` in v1** (design correction 2026-10-30): the drafted
+     `--apply` had no defined deterministic side effect — escalations are
+     recommendations, merges belong to `merge_if_passed.py`. A dead flag is
+     design waste; driver output is advisory only, merge authority stays
+     exclusively with `merge_if_passed.py` (QA-PASS).
 6. `--profile <path>` flag (default `.pipeline/process.json`); a missing
    profile file yields the built-in default profile
    (`workflow=default`, `test_strategy=unit-fake`, `intent_max_age_hours=72`).

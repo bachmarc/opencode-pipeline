@@ -30,6 +30,11 @@ findings so it can plan good stories for simple developers. This story
 determines escalation RULE-based (thresholds in the profile) and makes debug
 stories a first-class story type.
 
+**Sequencing (design correction 2026-10-30):** starts only AFTER 30-01 is
+merged — this story EXTENDS `scripts/driver.py`, which 30-01 creates
+(same-file topology → no parallel wave; plan_check flags exactly this
+conflict class).
+
 ## Requirements
 
 1. Escalation tracking in the driver core: given story verdicts, count the
@@ -43,33 +48,46 @@ stories a first-class story type.
      `reason` text, but implements nothing itself.
    - `escalated-blocked`: fails >= `profile.escalation.max_escalations`
      (default 2 escalations) already happened → action `"block-and-ask-user"`.
-3. `create_story.py --type debug <feature-name> <slug>`: story body skeleton
+3. **Escalation ledger** (design correction 2026-10-30 — the driver is
+   stateless, `escalated-blocked` needs a record): `create_story.py --type
+   debug` APPENDS `{"story": <target story id>, "debug_story": <new id>,
+   "at": <iso8601>}` to `.pipeline/escalations.json` (file created on first
+   entry). The driver counts escalations per story from this ledger. The
+   ledger is the ONLY escalation side effect — no model reassignment happens
+   in this feature (that is F-031 policy).
+4. `create_story.py --type debug <feature-name> <slug>`: story body skeleton
    for INVESTIGATION — sections "Investigation questions" (explore: what
    fails, why, reproduction, affected neighboring code), "Deliverable:
    findings report" (≤ 1 page, facts only), explicit rule "Do NOT fix code;
    do NOT change behavior". Machine fields identical to normal stories.
-4. `docs/features/_story_template.md` gains a short comment-block template for
+   Creating one appends the escalation ledger entry (req 3).
+5. `docs/features/_story_template.md` gains a short comment-block template for
    the debug-story body (nothing changes for normal stories — Template
    Constancy preserved for constant sections).
-5. STORIES.md entry format documented in the story (phase 30) is appended by
-   the merge discipline — no code needed for it in this story.
-6. Profile `escalation` edge rules: threshold 0 → feature disabled (never
+6. STORIES.md phase-30 entry is appended by the merge discipline — no code
+   needed for it in this story.
+7. Profile `escalation` edge rules: threshold 0 → feature disabled (never
    emits escalate actions); missing `escalation` block → default values used.
 
 ## Developer Targets (exactly, no more / no less)
 
 - Extend `scripts/driver.py` core: consecutive-fail counting + the two new
-  action kinds + action ordering slot (escalate actions sort AFTER
-  merge-candidate, BEFORE spawn-dev? NO — after spawn-dev, last). Update the
-  module docstring with the escalation semantics.
+  action kinds; escalate actions sort LAST in the stable action order
+  (after spawn-dev). Update the module docstring with the escalation
+  semantics and the ledger source (`.pipeline/escalations.json`).
 - Extend `scripts/create_story.py`: `--type debug` argument (no other
-  behavior change), respective body template inline in the script.
+  behavior change), debug body template inline in the script, ledger append
+  on debug-story creation.
 - Extend `docs/features/_story_template.md`: ONLY an added HTML comment block
   at the end showing the debug-story body skeleton (zero effect on normal
   story rendering).
-- Add `tests/test_driver_escalation.py` (core, pure) and extend 
-  `tests/test_create_story.py` (check exists: `tests/test_create_story.py`
-  covers create_story basics — extend, don't rewrite).
+- Add `tests/test_driver_escalation.py` (core, pure).
+- Add `tests/test_create_story_debug.py` (NEW file — design correction
+  2026-10-30: the earlier draft referenced "extend
+  `tests/test_create_story.py`", but that file does NOT exist in this repo —
+  a ghost reference of exactly the class plan_check catches). The new test
+  covers the `--type debug` skeleton AND the `.pipeline/escalations.json`
+  ledger append.
 
 ## Acceptance criteria (checked by qa-manager)
 
@@ -83,6 +101,10 @@ stories a first-class story type.
   added comment).
 - Escalation counter semantics: FAIL, FAIL, PASS, FAIL → current series is 1
   FAIL (PASS reset).
+- Escalation ledger: creating a debug story for story X appends exactly one
+  entry to `.pipeline/escalations.json`; a story with an existing ledger
+  entry whose fail series crosses the threshold again yields
+  `escalated-blocked` (not a second `escalate-remedy`).
 
 ## Test criteria (must exist BEFORE implementation)
 
@@ -92,9 +114,13 @@ stories a first-class story type.
 - `tests/test_driver_escalation.py::test_disabled_threshold` — `fail_loop: 0`
   emits no escalation actions.
 - `tests/test_driver_escalation.py::test_max_escalations_ask_user`
-- `tests/test_create_story.py::test_debug_story_type` — runs
-  `create_story.py --type debug` in a temp feature dir and asserts the
+- `tests/test_create_story_debug.py::test_debug_story_type` — runs
+  `create_story.py --type debug` in a temp feature dir, asserts the
   investigation sections exist in the written file.
+- `tests/test_create_story_debug.py::test_debug_story_appends_ledger` —
+  `.pipeline/escalations.json` gains the entry; driver core yields
+  `escalated-blocked` for a story with an existing ledger entry and a fresh
+  fail series.
 
 ## Tooling Gates (mandatory — QA checks ALL of these)
 
