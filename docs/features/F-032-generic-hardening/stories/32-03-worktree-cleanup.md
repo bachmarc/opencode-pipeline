@@ -1,6 +1,6 @@
 # Story 32-03 — worktree_cleanup.py (29-01 debt)
 
-Status: Planned
+Status: Done
 Feature: Generic Pipeline Hardening (F-032)
 
 ## Codebase Snapshot

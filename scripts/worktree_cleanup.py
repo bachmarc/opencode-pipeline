@@ -34,7 +34,9 @@ Classification:
 Exit codes:
   0 — plan or summary printed. The list/dry-run mode always exits 0
       (SUPERSEDES 29-01 R1.3, where a dry-run with work to do exited 1).
-  1 — git error (list or apply).
+  1 — error: git failure in list mode; in --apply any git error (worktree
+      remove, branch delete, purge scan) or filesystem error (purge
+      deletion).
   2 — usage error (`--purge-folders` without `--apply`).
 
 Supersession vs. 29-01 (audit 2026-10-31):
