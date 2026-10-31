@@ -37,6 +37,8 @@ on cheap models.
 1. **Requirements met?**
     - Check against story **acceptance criteria** (the story file is the primary source). Any deviation = FAIL.
     - If any `[NEEDS CLARIFICATION]` marker remains in the story file → FAIL (ambiguity not resolved before implementation).
+    - **Bugfix completeness (provenance `tier-k`):** a bugfix story is PASS only if a regression test exists that would have caught the fixed bug (repro of the failure) — a fix landing without its regression net = FAIL.
+    - **Ordering & Recovery Invariants (lifecycle stories):** for stories declaring lifecycle scope (multi-step lifecycles: start/stop, publish/subscribe, join/leave, transactional sequences), the `## Ordering & Recovery Invariants` section must exist and be tested — missing → FAIL (not BLOCKED; the template hint names it).
 
 2. **Tests green & complete? (deterministic, no log interpretation)**
     - Run tests exclusively via `qa_compress.py` — never invoke individual checkers directly. `qa_compress.py` reads `qa_config.json` and runs all configured checkers. It delivers `exit_code` + error/test names + assertions (compressed, no raw logs).

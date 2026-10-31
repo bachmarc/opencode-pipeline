@@ -55,6 +55,14 @@ Story planning is for features that require code implementation by a developer a
      - **Fake = same method signatures as real adapter.** Fakes with only `load()`/`save()` while adapter offers `filter()`/`mark()` → design error. Real orchestration code must be callable with fakes, without modifications.
      - Core must not be testable without fakes → design error, fix it
    - **Integration tests test real orchestration code** (e.g., `Scheduler._run_cycle()`), not manual cycle reconstruction. Manually reconstructed cycles bypass wiring bugs (wrong argument types, missing list wraps) and are worthless as integration proof.
+   - **Boundary checklist (design phase — answer these for every stateful component):**
+     - What happens on degenerate/empty inputs or states?
+     - What is visible in intermediate states during transitions?
+     - What is the abort/error semantics mid-flight (stop, rollback)?
+     - What happens on repeat/reconnect — is it idempotent?
+     - Which environments does it run in (and which combination matters)?
+     Unclear or undecided answers MUST become `[NEEDS CLARIFICATION: <specific question>]` markers in the story (plan_check enforces resolution before dev starts) — never silently assume.
+   - **Lifecycle stories get the `## Ordering & Recovery Invariants` section** (multi-step lifecycles: start/stop, publish/subscribe, join/leave, transactional sequences — applicability is the architect's judgment; see the commented hint in `docs/features/_story_template.md`).
    - Data model, API sketch, error handling, deployment (Docker/SQLite/etc.)
    - Versioning `APP_VERSION = "0.1.0"` pattern
    - **Dependency selection (Node.js/TypeScript):** Prefer pure-JS/pure-TS packages over
