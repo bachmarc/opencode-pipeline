@@ -17,7 +17,7 @@
 - <Core rule 2 — e.g. "RAM-only: no persistence, no auto-clear timers.">
 - <… more, taken from feature.md Context sections>
 - The project's `qa_config.json` declares the QA checkers; missing file → pytest default.
-- **Fake requirement:** For EVERY external dependency (`<API>`, `<DB>`, `<HA>`, …) there exists a fake in `tests/fakes/` — tests run without real systems.
+- **Fake requirement:** For EVERY external dependency (`<API>`, `<DB>`, `<HA>`, …) there exists a fake in `tests/fakes/` — tests run without real systems (default `unit-fake` profile; under `e2e-docker` the Process Profile below governs instead).
 - **Process Profile:** `.pipeline/process.json` declares the project's process
   profile (`workflow`, `test_strategy` — e.g. `unit-fake` (default) vs.
   `e2e-docker`, `escalation`). The pipeline's QA gate and driver read it —
@@ -35,7 +35,7 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 - **`src/adapters/`** — thin wrappers (3-10 lines per method).
   - Extracts request data, **delegates all decisions to core**, returns HTTP response / writes bus.
   - Timers/listeners/schedulers exclusively here.
-- **Fakes are mandatory** for every external dependency: `tests/fakes/`.
+- **Fakes are mandatory** for every external dependency: `tests/fakes/` (under the `unit-fake` profile; see Process Profile in Core rules).
   - Core tests run **without** real systems (`FakeClock`, `Fake<X>` interfaces).
   - **Fake = same method signatures as the real adapter.** Fakes offering a different
     interface than the adapter → design error. The real orchestration code must

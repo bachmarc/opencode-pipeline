@@ -1,6 +1,6 @@
 # Story 30-04 — Tier K scoping: driver integration in agent prompts
 
-Status: Planned
+Status: Done
 Feature: Process Driver (F-030)
 
 ## Codebase Snapshot

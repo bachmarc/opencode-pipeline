@@ -104,7 +104,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 30-01-driver-core | `scripts/driver.py`: process profiles + pure core compute_next_actions + CLI | Done (QA PASS) | F-030 process-driver |
 | 30-02-escalation-debug-story | Driver escalation rules + create_story --type debug | Planned | F-030 process-driver |
 | 30-03-tier-d-checkers | qa_compress: worktree_discipline + metadata_affects checkers | Done (QA PASS) | F-030 process-driver |
-| 30-04-tier-k-scoping-prompts | qa-manager two-tier verdict + provenance; architect driver-first; templates process profile | Planned | F-030 process-driver |
+| 30-04-tier-k-scoping-prompts | qa-manager two-tier verdict + provenance; architect driver-first; templates process profile | Done (QA PASS) | F-030 process-driver |
 | 30-05-plan-checker | `scripts/plan_check.py`: deterministic planning QA (ghost refs, same-file conflicts, clarification markers) | Done (QA PASS) | F-030 process-driver |
 | 31-01-model-assign-script | `scripts/model_assign.py` (--show/--init/--apply) + tests | Done (QA PASS) | F-031 model-assignment |
 | 31-02-architect-tier-policy | architect cheap-tier default + escalation points + no-discussion rule; QA tier triggers (strong on new-mechanics/BLOCKED/max_escalations) | Planned | F-031 model-assignment |

@@ -103,7 +103,7 @@ After Phase 1+2 you are status router for implementation state:
 
 - Never merge to `main` yourself without user go.
 - On FAIL always give concrete, actionable fix assignment (file:line, what's missing).
-- Tests runnable **without** external systems? Check via the configured test suite without network/DB.
+- Tests runnable **without** external systems? (profile-conditional — under `unit-fake` check via the configured test suite without network/DB; under `e2e-docker` the E2E rules of step 3 govern instead.)
 - Document your review as comment in branch or in `docs/reviews/<story-id>.md`.
 - As dialogue partner: summarize status compactly (table: story | branch | tests | QA | error) before giving details.
 - **Autonomy budget** (prevent endless loops): Max 3 FAIL loops per story (developer). Max 1-2 architect design fixes autonomous. If story runs after 3 FAIL loops OR after 2 architect fixes without progress → **BLOCKED_Requirements to user** (even if cause seems technical — user must decide whether to invest more or replan).
