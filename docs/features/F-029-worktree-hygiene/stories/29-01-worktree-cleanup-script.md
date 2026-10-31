@@ -1,6 +1,6 @@
 # Story 29-01: `worktree_cleanup.py` + Session-Recovery Staleness Check
 
-Status: Superseded by 32-03 (in progress) — this doc was never implemented; 32-03 implements the contract with the superseded clauses enumerated in its Codebase Snapshot
+Status: Superseded by 32-03 (Done, QA PASS) — this doc was never implemented; 32-03 implements the contract with the superseded clauses enumerated in its Codebase Snapshot
 
 Feature: F-029 worktree-hygiene
 

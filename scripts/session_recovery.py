@@ -6,6 +6,11 @@ Collects comprehensive pipeline state: open intents, worktrees, main state,
 QA state, and feature claims. Outputs JSON to stdout and human-readable
 summary to stderr.
 
+Worktree staleness (Story 32-03): each worktree entry carries a "merged"
+flag (branch fully merged into main/master), and the worktree summary block
+prints ONE staleness line with the count of merged-but-present worktrees and
+a cleanup hint, whenever that count is > 0.
+
 Uses only stdlib + git subprocess. No external dependencies.
 
 Exit code: 0 on success, 1 if recovery items exist (with --check flag).
@@ -122,6 +127,33 @@ def get_worktrees(repo_path: Path) -> list[dict]:
     return worktrees
 
 
+def get_base_branch(repo_path: Path) -> str | None:
+    """Get the base branch name (main preferred, then master), or None."""
+    for candidate in ("main", "master"):
+        exit_code, _, _ = run_git_command(
+            ["show-ref", "--verify", "--quiet", f"refs/heads/{candidate}"],
+            repo_path,
+        )
+        if exit_code == 0:
+            return candidate
+    return None
+
+
+def is_branch_merged(branch: str, base: str, repo_path: Path) -> bool:
+    """Check whether a branch is fully merged into the base branch.
+
+    Runs against the repo root (linked worktrees share the same refs).
+    A branch equal to the base itself is never reported as merged-stale.
+    """
+    if branch == base:
+        return False
+    exit_code, _, _ = run_git_command(
+        ["merge-base", "--is-ancestor", branch, base],
+        repo_path,
+    )
+    return exit_code == 0
+
+
 def get_main_state(repo_path: Path) -> dict[str, Any]:
     """Get main branch state: ahead/behind remote, dirty."""
     state: dict[str, Any] = {
@@ -230,12 +262,27 @@ def get_feature_claims(repo_path: Path) -> list[dict]:
 
 
 def collect_state(repo_path: Path) -> dict[str, Any]:
-    """Collect all pipeline state."""
+    """Collect all pipeline state.
+
+    Each worktree entry gains a "merged" flag (Story 32-03): True when its
+    branch is fully merged into the base branch (main/master).
+    """
     pipeline_dir = repo_path / ".pipeline"
-    
+
+    worktrees = get_worktrees(repo_path)
+    base = get_base_branch(repo_path)
+    for worktree in worktrees:
+        branch = worktree.get("branch")
+        worktree["merged"] = (
+            isinstance(branch, str)
+            and branch not in ("unknown", "HEAD")
+            and base is not None
+            and is_branch_merged(branch, base, repo_path)
+        )
+
     return {
         "open_intents": get_open_intents(pipeline_dir),
-        "worktrees": get_worktrees(repo_path),
+        "worktrees": worktrees,
         "main_state": get_main_state(repo_path),
         "qa_state": get_qa_state(pipeline_dir),
         "feature_claims": get_feature_claims(repo_path),
@@ -294,6 +341,15 @@ def print_summary(state: dict[str, Any]) -> None:
             
             status_str = ", ".join(status_parts) if status_parts else "clean"
             summary_lines.append(f"  - {path} ({branch}): {status_str}")
+
+        # Staleness summary (Story 32-03): ONE line when merged-but-present
+        # worktrees have accumulated.
+        merged_count = sum(1 for wt in worktrees if wt.get("merged"))
+        if merged_count:
+            summary_lines.append(
+                f"  Staleness: {merged_count} worktree(s) merged but still "
+                f"present; run scripts/worktree_cleanup.py --apply to clean up"
+            )
     else:
         summary_lines.append("\nNo worktrees.")
     
