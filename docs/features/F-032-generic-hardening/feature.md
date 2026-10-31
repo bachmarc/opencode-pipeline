@@ -20,8 +20,9 @@ or planning-time-only (architect checklist lines); QA tokens do not grow.
 
 ## Context
 
-**Input:** `bug-retrospective.md` (2026-10-31, VirtOffice feedback dataset) —
-the dominant finding: QA verifies static correctness; runtime/behavioral
+**Input:** the VirtOffice bug retrospective (2026-10-31 — owner-provided
+dataset, kept owner-local, NOT in the repo per owner request) — the
+dominant finding: QA verifies static correctness; runtime/behavioral
 bugs surfaced as USER reports. Root causes: ~35% lifecycle ordering, ~25%
 planning gaps (UX/state boundaries), ~20% fake-vs-real divergence,
 ~10% infra, ~10% QA-unreachable.
@@ -101,7 +102,8 @@ implemented, nothing noticed for weeks).
 
 ## References
 
-- `bug-retrospective.md` (VirtOffice dataset, lessons L1/L5/§4.1)
+- VirtOffice bug retrospective (owner-local dataset, removed from the repo
+  per owner request; lessons L1/L5/§4.1)
 - This session's evidence: 8 pre-existing FAILs on main (30-06),
   phantom story 29-01, manual worktree cleanup of 8 merged trees.
 - Shipped substrates this builds on: plan_check marker enforcement

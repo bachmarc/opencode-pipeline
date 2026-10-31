@@ -119,6 +119,8 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 32-03-worktree-cleanup | worktree_cleanup.py (29-01 debt) + session staleness line | Done (QA PASS) | F-032 generic-hardening |
 | 30-06-fix-preexisting-fails | Fix pre-existing test failures: test_merge_if_passed sys.executable + story 29-01 Feature: line | Done (QA PASS) | F-030 process-driver |
 
+> **v0.3.0** — F-030 Process Driver + F-031 Model Assignment + F-032 Generic Hardening: deterministische Orchestrierung (driver.py next, process.json-Profile, regelbasierte Eskalation mit Debug-Story-Pattern), Two-Tier-QA (Tier-D-Checker worktree_discipline/metadata_affects, provenance in Verdicts), plan_check.py (deterministisches Planning-QA), model_assign.py + Tier-Policy (cheap default, starke Trigger), Main-Health nach Merge (exit 3, kein Rollback), worktree_cleanup.py (29-01-Schuld), Boundary-Checkliste + Ordering-Invariants als Planungsvokabular. 11 Stories, 11 QA-Pässe, 552 Tests grün.
+
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
 
 - **Retro:** Pure retroactive documentation of changes already made directly — no re-implementation.
@@ -315,7 +317,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
     (cheap default; strong REQUIRED on new-process-mechanics first pass / BLOCKED_Design /
     max_escalations; strong_review_recommended flag) — starts after 30-04 merged (same
     files, W3)
-- **Phase 32 (Generic Hardening):** VirtOffice bug-retrospective.md intake (2026-10-31) with
+- **Phase 32 (Generic Hardening):** VirtOffice bug-retrospective intake (2026-10-31, owner-local dataset — removed from the repo per owner request) with
   owner scope decision: NO project specialization (no WebRTC/WASM/infra trigger lists, no
   audio-observability defaults) — generic pipeline only; project needs declare a
   process.json profile instead. Four generic bug classes closed: lifecycle ordering

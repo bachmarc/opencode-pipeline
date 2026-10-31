@@ -59,20 +59,86 @@ This section explains the **practical "how"**: what you do as a user, what the a
 ```mermaid
 flowchart TD
     A["User: idea / requirement"] --> B["Phase 1: Design Dialogue\n(User ↔ Architect)"]
-    B --> C["Architect outputs:\nFEATURES.md\nfeature files + story files"]
+    B --> B2["plan_check.py:\ndeterministic planning QA\n(ghost refs, conflicts, markers)"]
+    B2 --> C["Architect outputs:\nfeature files + story files"]
     C --> D{"Phase 2: User-Go Checkpoint\n(Architect presents plan)"}
-    D -- "User says 'go' / 'passt'" --> E["Phase 3: Autonomous Dev+QA"]
+    D -- "User says 'go' / 'passt'" --> E["Phase 3: Autonomous Dev+QA\n(driver.py next decides WHO is next)"]
     D -- "User gives feedback" --> B
 
-    E --> F["Developer implements story\n(tests first, isolated branch)"]
-    F --> G["QA-Manager checks\n(qa_compress.py → JSON verdict)"]
-    G -- "PASS" --> H["Merge to main\n(after user clearance)"]
-    G -- "FAIL (max 3×)" --> F
-    G -- "BLOCKED_Design" --> I["Architect fixes design\n(autonomous, no user needed)"]
-    I --> F
+    E --> F["Developer implements story\n(tests first, isolated worktree)"]
+    F --> G["QA-Manager checks\nTier D deterministic first\nTier K judges the rest (provenance)"]
+    G -- "PASS" --> H["Documenter reconcile\n→ merge_if_passed.py gate\n→ post-merge main health"]
+    H --> I["worktree_cleanup.py\nclassify → dry-run → --apply"]
+    G -- "FAIL (max 3× → escalate-remedy:\ndebug story + strong diagnosis)" --> F
+    G -- "BLOCKED_Design" --> K["Architect fixes design\n(autonomous, no user needed)"]
+    K --> F
     G -- "BLOCKED_Requirements" --> J["Escalation to User\n(intent unclear)"]
     J --> B
 ```
+
+### How the pipeline works now
+
+The full loop, as it runs since Phases 30–32:
+
+1. **Planning is machine-checked.** After the design dialogue the architect
+   runs `scripts/plan_check.py` over every open story file: ghost references
+   (paths named as existing that don't exist), same-file conflicts across
+   open stories (→ sequential waves), unresolved `[NEEDS CLARIFICATION]`
+   markers, missing sections. Nothing reaches a user checkpoint with
+   mechanical planning defects. Lifecycle stories carry an *Ordering &
+   Recovery Invariants* section; the architect answers five boundary
+   questions (empty inputs, intermediate states, mid-flight abort,
+   repeat/idempotency, environments) and turns undecided answers into
+   clarification markers.
+2. **You gate the plan, once.** At the checkpoint you see the stories, the
+   waves, and the test criteria. Your "go" starts the wave — enforced by
+   the Phase-0 permission dialog, not by prompt discipline alone.
+3. **The driver decides, not the model.** `scripts/driver.py next` computes
+   the next actions from `.pipeline/` state (intents, QA verdicts, story
+   statuses, escalation ledger) plus the project's `process.json`: spawn
+   QA, merge candidate, spawn dev, stale-planned reminders, escalation.
+   The architect acts on its output; it never orchestrates from memory.
+   The driver is read-only — merge authority stays with the gate.
+4. **QA is two-tier.** Tier D (deterministic, ~0 tokens) runs first:
+   tooling gates, `qa_compress.py` suite compression, plus opt-in process
+   checkers (`worktree_discipline`, `metadata_affects`). Tier K (the LLM)
+   judges only what scripts cannot: does the test actually prove the
+   criterion, fake parity, cross-story semantics. Every verdict entry
+   carries its `provenance: tier-d | tier-k`.
+5. **Merges are gated and main stays healthy.** `merge_if_passed.py`
+   requires a QA-PASS verdict and a documenter `docs: reconcile` commit,
+   then merges `--no-ff` — and immediately runs the test suite on main.
+   Red main → loud exit 3 + fix-story obligation (no rollback, no further
+   merges onto red main).
+6. **Escalation is rule-based.** Consecutive QA-FAILs cross the profile
+   threshold → the driver emits `escalate-remedy`: a debug story (the
+   cheap developer investigates and reports findings, explicitly not
+   fixing) plus a strong-architect diagnosis. Ledger:
+   `.pipeline/escalations.json`. Escalations exhausted → back to you.
+7. **Cleanup is deterministic.** `worktree_cleanup.py` classifies worktrees
+   (merged / unmerged / dirty), shows a dry-run plan by default, and
+   removes merged+clean trees only on `--apply`.
+
+### Where you are free to deviate — and what stays fixed
+
+The framework is opinionated about *discipline*, neutral about *method*.
+Projects declare their differences in `.pipeline/process.json`
+(`driver.py validate` checks it; a missing file means the default profile):
+
+| You may deviate freely | How |
+|---|---|
+| **Test strategy** | `test_strategy: unit-fake` (default: fakes, no real systems) — or `e2e-docker` (E2E suite in the test-Docker environment replaces fake-parity rules; QA checks ≥1 scenario per acceptance criterion) — or further variants (`workflow: custom`); the QA criteria switch with the profile, never silently |
+| **Escalation behavior** | `escalation.fail_loop` / `max_escalations` thresholds per project; `0` disables escalation entirely |
+| **Model / provider per role** | machine-local `~/.pipeline/model_map.json` + `model_assign.py --apply`; cheap tier is the default, strong tier is reserved for defined triggers (planning audit, BLOCKED_Design, escalate-remedy). Model choice is never discussed — it's assigned |
+| **Project knowledge** | your `AGENTS.md` (generated from the template's constant sections + your project specifics); the constant sections travel, everything else is yours |
+| **Orchestration depth** | the driver is advisory: if it cannot run, the architect decides with a documented one-line reason (fail-open) |
+| **What a story contains** | the invariant section applies to lifecycle stories by *your* architect's judgment — no domain trigger lists are hardcoded anywhere |
+
+What stays fixed (the stability spine): tests exist before implementation,
+QA-PASS before merge, `plan_check` before every checkpoint, the documenter
+reconcile commit, post-merge main health, and no model/provider names in
+portable files. Deviating from *these* means leaving the pipeline, not
+configuring it.
 
 ### Phase 1: Design dialogue (User ↔ Architect)
 

@@ -23,7 +23,7 @@ Feature: Generic Pipeline Hardening (F-032)
 
 ## Context / Purpose
 
-VirtOffice retrospective (bug-retrospective.md): the biggest bug clusters
+VirtOffice retrospective (owner-local dataset, not in the repo): the biggest bug clusters
 were lifecycle ordering (~35%) and underspecified boundary behavior (~25%) —
 both are generic properties of stateful software, and both were planning
 gaps: nothing asked the architect for ordering invariants or boundary

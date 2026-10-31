@@ -3,4 +3,4 @@
 Bump on notable merges (documented in STORIES.md / README Deployment section).
 """
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
