@@ -36,6 +36,22 @@ Feature: <feature-name> (<feature-id>)
 
 - <Tests written first — file, test name, expected behavior>
 
+<!-- For lifecycle stories (multi-step lifecycles: start/stop, publish/subscribe,
+     join/leave, transactional sequences) the architect adds this section and
+     fills it. Applicability is the architect's judgment — there is no
+     trigger-word automation. This comment persists verbatim into generated
+     stories (harmless, no plan_check impact); for lifecycle stories, uncomment
+     the section below:
+
+## Ordering & Recovery Invariants (mandatory for lifecycle stories)
+
+- <Ordering: which step must never run before/after which other step>
+- <Intermediate states: what is visible/consistent while a transition runs>
+- <Abort/recovery: stop vs rollback vs resume semantics mid-flight>
+- <Idempotency: repeat/reconnect/re-delivery of the same step is safe>
+
+-->
+
 ## Tooling Gates (mandatory — QA checks ALL of these)
 
 Commands come from `qa_config.json` in the project root.
