@@ -1,6 +1,6 @@
 # Story 27-02 — JS/TS Lint Checkers: eslint, tsc, prettier, npm-audit
 
-Status: Planned
+Status: Done
 Feature: Tooling-Gate Bootstrap (F-027)
 
 ## Codebase Snapshot

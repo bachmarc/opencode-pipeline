@@ -1,6 +1,6 @@
 # Story 21-01 — Documenter scope fix: branch-exclusive git log
 
-Status: Planned
+Status: Done
 Feature: documenter-scope-fix (F-021)
 
 ## Context / Purpose

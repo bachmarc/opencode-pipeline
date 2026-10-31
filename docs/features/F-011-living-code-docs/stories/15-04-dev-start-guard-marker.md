@@ -1,6 +1,6 @@
 # Story 15-04 — Dev-Start Guard Explicit Story Marker
 
-Status: Planned
+Status: Done
 Feature: living-code-docs (F-011)
 
 ## Context / Purpose

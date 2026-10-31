@@ -1,6 +1,6 @@
 # Story 27-03 — Python Lint Checkers: mypy, ruff, black
 
-Status: Planned
+Status: Done
 Feature: Tooling-Gate Bootstrap (F-027)
 
 ## Codebase Snapshot

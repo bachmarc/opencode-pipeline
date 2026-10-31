@@ -1,6 +1,6 @@
 # Story 27-04 — Ruby/Java Lint Checkers: rubocop, checkstyle
 
-Status: Planned
+Status: Done
 Feature: Tooling-Gate Bootstrap (F-027)
 
 ## Codebase Snapshot

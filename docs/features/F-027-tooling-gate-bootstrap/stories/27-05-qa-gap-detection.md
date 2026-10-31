@@ -1,6 +1,6 @@
 # Story 27-05 — QA Gap Detection: analyze_project.py + provision_structure.py
 
-Status: Planned
+Status: Done
 Feature: Tooling-Gate Bootstrap (F-027)
 
 ## Codebase Snapshot

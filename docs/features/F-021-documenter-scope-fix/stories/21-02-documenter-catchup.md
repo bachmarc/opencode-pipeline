@@ -1,6 +1,6 @@
 # Story 21-02 — Documenter catch-up run (Stories 15-xx through 20-xx)
 
-Status: Planned
+Status: Done
 Feature: documenter-scope-fix (F-021)
 
 ## Context / Purpose

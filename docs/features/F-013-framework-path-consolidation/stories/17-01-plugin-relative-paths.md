@@ -1,6 +1,6 @@
 # Story 17-01 — Plugin-Relative Script Paths (fail-closed)
 
-Status: Planned
+Status: Done
 Feature: F-013-framework-path-consolidation (F-013)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 17-02 — Verdict Schema Fix (last_verdict → verdicts[])
 
-Status: Planned
+Status: Done
 Feature: F-013-framework-path-consolidation (F-013)
 
 ## Context / Purpose

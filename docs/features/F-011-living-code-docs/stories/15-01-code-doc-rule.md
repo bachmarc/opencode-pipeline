@@ -1,6 +1,6 @@
 # Story 15-01 — Code Documentation Rule in Story Template
 
-Status: Planned
+Status: Done
 Feature: living-code-docs (F-011)
 
 ## Context / Purpose

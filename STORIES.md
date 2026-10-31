@@ -101,6 +101,12 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 25-02-migrate-dialog-and-qa-config | /migrate Phase 2+4: test+deploy dialog, qa_config.json, deploy doc | Done (QA PASS) | F-025 project-profile |
 | 25-03-history-dialog | /migrate Phase 5: granular retro / baseline / clean-start dialog | Done (QA PASS) | F-025 project-profile |
 | 26-01-codebase-snapshot-in-story-template | Story template + Architect + Developer: ## Codebase Snapshot section | Done (QA PASS) | F-026 codebase-snapshot |
+| 27-01-story-template-tooling-gates | Story template + architect + qa-manager: Tooling Gates section | Done (QA PASS) | F-027 tooling-gate-bootstrap |
+| 27-02-js-ts-lint-checkers | qa_compress.py: eslint, tsc, prettier, npm-audit checkers (JS/TS) | Done (QA PASS) | F-027 tooling-gate-bootstrap |
+| 27-03-python-lint-checkers | qa_compress.py: mypy, ruff, black checkers (Python) | Done (QA PASS) | F-027 tooling-gate-bootstrap |
+| 27-04-ruby-java-lint-checkers | qa_compress.py: rubocop, checkstyle checkers (Ruby/Java) | Done (QA PASS) | F-027 tooling-gate-bootstrap |
+| 27-05-qa-gap-detection | analyze_project.py + provision_structure.py: complete qa_config.json per stack | Done (QA PASS) | F-027 tooling-gate-bootstrap |
+| 28-01-architect-pure-js-preference | architect.md: pure-JS dependency selection guidance + test | Done (QA PASS) | F-028 pure-js-dependencies |
 | 30-01-driver-core | `scripts/driver.py`: process profiles + pure core compute_next_actions + CLI | Done (QA PASS) | F-030 process-driver |
 | 30-02-escalation-debug-story | Driver escalation rules + create_story --type debug | Done (QA PASS) | F-030 process-driver |
 | 30-03-tier-d-checkers | qa_compress: worktree_discipline + metadata_affects checkers | Done (QA PASS) | F-030 process-driver |

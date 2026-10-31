@@ -1,6 +1,6 @@
 # Story 25-02 — Migrate Dialog: Test+Deploy Config and qa_config.json
 
-Status: Planned
+Status: Done
 Feature: Project Profile & QA Configuration (F-025)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 19-01 — qa_compress.py: Python QA Entry Point (replaces bash)
 
-Status: Planned
+Status: Done
 Feature: F-019-python-qa-toolchain (F-019)
 
 ## Context / Purpose

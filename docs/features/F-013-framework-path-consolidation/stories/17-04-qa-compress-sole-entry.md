@@ -1,6 +1,6 @@
 # Story 17-04 — qa_compress.sh as Sole Test Entry Point
 
-Status: Planned
+Status: Done
 Feature: F-013-framework-path-consolidation (F-013)
 
 ## Context / Purpose

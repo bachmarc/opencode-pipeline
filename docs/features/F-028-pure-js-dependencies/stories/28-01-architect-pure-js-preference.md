@@ -1,6 +1,6 @@
 # Story 28-01 — Architect Prompt: Pure-JS Dependency Preference
 
-Status: Planned
+Status: Done
 Feature: Pure-JS Dependency Preference (F-028)
 
 ## Codebase Snapshot

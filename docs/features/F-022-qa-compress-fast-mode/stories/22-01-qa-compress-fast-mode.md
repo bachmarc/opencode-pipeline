@@ -1,6 +1,6 @@
 # Story 22-01 — qa_compress.py --fast: changed files → affected test modules
 
-Status: Planned
+Status: Done
 Feature: qa-compress-fast-mode (F-022)
 
 ## Context / Purpose

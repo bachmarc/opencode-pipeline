@@ -1,6 +1,6 @@
 # Story 19-02 — session_recovery.py: git pull at startup + test_resolve_by_id fix
 
-Status: Planned
+Status: Done
 Feature: F-019-python-qa-toolchain (F-019)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 27-01 — Story Template: Tooling Gates
 
-Status: Planned
+Status: Done
 Feature: Tooling-Gate Bootstrap (F-027)
 
 ## Codebase Snapshot

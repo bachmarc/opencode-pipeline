@@ -1,6 +1,6 @@
 # Story 20-03 — qa_compress.py as Mandatory Sole Test Entry Point in Prompts
 
-Status: Planned
+Status: Done
 Feature: script-portability-fixes (F-020)
 
 ## Context / Purpose

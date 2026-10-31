@@ -1,6 +1,6 @@
 # Story 25-01 — Analyze Project Profile (Test Command + Deploy Hints)
 
-Status: Planned
+Status: Done
 Feature: Project Profile & QA Configuration (F-025)
 
 ## Context / Purpose

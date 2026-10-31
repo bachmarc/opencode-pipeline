@@ -1,6 +1,6 @@
 # Story 17-03 — Enforcement Bypass Fix (merge_if_passed.py carries guard logic)
 
-Status: Planned
+Status: Done
 Feature: F-013-framework-path-consolidation (F-013)
 
 ## Context / Purpose

@@ -1,6 +1,6 @@
 # Story 16-01 — Clarification Markers in Story Template + Workflow
 
-Status: Planned
+Status: Done
 Feature: Clarification Markers (F-012)
 
 ## Context / Purpose

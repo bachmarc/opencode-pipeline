@@ -1,6 +1,6 @@
 # Story 14-01 — Remove Derived Docs (requirements.md + design.md)
 
-Status: Planned
+Status: Done
 Feature: eliminate-derived-docs (F-010)
 
 ## Context / Purpose

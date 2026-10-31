@@ -1,6 +1,6 @@
 # Story 26-01 — Codebase Snapshot in Story Template
 
-Status: Planned
+Status: Done
 Feature: Codebase Snapshot in Stories (F-026)
 
 ## Context / Purpose

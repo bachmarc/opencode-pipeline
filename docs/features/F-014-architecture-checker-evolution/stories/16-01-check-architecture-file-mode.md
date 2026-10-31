@@ -1,6 +1,6 @@
 # Story 16-01 — check_architecture.py: explicit file-list mode
 
-Status: Planned
+Status: Done
 Feature: architecture-checker-evolution (F-012)
 
 ## Context / Purpose

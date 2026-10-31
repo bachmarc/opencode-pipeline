@@ -1,6 +1,6 @@
 # Story 15-00 — Numbered Feature Folders
 
-Status: Planned
+Status: Done
 Feature: living-code-docs (F-011)
 
 ## Context / Purpose

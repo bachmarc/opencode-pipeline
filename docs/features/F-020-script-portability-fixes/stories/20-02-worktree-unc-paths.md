@@ -1,6 +1,6 @@
 # Story 20-02 — Fix UNC path handling in worktree_setup.py
 
-Status: Planned
+Status: Done
 Feature: script-portability-fixes (F-020)
 
 ## Context / Purpose

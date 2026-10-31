@@ -1,6 +1,6 @@
 # Story 22-02 — Developer prompt: forbid post-commit qa_compress.py verification run
 
-Status: Planned
+Status: Done
 Feature: qa-compress-fast-mode (F-022)
 
 ## Context / Purpose

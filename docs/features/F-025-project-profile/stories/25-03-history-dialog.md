@@ -1,6 +1,6 @@
 # Story 25-03 — History Dialog: Preserve, Baseline, or Ignore Project History
 
-Status: Planned
+Status: Done
 Feature: Project Profile & QA Configuration (F-025)
 
 ## Context / Purpose

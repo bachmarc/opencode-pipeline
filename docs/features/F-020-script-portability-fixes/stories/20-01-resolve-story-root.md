@@ -1,6 +1,6 @@
 # Story 20-01 — Fix repo_root in resolve_story.py + story_status.py
 
-Status: Planned
+Status: Done
 Feature: script-portability-fixes (F-020)
 
 ## Context / Purpose

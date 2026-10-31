@@ -1,6 +1,6 @@
 # Story 17-05 — Prompts Drop Script Paths, Describe Actions Only
 
-Status: Planned
+Status: Done
 Feature: F-013-framework-path-consolidation (F-013)
 
 ## Context / Purpose

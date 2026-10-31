@@ -1,5 +1,7 @@
 # Story 29-01: `worktree_cleanup.py` + Session-Recovery Staleness Check
 
+Status: In Progress
+
 Feature: F-029 worktree-hygiene
 
 ## Context / Purpose
@@ -18,6 +20,9 @@ manipulation (out of scope, upstream limitation), no merge-flow integration
 (follow-up story if wanted).
 
 ## Requirements
+
+Three parts: the deterministic cleanup script (R1), the session-start staleness
+surface (R2), and the tests (R3).
 
 ### R1 — `scripts/worktree_cleanup.py` (deterministic, stdlib-only)
 
