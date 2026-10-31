@@ -1,6 +1,6 @@
 # Story 31-02 — Architect tier policy flip + no-discussion rule
 
-Status: Planned
+Status: Done
 Feature: Model Assignment (F-031)
 
 ## Codebase Snapshot
@@ -101,7 +101,7 @@ both stories edit `agents/architect.md`.
 - `agents/qa-manager.md` contains the tier-trigger paragraph (grep: `cheap`,
   `strong_review_recommended`, `new process mechanics`) and NO model/provider
   name patterns (role abstraction).
-- No changes to `agents/developer.md`, `agents/qa-manager.md`, templates.
+- No changes to `agents/developer.md` or `templates` (`agents/qa-manager.md` gains the tier-trigger paragraph per Requirements §4).
 - All framework self-check tests green.
 
 ## Test criteria (must exist BEFORE implementation)
