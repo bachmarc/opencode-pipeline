@@ -302,6 +302,13 @@
       "done": true,
       "worktree": "/mnt/content_main/Development/opencode-pipeline/.worktrees/30-04-tier-k-scoping-prompts",
       "branch": "feature/30-04-tier-k-scoping-prompts"
+    },
+    {
+      "story_id": "31-02",
+      "agent": "developer",
+      "step": "implementing architect tier policy + QA tier triggers + no-discussion rule (wave 3)",
+      "started_at": "2026-10-31T19:22:28.774134+00:00",
+      "done": false
     }
   ]
 }
