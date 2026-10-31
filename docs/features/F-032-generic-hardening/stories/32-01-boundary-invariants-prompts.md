@@ -1,6 +1,6 @@
 # Story 32-01 — Boundary checklist + ordering invariants + bugfix completeness (prompts/template)
 
-Status: Planned
+Status: Done
 Feature: Generic Pipeline Hardening (F-032)
 
 ## Codebase Snapshot
