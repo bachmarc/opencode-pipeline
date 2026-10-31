@@ -285,14 +285,14 @@
       "agent": "developer",
       "step": "implementing escalation + debug story type (wave 2, extends driver.py)",
       "started_at": "2026-10-30T23:33:18.001530+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-04",
       "agent": "developer",
       "step": "implementing tier-K scoping prompts (wave 2)",
       "started_at": "2026-10-30T23:33:18.060493+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-04",
