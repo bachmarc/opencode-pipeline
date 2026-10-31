@@ -1,6 +1,6 @@
 # Story 32-02 — Main health (post-merge suite check) + driver stale-planned
 
-Status: Planned
+Status: Done
 Feature: Generic Pipeline Hardening (F-032)
 
 ## Codebase Snapshot
