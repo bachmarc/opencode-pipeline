@@ -1,7 +1,7 @@
 ---
 id: F-031
 title: Model Assignment — deterministic tier→model mapping, no LLM discussion
-status: planned
+status: done
 owner: ""
 req: []
 ---

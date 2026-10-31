@@ -1,7 +1,7 @@
 ---
 id: F-030
 title: Process Driver — deterministic orchestration + profile-driven QA + escalation
-status: planned
+status: done
 owner: ""
 req: []
 ---
