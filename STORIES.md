@@ -1,6 +1,6 @@
 # STORIES.md — opencode-pipeline Dev Repo
 
-**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix → 22 QA Compress Fast Mode → 23 Plugin V2 Migration → 24 V2 Agent Dir Fix → 25 Project Profile & QA Configuration → 26 Codebase Snapshot in Stories → 30 Process Driver → 31 Model Assignment
+**Phases:** Retro (traceability) → 01 Foundation → 02 Self-Checks → 03 Deploy → 04 i18n → 05 Docs → 06 Pipeline Evolution → 11 Pipeline Enforcement → 12 Polyglot QA → 13 Project Migration → 14 Derived Docs → 15 Living Code Docs → 16 Clarification Markers → 17 Framework Path Consolidation → 18 Checker Evolution → 19 Python QA Toolchain → 20 Script Portability Fixes → 21 Documenter Scope Fix → 22 QA Compress Fast Mode → 23 Plugin V2 Migration → 24 V2 Agent Dir Fix → 25 Project Profile & QA Configuration → 26 Codebase Snapshot in Stories → 30 Process Driver → 31 Model Assignment → 32 Generic Hardening
 Index and status per story. Template: `docs/features/_story_template.md`.
 
 | Story | Title | Status | Traceability |
@@ -108,6 +108,9 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 30-05-plan-checker | `scripts/plan_check.py`: deterministic planning QA (ghost refs, same-file conflicts, clarification markers) | Done (QA PASS) | F-030 process-driver |
 | 31-01-model-assign-script | `scripts/model_assign.py` (--show/--init/--apply) + tests | Done (QA PASS) | F-031 model-assignment |
 | 31-02-architect-tier-policy | architect cheap-tier default + escalation points + no-discussion rule; QA tier triggers (strong on new-mechanics/BLOCKED/max_escalations) | Done (QA PASS) | F-031 model-assignment |
+| 32-01-boundary-invariants-prompts | Boundary checklist + ordering invariants + bugfix completeness (prompts/template) | Planned | F-032 generic-hardening |
+| 32-02-main-health-driver | merge_if_passed post-merge suite check + driver stale-planned | Planned | F-032 generic-hardening |
+| 32-03-worktree-cleanup | worktree_cleanup.py (29-01 debt) + session staleness line | Planned | F-032 generic-hardening |
 | 30-06-fix-preexisting-fails | Fix pre-existing test failures: test_merge_if_passed sys.executable + story 29-01 Feature: line | Done (QA PASS) | F-030 process-driver |
 
 > **v0.2.0** — F-023 Plugin V2 Migration: pipeline-enforcement.ts auf OpenCode V2 API migriert. Alle sechs Guards wieder aktiv.
