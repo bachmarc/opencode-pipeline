@@ -221,6 +221,8 @@ def test_validate_profile_invalid_values() -> None:
     assert any("test_strategy" in err for err in report["errors"])
     report = driver.validate_profile(dict(DEFAULT_PROFILE, intent_max_age_hours="soon"))
     assert any("intent_max_age_hours" in err for err in report["errors"])
+    report = driver.validate_profile(dict(DEFAULT_PROFILE, planning_max_age_days="soon"))
+    assert any("planning_max_age_days" in err for err in report["errors"])
 
 
 def test_default_profile_builtin() -> None:
@@ -267,3 +269,147 @@ def test_module_imports_imports_pure() -> None:
         for forbidden in ("pathlib", "subprocess", "os", "open", "Path"):
             assert forbidden not in used_names, f"{func_name} references {forbidden}"
             assert forbidden not in used_attrs, f"{func_name} references attribute {forbidden}"
+
+
+# ---------------------------------------------------------------------------
+# Story 32-02: stale-planned action (phantom-story detection)
+# ---------------------------------------------------------------------------
+
+
+def test_stale_planned_emitted() -> None:
+    """A Planned story older than the threshold (default 14 days, from the
+    story file's mtime age supplied by the adapter) with NO open intent and
+    NO registered worktree yields exactly one stale-planned action with the
+    fixed reason text."""
+    state: dict = {
+        "now": NOW,
+        "intents": [],
+        "stories": [{"id": "29-01", "status": "Planned", "age_days": 20.0}],
+        "qa_state": {},
+        "worktrees": [],
+    }
+
+    actions = driver.compute_next_actions(DEFAULT_PROFILE, state)
+
+    assert actions == [
+        {
+            "kind": "stale-planned",
+            "story_id": "29-01",
+            "reason": "planned story untouched — re-plan, implement, or drop",
+        }
+    ]
+
+
+def test_stale_planned_suppressed_by_intent_or_worktree_or_fresh() -> None:
+    """Each suppression factor ALONE prevents stale-planned: an open intent
+    for the story, a registered worktree for it, a story file that is not
+    older than the threshold (age == threshold is NOT older), and a missing
+    age (unreadable mtime). A DONE intent does NOT suppress."""
+    base: dict = {
+        "now": NOW,
+        "intents": [],
+        "stories": [{"id": "29-01", "status": "Planned", "age_days": 30.0}],
+        "qa_state": {},
+        "worktrees": [],
+    }
+
+    def actions_for(**overrides: object) -> list[dict]:
+        return driver.compute_next_actions(DEFAULT_PROFILE, {**base, **overrides})
+
+    # Open intent for exactly this story -> suppressed.
+    open_intent = {
+        "story_id": "29-01",
+        "started_at": _iso_from_now(-timedelta(hours=1)),
+        "done": False,
+    }
+    assert actions_for(intents=[open_intent]) == [{"kind": "no-action"}]
+
+    # Registered worktree (worktree_setup.py naming: <story-id>-<slug>) -> suppressed.
+    assert actions_for(worktrees=["29-01-phantom-story"]) == [{"kind": "no-action"}]
+
+    # Boundary: age == threshold (14) is not OLDER than the threshold -> suppressed.
+    fresh = [{**base["stories"][0], "age_days": 14.0}]  # type: ignore[list-item]
+    assert actions_for(stories=fresh) == [{"kind": "no-action"}]
+
+    # Missing age info (adapter could not read the mtime) -> never emitted.
+    no_age = [{"id": "29-01", "status": "Planned"}]
+    assert actions_for(stories=no_age) == [{"kind": "no-action"}]
+
+    # A DONE intent for the story does not suppress — still a phantom story.
+    done_intent = {"story_id": "29-01", "started_at": "2020-01-01T00:00:00+00:00", "done": True}
+    emitted = actions_for(intents=[done_intent])
+    assert [a["kind"] for a in emitted] == ["stale-planned"]
+
+
+def test_stale_planned_threshold_zero_disabled() -> None:
+    """planning_max_age_days <= 0 disables the feature entirely (same
+    convention as the escalation fail_loop <= 0) — even ancient stories are
+    never reported. A malformed threshold falls back to the default 14."""
+    state: dict = {
+        "now": NOW,
+        "intents": [],
+        "stories": [{"id": "29-01", "status": "Planned", "age_days": 365.0}],
+        "qa_state": {},
+        "worktrees": [],
+    }
+
+    disabled = dict(DEFAULT_PROFILE, planning_max_age_days=0)
+    assert driver.compute_next_actions(disabled, state) == [{"kind": "no-action"}]
+
+    negative = dict(DEFAULT_PROFILE, planning_max_age_days=-1)
+    assert driver.compute_next_actions(negative, state) == [{"kind": "no-action"}]
+
+    # Malformed value -> default 14 applies (same fallback as escalation).
+    broken = dict(DEFAULT_PROFILE, planning_max_age_days="soon")
+    actions = driver.compute_next_actions(broken, state)
+    assert [a["kind"] for a in actions] == ["stale-planned"]
+
+
+def test_action_order_includes_stale_planned() -> None:
+    """A state exercising every action kind proves the FULL stable order with
+    stale-planned positioned after spawn-dev and BEFORE the escalation kinds
+    (32-02 extends the order, existing positions unchanged)."""
+    fail = {"verdict": "FAIL", "timestamp": NOW}
+    state: dict = {
+        "now": NOW,
+        "intents": [
+            {"story_id": "99-01", "started_at": "2020-01-01T00:00:00+00:00", "done": False},
+        ],
+        "stories": [
+            {"id": "99-01", "status": "In Progress"},  # intent-reminder + spawn-qa
+            {"id": "99-02", "status": "In Progress"},  # PASS, not Done -> merge-candidate
+            {"id": "99-03", "status": "Planned"},  # single FAIL -> spawn-dev
+            {"id": "99-04", "status": "Planned", "age_days": 30.0},  # -> stale-planned
+            {"id": "99-05", "status": "Planned"},  # 3 FAILs -> escalate-remedy
+            {"id": "99-06", "status": "Planned"},  # 3 FAILs + ledger -> escalated-blocked
+        ],
+        "qa_state": {
+            "99-02": [{"verdict": "PASS", "timestamp": NOW}],
+            "99-03": [fail],
+            "99-05": [fail, fail, fail],
+            "99-06": [fail, fail, fail],
+        },
+        "escalations": [{"story": "99-06", "debug_story": "99-07", "at": NOW}],
+        "worktrees": [],
+    }
+
+    actions = driver.compute_next_actions(DEFAULT_PROFILE, state)
+
+    assert [a["kind"] for a in actions] == [
+        "intent-reminder",
+        "spawn-qa",
+        "merge-candidate",
+        "spawn-dev",
+        "stale-planned",
+        "escalate-remedy",
+        "escalated-blocked",
+    ]
+    assert [a["story_id"] for a in actions] == [
+        "99-01",
+        "99-01",
+        "99-02",
+        "99-03",
+        "99-04",
+        "99-05",
+        "99-06",
+    ]

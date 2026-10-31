@@ -18,6 +18,8 @@ Design (Stories 30-01 + 30-02, F-030):
   - ``test_strategy``: ``"unit-fake" | "e2e-docker" | "hybrid"`` (default
     ``unit-fake``)
   - ``intent_max_age_hours``: int, threshold for intent-reminder (default 72)
+  - ``planning_max_age_days``: int, threshold for stale-planned (default 14);
+    ``<= 0`` disables the feature (Story 32-02)
   - ``escalation``: dict with ``fail_loop`` (default 3) and
     ``max_escalations`` (default 2); see escalation semantics below
   Unknown extra keys are ignored silently by the core (extensibility rule)
@@ -30,6 +32,13 @@ Design (Stories 30-01 + 30-02, F-030):
   - ``spawn-dev``: story status Planned/In-Progress with a FAIL verdict whose
     current fail series is BELOW the escalation threshold (at/above the
     threshold the escalation kinds replace the pointless retry).
+  - ``stale-planned`` (Story 32-02, phantom-story detection): story status is
+    ``Planned`` and its story file is OLDER than ``planning_max_age_days``
+    (age source: file mtime, supplied by the adapter as ``age_days``) AND no
+    OPEN intent exists for the story AND no worktree is registered for it
+    (``.worktrees/<story-id>-*``). Any one of these three factors suppresses
+    the action; ``planning_max_age_days <= 0`` disables it entirely. Reason
+    text: "planned story untouched — re-plan, implement, or drop".
   - ``escalate-remedy``: the current fail series crossed the escalation
     threshold and the story has escalation budget left.
   - ``escalated-blocked``: threshold crossed again with the escalation budget
@@ -52,6 +61,11 @@ Design (Stories 30-01 + 30-02, F-030):
   actions sort LAST in the stable order. ``fail_loop <= 0`` disables the
   feature entirely (no escalate actions ever); a missing/malformed
   ``escalation`` profile block uses the default values.
+- Stale-planned semantics (32-02): ``planning_max_age_days <= 0`` disables
+  the feature entirely (no stale-planned actions ever); a non-numeric
+  profile value falls back to the default 14 (same convention as the
+  escalation block). The stable order is: ..., spawn-dev, stale-planned,
+  escalate-remedy, escalated-blocked.
 - Driver is READ-ONLY/advisory: it never mutates state, there is no
   ``--apply``. Merge authority stays exclusively with ``merge_if_passed.py``;
   the escalation ledger is written exclusively by ``create_story.py``.
@@ -73,6 +87,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -88,20 +103,32 @@ DEFAULT_PROFILE: dict = {
 DEFAULT_FAIL_LOOP = 3
 DEFAULT_MAX_ESCALATIONS = 2
 
+# Stale-planned default (Story 32-02) — used when the profile has no (or a
+# malformed) "planning_max_age_days" key. <= 0 disables the feature.
+DEFAULT_PLANNING_MAX_AGE_DAYS = 14
+
 # Profile keys consumed by this story; anything else is an unknown extra key.
 KNOWN_PROFILE_KEYS = frozenset(
-    {"workflow", "test_strategy", "intent_max_age_hours", "escalation"}
+    {
+        "workflow",
+        "test_strategy",
+        "intent_max_age_hours",
+        "planning_max_age_days",
+        "escalation",
+    }
 )
 KNOWN_WORKFLOWS = ("default", "custom")
 KNOWN_TEST_STRATEGIES = ("unit-fake", "e2e-docker", "hybrid")
 
 # Action kinds in the stable output order (requirement 3; Story 30-02 appends
-# the escalation kinds LAST — after spawn-dev).
+# the escalation kinds LAST — after spawn-dev; Story 32-02 inserts
+# stale-planned between spawn-dev and the escalation kinds).
 _ACTION_ORDER = (
     "intent-reminder",
     "spawn-qa",
     "merge-candidate",
     "spawn-dev",
+    "stale-planned",
     "escalate-remedy",
     "escalated-blocked",
 )
@@ -115,31 +142,43 @@ _ACTION_ORDER = (
 def compute_next_actions(profile: dict, state: dict) -> list[dict]:
     """Compute next actions from profile + state. PURE function.
 
-    profile keys consumed: ``intent_max_age_hours`` (default 72) and the
-    ``escalation`` block (``fail_loop`` default 3, ``max_escalations``
-    default 2). All other profile keys are ignored silently.
+    profile keys consumed: ``intent_max_age_hours`` (default 72),
+    ``planning_max_age_days`` (default 14, ``<= 0`` disables stale-planned)
+    and the ``escalation`` block (``fail_loop`` default 3,
+    ``max_escalations`` default 2). All other profile keys are ignored
+    silently.
 
     state is a plain dict:
-        stories:     [{id, status}]
+        stories:     [{id, status, age_days?}] — age_days is the story
+                     file's mtime age in DAYS (adapter-supplied, 32-02);
+                     stories without a numeric age_days are never stale.
         qa_state:    {story_id: [verdict...]}  (verdict: {"verdict": "PASS"} |
                      "PASS" — the LAST entry is the latest)
         intents:     [{story_id, started_at, done, ...}]
         escalations: [{"story": <id>, "debug_story": <id>, "at": <iso>}] —
                      the escalation ledger (30-02); entries for other stories
                      are ignored. Optional; missing means zero escalations.
-        worktrees:   [names...]  (reserved for future fail-loop worktree
-                     checks, ignored here)
+        worktrees:   [names...]  — registered worktree directory names in
+                     worktree_setup.py's ``<story-id>-<slug>`` convention;
+                     consumed by the stale-planned suppression (32-02).
         now:         optional ISO timestamp used as "current time" (tests);
                      defaults to the real current UTC time.
 
     Returns actions as {kind, story_id?, reason, ...} in the stable order
-    intent-reminder, spawn-qa, merge-candidate, spawn-dev, escalate-remedy,
-    escalated-blocked — or exactly one {"kind": "no-action"} when the state
-    is fully consistent.
+    intent-reminder, spawn-qa, merge-candidate, spawn-dev, stale-planned,
+    escalate-remedy, escalated-blocked — or exactly one
+    {"kind": "no-action"} when the state is fully consistent.
     """
     threshold = profile.get("intent_max_age_hours", DEFAULT_PROFILE["intent_max_age_hours"])
     fail_loop, max_escalations = _escalation_settings(profile)
+    planning_max_age_days = _planning_max_age_days(profile)
     escalations = state.get("escalations") or []
+    worktrees = state.get("worktrees") or []
+    open_intent_ids = {
+        intent.get("story_id")
+        for intent in state.get("intents") or []
+        if isinstance(intent, dict) and not intent.get("done")
+    }
     now = _parse_iso(state.get("now")) or datetime.now(timezone.utc)
 
     actions: list[dict] = []
@@ -239,6 +278,26 @@ def compute_next_actions(profile: dict, state: dict) -> list[dict]:
                 }
             )
 
+        # stale-planned (32-02, phantom-story detection): a Planned story
+        # older than planning_max_age_days with NO open intent and NO
+        # registered worktree. Any one of the three factors suppresses it;
+        # the threshold check (<= 0 disabled) guards the whole block.
+        if (
+            status == "Planned"
+            and planning_max_age_days > 0
+            and _is_number(story.get("age_days"))
+            and story["age_days"] > planning_max_age_days
+            and story_id not in open_intent_ids
+            and not _has_story_worktree(worktrees, story_id)
+        ):
+            actions.append(
+                {
+                    "kind": "stale-planned",
+                    "story_id": story_id,
+                    "reason": "planned story untouched — re-plan, implement, or drop",
+                }
+            )
+
     actions.sort(key=_stable_sort_key)
 
     if not actions:
@@ -276,6 +335,13 @@ def validate_profile(profile: dict) -> dict:
         if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
             errors.append(
                 f"Invalid intent_max_age_hours value {value!r} (expected a non-negative number)"
+            )
+
+    if "planning_max_age_days" in profile:
+        value = profile["planning_max_age_days"]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+            errors.append(
+                f"Invalid planning_max_age_days value {value!r} (expected a non-negative number)"
             )
 
     for key in sorted(profile):
@@ -361,6 +427,38 @@ def _escalation_count(escalations: list, story_id: object) -> int:
     )
 
 
+def _planning_max_age_days(profile: dict) -> float:
+    """``planning_max_age_days`` from the profile (Story 32-02).
+
+    A missing or non-numeric value yields the default (14). ``<= 0``
+    disables the stale-planned feature (checked by the caller).
+    """
+    value = profile.get("planning_max_age_days", DEFAULT_PLANNING_MAX_AGE_DAYS)
+    if not _is_number(value):
+        return DEFAULT_PLANNING_MAX_AGE_DAYS
+    return value
+
+
+def _is_number(value: object) -> bool:
+    """True for int/float but NOT bool (bool is an int subclass in Python)."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _has_story_worktree(worktrees: list, story_id: object) -> bool:
+    """True when a registered worktree name belongs to story_id.
+
+    Worktree names follow worktree_setup.py's ``<story-id>-<slug>``
+    convention (e.g. ``32-02-main-health-driver``); the bare story id is
+    accepted as well. Non-string names/ids never match.
+    """
+    if not isinstance(story_id, str):
+        return False
+    return any(
+        isinstance(name, str) and (name == story_id or name.startswith(f"{story_id}-"))
+        for name in worktrees
+    )
+
+
 def _is_done(status: str) -> bool:
     """True for "Done*" statuses ("Done", "Done (QA PASS, abc)", "Done (abc)")."""
     return status.startswith("Done")
@@ -415,7 +513,10 @@ def load_profile(path: str) -> tuple[dict, bool]:
 
 def read_stories(repo_root: str) -> list[dict]:
     """Story statuses from the `Status:` lines of docs/features/*/stories/*.md
-    (NOT from the STORIES.md table). Files without a Status: line are skipped."""
+    (NOT from the STORIES.md table). Files without a Status: line are skipped.
+    Each entry also carries ``age_days`` — the story file's mtime age in days
+    (Story 32-02 input for the stale-planned check); omitted when the mtime
+    cannot be read."""
     stories: list[dict] = []
     features_dir = os.path.join(repo_root, "docs", "features")
     if not os.path.isdir(features_dir):
@@ -427,14 +528,30 @@ def read_stories(repo_root: str) -> list[dict]:
         for story_name in sorted(os.listdir(stories_dir)):
             if not story_name.endswith(".md"):
                 continue
+            story_path = os.path.join(stories_dir, story_name)
             parts = story_name[:-3].split("-", 2)
             if len(parts) < 2:
                 continue
-            status = _read_status_line(os.path.join(stories_dir, story_name))
+            status = _read_status_line(story_path)
             if status is None:
                 continue
-            stories.append({"id": f"{parts[0]}-{parts[1]}", "status": status})
+            entry: dict = {"id": f"{parts[0]}-{parts[1]}", "status": status}
+            age_days = _story_age_days(story_path)
+            if age_days is not None:
+                entry["age_days"] = age_days
+            stories.append(entry)
     return stories
+
+
+def _story_age_days(path: str) -> float | None:
+    """Age of a file in DAYS derived from its mtime (Story 32-02 — the
+    deterministic story-age source; no git history parsing). None when the
+    mtime cannot be read (e.g. the file vanished between listing and stat)."""
+    try:
+        mtime = os.path.getmtime(path)
+    except OSError:
+        return None
+    return max(0.0, (time.time() - mtime) / 86400.0)
 
 
 def _read_status_line(path: str) -> str | None:
@@ -482,11 +599,21 @@ def read_intents(repo_root: str) -> list[dict]:
 
 
 def read_worktrees(repo_root: str) -> list[str]:
-    """Worktree names for the state dict. Reserved for future fail-loop
-    worktree-discipline checks; the core ignores worktrees, and listing them
-    would require subprocess — which driver.py forbids (pure core, no
-    pathlib/subprocess). The driver therefore reports no worktrees."""
-    return []
+    """Registered worktree directory names from ``.worktrees/`` (Story 32-02).
+
+    Names follow worktree_setup.py's ``<story-id>-<slug>`` convention and
+    feed the stale-planned suppression (a story with a registered worktree
+    is not a phantom). Read via os.listdir — no subprocess (the pure core
+    must stay IO-free; this adapter is where disk access belongs). A missing
+    or unreadable ``.worktrees`` directory yields []."""
+    worktrees_dir = os.path.join(repo_root, ".worktrees")
+    try:
+        names = os.listdir(worktrees_dir)
+    except OSError:
+        return []
+    return sorted(
+        name for name in names if os.path.isdir(os.path.join(worktrees_dir, name))
+    )
 
 
 def read_escalations(repo_root: str) -> list[dict]:

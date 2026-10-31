@@ -6,6 +6,14 @@ invoking the script via ``sys.executable`` (the machine may not have a bare
 ``python`` on PATH).
 Verifies that documenter commits are scoped to branch-exclusive commits only
 (commits on the feature branch but not on main).
+
+Story 32-02 adds the post-merge main-health check: after a successful merge
+the CONFIGURED suite (``qa_config.json`` selection, executed via
+``scripts/qa_compress.py``) runs on the merged main checkout — green keeps
+exit 0, red exits with the NEW code 3 (note names the 30-06 fix-story
+pattern; the merge commit is NOT rolled back), and an unavailable runner is
+a fail-open SKIPPED (exit 0). The fixtures use a stub ``qa_compress.py``
+whose exit code simulates the suite outcome deterministically.
 """
 
 from __future__ import annotations
@@ -442,3 +450,160 @@ def test_documenter_commit_on_branch_sufficient(tmp_path: Path, monkeypatch: pyt
     output = json.loads(result.stdout)
     assert output.get("merged") is True
     assert "feature/17-03-enforcement-bypass-fix" in output.get("branch", "")
+
+
+# ---------------------------------------------------------------------------
+# Story 32-02: post-merge main-health check (configured suite on main)
+# ---------------------------------------------------------------------------
+
+
+def _prepare_mergeable_repo(tmp_path: Path) -> None:
+    """Build a minimal git repo that passes BOTH pre-merge gates (QA-PASS
+    verdict + branch-exclusive docs: reconcile commit) — the same fixture
+    pattern as test_both_checks_pass_calls_git_merge, shared by the 32-02
+    post-merge tests."""
+    (tmp_path / ".pipeline" / "qa-state").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".pipeline" / "qa-state" / "17-03.json").write_text(
+        json.dumps({"verdicts": [{"verdict": "PASS", "timestamp": "2026-09-25T10:00:00Z"}]}),
+        encoding="utf-8",
+    )
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", *args], cwd=str(tmp_path), capture_output=True, check=True)
+
+    git("init")
+    git("config", "user.email", "test@example.com")
+    git("config", "user.name", "Test User")
+    (tmp_path / "README.md").write_text("# Test Repo\n", encoding="utf-8")
+    git("add", "README.md")
+    git("commit", "-m", "Initial commit")
+    git("branch", "-m", "master", "main")
+    git("checkout", "-b", "feature/17-03-enforcement-bypass-fix")
+    (tmp_path / "test.txt").write_text("test content\n", encoding="utf-8")
+    git("add", "test.txt")
+    git("commit", "-m", "docs: reconcile")
+    git("checkout", "main")
+
+
+def _write_suite_stub(tmp_path: Path, exit_code: int) -> Path:
+    """Create a stub ``scripts/qa_compress.py`` in the fixture repo that
+    records its execution in a marker file and exits with ``exit_code`` —
+    a deterministic green/red fixture suite (no real test runner involved).
+    Returns the marker path (exists iff the suite actually ran)."""
+    scripts_dir = tmp_path / "scripts"
+    scripts_dir.mkdir(exist_ok=True)
+    marker = tmp_path / "suite_ran"
+    stub = (
+        "#!/usr/bin/env python3\n"
+        "import sys\n"
+        "from pathlib import Path\n"
+        f"Path({str(marker)!r}).write_text('ran')\n"
+        f"sys.exit({exit_code})\n"
+    )
+    (scripts_dir / "qa_compress.py").write_text(stub, encoding="utf-8")
+    return marker
+
+
+def test_post_merge_green_exit0(tmp_path: Path) -> None:
+    """Successful merge + green configured suite -> exit 0 with
+    post_merge.suite == PASS."""
+    _prepare_mergeable_repo(tmp_path)
+    (tmp_path / "qa_config.json").write_text('{"checkers": ["pytest"]}', encoding="utf-8")
+    _write_suite_stub(tmp_path, exit_code=0)
+
+    # The runner-availability probe requires the configured checker's binary:
+    # a fake `pytest` on PATH satisfies it (the stub suite never calls it).
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    _create_fake_git_script(bin_dir, "pytest", "")
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ.get("PATH", "")},
+    )
+
+    assert result.returncode == 0, f"stdout: {result.stdout}, stderr: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output.get("merged") is True
+    assert output.get("post_merge") == {"suite": "PASS"}
+
+
+def test_post_merge_red_exit3_note(tmp_path: Path) -> None:
+    """Successful merge + red fixture suite -> NEW exit code 3, note names
+    the 30-06 fix-story pattern, and the merge commit is NOT rolled back."""
+    _prepare_mergeable_repo(tmp_path)
+    (tmp_path / "qa_config.json").write_text('{"checkers": ["pytest"]}', encoding="utf-8")
+    _write_suite_stub(tmp_path, exit_code=1)
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    _create_fake_git_script(bin_dir, "pytest", "")
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ.get("PATH", "")},
+    )
+
+    assert result.returncode == 3, f"stdout: {result.stdout}, stderr: {result.stderr}"
+    output = json.loads(result.stdout)
+    # The merge itself still happened and is reported as such.
+    assert output.get("merged") is True
+    post_merge = output.get("post_merge") or {}
+    assert post_merge.get("suite") == "FAIL"
+    note = post_merge.get("note", "")
+    assert "30-06" in note
+    assert "do NOT merge further stories onto red main" in note
+
+    # No rollback: HEAD is still a merge commit (two parents).
+    parents = subprocess.run(
+        ["git", "log", "-1", "--format=%P"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.split()
+    assert len(parents) == 2, f"expected a merge commit on HEAD, got parents: {parents}"
+
+
+def test_post_merge_runner_missing_skipped(tmp_path: Path) -> None:
+    """Configured runner binary unavailable -> post_merge SKIPPED (fail-open,
+    exit 0) and the suite is NOT executed at all."""
+    _prepare_mergeable_repo(tmp_path)
+    (tmp_path / "qa_config.json").write_text('{"checkers": ["pytest"]}', encoding="utf-8")
+    marker = _write_suite_stub(tmp_path, exit_code=0)
+
+    # Build a PATH without any `pytest` binary: drop every PATH directory
+    # that provides one (deterministic on machines that have pytest installed).
+    env = dict(os.environ)
+    kept_dirs = [
+        d
+        for d in env.get("PATH", "").split(os.pathsep)
+        if d and not (Path(d) / "pytest").exists() and not (Path(d) / "pytest.exe").exists()
+    ]
+    env["PATH"] = os.pathsep.join(kept_dirs)
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "feature/17-03-enforcement-bypass-fix"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+
+    assert result.returncode == 0, f"stdout: {result.stdout}, stderr: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output.get("merged") is True
+    post_merge = output.get("post_merge") or {}
+    assert post_merge.get("suite") == "SKIPPED"
+    assert "pytest" in post_merge.get("reason", "")
+    # Fail-open means SKIPPED, not a silent pass: the suite never ran.
+    assert not marker.exists(), "suite stub executed despite missing runner"

@@ -115,7 +115,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 31-01-model-assign-script | `scripts/model_assign.py` (--show/--init/--apply) + tests | Done (QA PASS) | F-031 model-assignment |
 | 31-02-architect-tier-policy | architect cheap-tier default + escalation points + no-discussion rule; QA tier triggers (strong on new-mechanics/BLOCKED/max_escalations) | Done (QA PASS) | F-031 model-assignment |
 | 32-01-boundary-invariants-prompts | Boundary checklist + ordering invariants + bugfix completeness (prompts/template) | Done (QA PASS) | F-032 generic-hardening |
-| 32-02-main-health-driver | merge_if_passed post-merge suite check + driver stale-planned | Planned | F-032 generic-hardening |
+| 32-02-main-health-driver | merge_if_passed post-merge suite check + driver stale-planned | Done (QA PASS) | F-032 generic-hardening |
 | 32-03-worktree-cleanup | worktree_cleanup.py (29-01 debt) + session staleness line | Planned | F-032 generic-hardening |
 | 30-06-fix-preexisting-fails | Fix pre-existing test failures: test_merge_if_passed sys.executable + story 29-01 Feature: line | Done (QA PASS) | F-030 process-driver |
 
