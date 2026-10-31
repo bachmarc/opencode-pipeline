@@ -40,8 +40,11 @@ part of the planning vocabulary.
    `## Ordering & Recovery Invariants (mandatory for lifecycle stories)` to
    the Test criteria area — applicability is the architect's judgment
    (multi-step lifecycles: start/stop, publish/subscribe, join/leave,
-   transactional sequences), no trigger-word automation. Normal story
-   rendering stays unchanged (comment/hint form, like the debug block).
+   transactional sequences), no trigger-word automation. The hint is an HTML
+   comment (same class as the existing snapshot comments — it persists
+   verbatim into generated stories, harmless, no plan_check impact);
+   `create_story.py` is NOT modified by this story. Normal story rendering
+   stays unchanged.
 2. `agents/architect.md` design-phase guidance gains the **boundary
    checklist** (generic, verbatim five questions):
    - What happens on degenerate/empty inputs or states?

@@ -5,18 +5,19 @@ Feature: Generic Pipeline Hardening (F-032)
 
 ## Codebase Snapshot
 
-- `scripts/merge_if_passed.py` — merge gate: extract_story_id (~line 52),
-  check_qa_pass (~line 64), check_documenter_commit (~line 91),
-  merge_branch `git merge --no-ff` (~line 133), main() gate sequence
-  (~line 166): QA-PASS → documenter commit → merge → output JSON. This
-  story appends a post-merge step after `merge_branch` success.
+- `scripts/merge_if_passed.py` — merge gate: extract_story_id (~line 50),
+  check_qa_pass (~line 64), check_documenter_commit (~line 82),
+  merge_branch `git merge --no-ff` (~line 126), main() gate sequence
+  (~line 150, gate body 161–183): QA-PASS → documenter commit → merge →
+  output JSON. This story appends a post-merge step after `merge_branch`
+  success.
 - `scripts/driver.py` — (30-01/30-02, current) pure core
   `compute_next_actions`, action kinds: intent-reminder, spawn-qa,
   merge-candidate, spawn-dev, escalate-remedy, escalated-blocked
   (escalation kinds last, `_ACTION_ORDER`), `read_escalations()` adapter,
   CLI `next`/`validate`, read-only. This story adds one action kind.
 - `scripts/qa_compress.py` — checker registry incl. `pytest_check`
-  (~line 82) with `--fast-mode` scope selection (22-x); the post-merge
+  (~line 98) with `--fast-mode` scope selection (22-x); the post-merge
   check reuses the configured checker list, NOT a hardcoded runner.
 - `tests/test_merge_if_passed.py` — 6 subprocess tests via `sys.executable`
   (30-06). `tests/test_driver_core.py` / `test_driver_escalation.py` —

@@ -315,3 +315,20 @@ Index and status per story. Template: `docs/features/_story_template.md`.
     (cheap default; strong REQUIRED on new-process-mechanics first pass / BLOCKED_Design /
     max_escalations; strong_review_recommended flag) — starts after 30-04 merged (same
     files, W3)
+- **Phase 32 (Generic Hardening):** VirtOffice bug-retrospective.md intake (2026-10-31) with
+  owner scope decision: NO project specialization (no WebRTC/WASM/infra trigger lists, no
+  audio-observability defaults) — generic pipeline only; project needs declare a
+  process.json profile instead. Four generic bug classes closed: lifecycle ordering
+  invariants (L1) + boundary checklist (L5) as planning vocabulary with plan_check marker
+  enforcement; bugfix completeness rule (regression net per resolution pattern 4.1);
+  deterministic main health (merge_if_passed post-merge suite check — would have caught
+  this session's 8-FAIL rot at first wave-1 merge) + driver stale-planned reminder
+  (phantom-29-01 class); 29-01 debt worktree_cleanup.py (this session needed it manually
+  for 8 merged trees). Strong-tier planning audit (GLM 5.3) 2026-10-31: 6 doc defects
+  fixed (29-01 contract supersession enumerated, --purge-folders requires --apply,
+  narrative block, snapshot refs, template-hint persistence note). 3 stories, all
+  parallel, file-disjoint (audit-verified):
+  - 32-01: story template + architect boundary checklist + qa-manager bugfix/invariant rules
+  - 32-02: merge_if_passed post-merge suite check (exit 3) + driver stale-planned action
+  - 32-03: `scripts/worktree_cleanup.py` (implements/supersedes 29-01 contract) +
+    session_recovery staleness line

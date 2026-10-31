@@ -6,9 +6,10 @@ Feature: Generic Pipeline Hardening (F-032)
 ## Codebase Snapshot
 
 - `scripts/worktree_setup.py` — worktree creator: `worktree_exists`,
-  `is_main_clean` (~line 65), create ~line 100 (`.worktrees/<id>-<slug>`,
-  branch `feature/<id>-<slug>`), remove/list subcommands exist. Nothing in
-  the repo ever removes merged worktrees (this story's gap).
+  `is_main_clean` (~line 65), `cmd_create` (~line 83:
+  `.worktrees/<id>-<slug>`, branch `feature/<id>-<slug>`), remove/list
+  subcommands exist. Nothing in the repo ever removes merged worktrees
+  (this story's gap).
 - `scripts/session_recovery.py` — session start scan (intents, QA state,
   worktrees list). Candidate integration point: staleness hint line.
 - `.pipeline/intent.json` — intents carry `worktree`/`branch` fields
@@ -17,7 +18,12 @@ Feature: Generic Pipeline Hardening (F-032)
   — the original (never implemented) story doc: classify → dry-run default
   → `--apply` removal with labeled stash protection; `--purge-folders` for
   unregistered leftovers; never touches unmerged branches. This story
-  implements that contract (updated where superseded).
+  implements that contract, superseding specific clauses where safer or
+  simpler (audit 2026-10-31): SUPERSEDES R1.3 exit codes (dry-run exits 0),
+  SUPERSEDES R1.4 stash protection + prune step (this story only removes
+  clean merged trees — nothing needs stashing; dirty/unmerged survive
+  untouched); KEEPS R1.5 purge contract (purge requires --apply, orphans
+  without `.git` link only).
 
 ## Context / Purpose
 
@@ -41,11 +47,13 @@ discipline pattern).
      `git worktree remove` + `git branch -d` (the safe delete: refuses
      unmerged). NEVER unmerged or dirty ones. Output JSON: removed entries
      with branch names.
-   - `--purge-folders`: delete orphan `.worktrees/` folders WITHOUT a `.git`
-     link file (inert remnants); folders WITH a dead `.git` link are
-     reported for manual review, never deleted.
-   - Exit 0 with plan/summary; exit 1 only on git errors. `list` is the
-     default and always safe (no mutation).
+   - `--purge-folders`: REQUIRES `--apply` (29-01 R1.5 contract): delete
+     orphan `.worktrees/` folders WITHOUT a `.git` link file (inert
+     remnants); folders WITH a dead `.git` link are reported for manual
+     review, never deleted.
+   - Exit codes (SUPERSEDES 29-01 R1.3 — dry-run exits 0 always): `list` and
+     `--apply` exit 0 with the plan/summary; exit 1 only on git errors.
+     `list` is the default and always safe (no mutation).
 2. `scripts/session_recovery.py`: add ONE staleness summary line (count of
    merged-but-present worktrees + cleanup hint) to the existing worktree
    block — surfaces the accumulation at every session start, zero tokens.
