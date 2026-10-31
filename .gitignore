@@ -26,3 +26,6 @@ test_version_main.txt
 .mypy_cache/
 # local role map: tier -> model (machine-specific, never committed)
 model_map.json
+
+# owner-local datasets (never to GitHub)
+bug-retrospective.md
