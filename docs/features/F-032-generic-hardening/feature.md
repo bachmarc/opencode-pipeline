@@ -1,7 +1,7 @@
 ---
 id: F-032
 title: Generic Pipeline Hardening — invariants, boundaries, regression nets, main health
-status: planned
+status: done
 owner: ""
 req: []
 ---
