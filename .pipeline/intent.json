@@ -306,11 +306,13 @@
     {
       "story_id": "31-02",
       "agent": "developer",
-<<<<<<< HEAD
       "step": "implementing architect tier policy + QA tier triggers + no-discussion rule (wave 3)",
       "started_at": "2026-10-31T19:22:28.774134+00:00",
-      "done": false
-=======
+      "done": true
+    },
+    {
+      "story_id": "31-02",
+      "agent": "developer",
       "step": "writing tests (tests/test_architect_model_policy.py)",
       "started_at": "2026-10-31T19:24:11.671847+00:00",
       "done": true
@@ -321,7 +323,6 @@
       "step": "implementing policy flip + qa tier triggers; suite green (529 PASS)",
       "started_at": "2026-10-31T19:25:23.137390+00:00",
       "done": true
->>>>>>> feature/31-02-architect-tier-policy
     }
   ]
 }
