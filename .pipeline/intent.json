@@ -323,6 +323,27 @@
       "step": "implementing policy flip + qa tier triggers; suite green (529 PASS)",
       "started_at": "2026-10-31T19:25:23.137390+00:00",
       "done": true
+    },
+    {
+      "story_id": "32-01",
+      "agent": "developer",
+      "step": "implementing story (F-032 wave 1, audit-fixed planning)",
+      "started_at": "2026-10-31T19:49:10.007492+00:00",
+      "done": false
+    },
+    {
+      "story_id": "32-02",
+      "agent": "developer",
+      "step": "implementing story (F-032 wave 1, audit-fixed planning)",
+      "started_at": "2026-10-31T19:49:10.093315+00:00",
+      "done": false
+    },
+    {
+      "story_id": "32-03",
+      "agent": "developer",
+      "step": "implementing story (F-032 wave 1, audit-fixed planning)",
+      "started_at": "2026-10-31T19:49:10.160418+00:00",
+      "done": false
     }
   ]
 }
