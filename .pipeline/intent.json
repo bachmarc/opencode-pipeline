@@ -194,7 +194,7 @@
       "agent": "developer",
       "step": "implementing story (wave 1 respawn, models switched to openrouter)",
       "started_at": "2026-10-30T22:18:52.480541+00:00",
-      "done": false
+      "done": true
     },
     {
       "story_id": "30-05",
