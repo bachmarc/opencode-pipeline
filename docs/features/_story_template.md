@@ -45,3 +45,42 @@ Commands come from `qa_config.json` in the project root.
 - [ ] Typecheck clean (e.g. `tsc`, `mypy`) — if typed language
 - [ ] Format check clean (e.g. `prettier`, `black`) — if formatter configured
 - [ ] Audit clean (e.g. `npm-audit`, `bundler-audit`) — 0 high/critical
+
+<!-- DEBUG-STORY-BODY-TEMPLATE (Story 30-02, F-030) — reference only.
+
+     Skeleton for INVESTIGATION stories: create_story.py --type debug
+     generates this body inline and appends the escalation ledger entry to
+     .pipeline/escalations.json. Normal stories never contain this block:
+     create_story.py strips it here, so normal story output stays
+     byte-identical to the pre-30-02 template.
+
+     # Story <ID> — <Title>
+
+     Status: Planned
+     Feature: <feature-name> (<feature-id>)
+
+     ## Codebase Snapshot
+
+     (failing story, its QA verdict history, affected files/tests)
+
+     ## Context / Purpose
+
+     (QA failure or fail loop that triggered the investigation)
+
+     ## Investigation questions
+
+     What fails (verdicts, failing checkers, error output), why (root cause
+     with file/line evidence), deterministic reproduction (commands,
+     fixtures), affected neighboring code (callers, dependent tests, docs).
+
+     ## Requirements
+
+     Answer every investigation question with facts; uncover additional
+     bugs and gaps in the affected area. Do NOT fix code; do NOT change
+     behavior.
+
+     ## Deliverable: findings report
+
+     At most 1 page, facts only: symptoms, root cause, affected files,
+     reproduction steps, additional bugs and gaps uncovered.
+-->

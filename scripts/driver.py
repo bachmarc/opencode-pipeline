@@ -7,7 +7,7 @@ profile, the driver computes the next required actions as machine-readable
 JSON — no LLM required to decide. The architect acts ONLY on the driver's
 output.
 
-Design (Story 30-01, F-030):
+Design (Stories 30-01 + 30-02, F-030):
 
 - PURE core: ``compute_next_actions(profile, state)`` takes plain dicts in and
   returns plain data out. The core imports NOTHING besides stdlib typing /
@@ -18,6 +18,8 @@ Design (Story 30-01, F-030):
   - ``test_strategy``: ``"unit-fake" | "e2e-docker" | "hybrid"`` (default
     ``unit-fake``)
   - ``intent_max_age_hours``: int, threshold for intent-reminder (default 72)
+  - ``escalation``: dict with ``fail_loop`` (default 3) and
+    ``max_escalations`` (default 2); see escalation semantics below
   Unknown extra keys are ignored silently by the core (extensibility rule)
   and reported as warnings by validation — never fatal.
 - Action kinds, in STABLE order:
@@ -25,11 +27,34 @@ Design (Story 30-01, F-030):
   - ``spawn-qa``: story is dev-done/committed (status not Planned/Done) but no
     QA verdict exists.
   - ``merge-candidate``: latest QA verdict is PASS but the story is not Done.
-  - ``spawn-dev``: story status Planned/In-Progress with a FAIL verdict.
+  - ``spawn-dev``: story status Planned/In-Progress with a FAIL verdict whose
+    current fail series is BELOW the escalation threshold (at/above the
+    threshold the escalation kinds replace the pointless retry).
+  - ``escalate-remedy``: the current fail series crossed the escalation
+    threshold and the story has escalation budget left.
+  - ``escalated-blocked``: threshold crossed again with the escalation budget
+    exhausted — the story is handed back to the user.
   - ``no-action``: state fully consistent (never omitted; reported explicitly).
-- Driver v1 is READ-ONLY/advisory: it never mutates state, there is no
-  ``--apply``. Escalation (fail loops) and debug-story output belong to 30-02;
-  merge authority stays exclusively with ``merge_if_passed.py``.
+- Escalation semantics (30-02): the FAIL series of a story is its trailing
+  run of consecutive FAIL verdicts — a PASS (any non-FAIL verdict) RESETS the
+  series. Escalations already happened are read from the escalation ledger
+  ``.pipeline/escalations.json`` (a JSON array of
+  ``{"story": <id>, "debug_story": <id>, "at": <iso8601>}`` entries, appended
+  by ``create_story.py --type debug`` — the stateless driver only COUNTS
+  entries per story from this ledger; it never writes it). Every threshold
+  crossing of the fail series consumes one escalation event: recorded
+  entries plus the current crossing stay below ``max_escalations`` →
+  ``escalate-remedy`` with the RECOMMENDATION pair ``recommendation:
+  "debug-story"`` + ``diagnosis: "strong-architect"`` (the driver emits both
+  as payload fields and names both in the reason text, but implements
+  nothing itself); reaching ``max_escalations`` → ``escalated-blocked`` →
+  "block-and-ask-user" (stop automated retries, ask the user). Escalate
+  actions sort LAST in the stable order. ``fail_loop <= 0`` disables the
+  feature entirely (no escalate actions ever); a missing/malformed
+  ``escalation`` profile block uses the default values.
+- Driver is READ-ONLY/advisory: it never mutates state, there is no
+  ``--apply``. Merge authority stays exclusively with ``merge_if_passed.py``;
+  the escalation ledger is written exclusively by ``create_story.py``.
 
 Story statuses are parsed from the ``Status:`` lines of
 ``docs/features/*/stories/*.md`` (same pattern as ``scripts/story_status.py``)
@@ -58,13 +83,28 @@ DEFAULT_PROFILE: dict = {
     "intent_max_age_hours": 72,
 }
 
+# Escalation defaults (Story 30-02) — used when the profile has no (or a
+# malformed) "escalation" block. fail_loop <= 0 disables the feature.
+DEFAULT_FAIL_LOOP = 3
+DEFAULT_MAX_ESCALATIONS = 2
+
 # Profile keys consumed by this story; anything else is an unknown extra key.
-KNOWN_PROFILE_KEYS = frozenset({"workflow", "test_strategy", "intent_max_age_hours"})
+KNOWN_PROFILE_KEYS = frozenset(
+    {"workflow", "test_strategy", "intent_max_age_hours", "escalation"}
+)
 KNOWN_WORKFLOWS = ("default", "custom")
 KNOWN_TEST_STRATEGIES = ("unit-fake", "e2e-docker", "hybrid")
 
-# Action kinds in the stable output order (requirement 3).
-_ACTION_ORDER = ("intent-reminder", "spawn-qa", "merge-candidate", "spawn-dev")
+# Action kinds in the stable output order (requirement 3; Story 30-02 appends
+# the escalation kinds LAST — after spawn-dev).
+_ACTION_ORDER = (
+    "intent-reminder",
+    "spawn-qa",
+    "merge-candidate",
+    "spawn-dev",
+    "escalate-remedy",
+    "escalated-blocked",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -75,23 +115,31 @@ _ACTION_ORDER = ("intent-reminder", "spawn-qa", "merge-candidate", "spawn-dev")
 def compute_next_actions(profile: dict, state: dict) -> list[dict]:
     """Compute next actions from profile + state. PURE function.
 
-    profile keys consumed: ``intent_max_age_hours`` (default 72). All other
-    profile keys are ignored silently.
+    profile keys consumed: ``intent_max_age_hours`` (default 72) and the
+    ``escalation`` block (``fail_loop`` default 3, ``max_escalations``
+    default 2). All other profile keys are ignored silently.
 
     state is a plain dict:
-        stories:   [{id, status}]
-        qa_state:  {story_id: [verdict...]}  (verdict: {"verdict": "PASS"} |
-                   "PASS" — the LAST entry is the latest)
-        intents:   [{story_id, started_at, done, ...}]
-        worktrees: [names...]  (reserved for 30-02, ignored here)
-        now:       optional ISO timestamp used as "current time" (tests);
-                   defaults to the real current UTC time.
+        stories:     [{id, status}]
+        qa_state:    {story_id: [verdict...]}  (verdict: {"verdict": "PASS"} |
+                     "PASS" — the LAST entry is the latest)
+        intents:     [{story_id, started_at, done, ...}]
+        escalations: [{"story": <id>, "debug_story": <id>, "at": <iso>}] —
+                     the escalation ledger (30-02); entries for other stories
+                     are ignored. Optional; missing means zero escalations.
+        worktrees:   [names...]  (reserved for future fail-loop worktree
+                     checks, ignored here)
+        now:         optional ISO timestamp used as "current time" (tests);
+                     defaults to the real current UTC time.
 
-    Returns actions as {kind, story_id?, reason} in the stable order
-    intent-reminder, spawn-qa, merge-candidate, spawn-dev — or exactly one
-    {"kind": "no-action"} when the state is fully consistent.
+    Returns actions as {kind, story_id?, reason, ...} in the stable order
+    intent-reminder, spawn-qa, merge-candidate, spawn-dev, escalate-remedy,
+    escalated-blocked — or exactly one {"kind": "no-action"} when the state
+    is fully consistent.
     """
     threshold = profile.get("intent_max_age_hours", DEFAULT_PROFILE["intent_max_age_hours"])
+    fail_loop, max_escalations = _escalation_settings(profile)
+    escalations = state.get("escalations") or []
     now = _parse_iso(state.get("now")) or datetime.now(timezone.utc)
 
     actions: list[dict] = []
@@ -144,9 +192,45 @@ def compute_next_actions(profile: dict, state: dict) -> list[dict]:
                 }
             )
 
-        # spawn-dev: Planned/In-Progress with a FAIL verdict (fail-loop escalation
-        # is deferred to 30-02; a single FAIL maps to spawn-dev here).
-        if latest_verdict == "FAIL" and status in ("Planned", "In Progress"):
+        # Escalation (30-02): the current fail series crossed the threshold.
+        # The escalation action REPLACES the routine spawn-dev retry for this
+        # story — the fail loop must break, not repeat (see module docstring).
+        fail_series = _consecutive_fails(verdicts)
+        if fail_loop > 0 and fail_series >= fail_loop:
+            escalation_events = _escalation_count(escalations, story_id) + 1
+            if escalation_events >= max_escalations:
+                actions.append(
+                    {
+                        "kind": "escalated-blocked",
+                        "story_id": story_id,
+                        "reason": (
+                            f"Fail loop persists: {fail_series} consecutive FAILs "
+                            f"(threshold {fail_loop}) with {escalation_events - 1} escalation(s) "
+                            f"already recorded (max_escalations {max_escalations}) — "
+                            "block-and-ask-user: stop automated retries and ask the user"
+                        ),
+                    }
+                )
+            else:
+                actions.append(
+                    {
+                        "kind": "escalate-remedy",
+                        "story_id": story_id,
+                        "recommendation": "debug-story",
+                        "diagnosis": "strong-architect",
+                        "reason": (
+                            f"Fail loop: {fail_series} consecutive FAILs (threshold {fail_loop}) — "
+                            "RECOMMENDATION pair: recommendation=debug-story (create an "
+                            "investigation story via create_story.py --type debug) and "
+                            "diagnosis=strong-architect (strong-tier root-cause review); "
+                            "the driver implements nothing itself"
+                        ),
+                    }
+                )
+
+        # spawn-dev: Planned/In-Progress with a FAIL verdict BELOW the escalation
+        # threshold (at/above it the escalation kinds above replace the retry).
+        elif latest_verdict == "FAIL" and status in ("Planned", "In Progress"):
             actions.append(
                 {
                     "kind": "spawn-dev",
@@ -221,6 +305,60 @@ def _latest_verdict(verdicts: list) -> str | None:
     if isinstance(latest, str):
         return latest
     return None
+
+
+def _consecutive_fails(verdicts: list) -> int:
+    """Trailing consecutive FAIL verdicts of the CURRENT attempt series.
+
+    The first non-FAIL verdict (PASS or anything else) reading backwards
+    resets the counter — a PASS ends the current fail series. Accepts both
+    {"verdict": X} entries and plain strings.
+    """
+    series = 0
+    for entry in reversed(verdicts):
+        verdict = entry.get("verdict") if isinstance(entry, dict) else entry
+        if verdict == "FAIL":
+            series += 1
+        else:
+            break
+    return series
+
+
+def _escalation_settings(profile: dict) -> tuple[int, int]:
+    """(fail_loop, max_escalations) from the profile's ``escalation`` block.
+
+    A missing or malformed block yields the defaults (3, 2); non-numeric
+    values fall back to the defaults as well. ``fail_loop <= 0`` disables
+    the escalation feature (checked by the caller).
+    """
+    block = profile.get("escalation")
+    if not isinstance(block, dict):
+        return DEFAULT_FAIL_LOOP, DEFAULT_MAX_ESCALATIONS
+
+    def _number(value: object, default: int) -> int:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return default
+        return int(value)
+
+    fail_loop = _number(block.get("fail_loop", DEFAULT_FAIL_LOOP), DEFAULT_FAIL_LOOP)
+    max_escalations = _number(
+        block.get("max_escalations", DEFAULT_MAX_ESCALATIONS), DEFAULT_MAX_ESCALATIONS
+    )
+    return fail_loop, max_escalations
+
+
+def _escalation_count(escalations: list, story_id: object) -> int:
+    """Number of escalation-ledger entries recorded for story_id.
+
+    The ledger is a list of {"story": <id>, "debug_story": <id>, "at": <iso>}
+    entries (appended by create_story.py --type debug); missing or malformed
+    entries are ignored.
+    """
+    return sum(
+        1
+        for entry in escalations
+        if isinstance(entry, dict) and entry.get("story") == story_id
+    )
 
 
 def _is_done(status: str) -> bool:
@@ -344,10 +482,30 @@ def read_intents(repo_root: str) -> list[dict]:
 
 
 def read_worktrees(repo_root: str) -> list[str]:
-    """Worktree names for the state dict. Reserved for 30-02 (fail-loop
-    escalation / worktree discipline); the v1 core ignores worktrees, and
-    listing them would require subprocess — which driver.py forbids (pure
-    core, no pathlib/subprocess). v1 therefore reports no worktrees."""
+    """Worktree names for the state dict. Reserved for future fail-loop
+    worktree-discipline checks; the core ignores worktrees, and listing them
+    would require subprocess — which driver.py forbids (pure core, no
+    pathlib/subprocess). The driver therefore reports no worktrees."""
+    return []
+
+
+def read_escalations(repo_root: str) -> list[dict]:
+    """Escalation ledger entries from .pipeline/escalations.json (Story 30-02).
+
+    The ledger is a JSON array of {"story", "debug_story", "at"} entries,
+    appended by create_story.py --type debug. A missing or corrupt file, or a
+    non-array payload, yields [] (a {"escalations": [...]} wrapper is
+    tolerated). The driver never writes this file."""
+    path = os.path.join(repo_root, ".pipeline", "escalations.json")
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        return []
+    if isinstance(data, list):
+        return [entry for entry in data if isinstance(entry, dict)]
+    if isinstance(data, dict) and isinstance(data.get("escalations"), list):
+        return [entry for entry in data["escalations"] if isinstance(entry, dict)]
     return []
 
 
@@ -392,6 +550,7 @@ def main(argv: list[str] | None = None) -> int:
         "stories": read_stories(repo_root),
         "qa_state": read_qa_state(repo_root),
         "intents": read_intents(repo_root),
+        "escalations": read_escalations(repo_root),
         "worktrees": read_worktrees(repo_root),
         "now": datetime.now(timezone.utc).isoformat(),
     }
