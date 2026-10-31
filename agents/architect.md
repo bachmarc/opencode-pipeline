@@ -110,8 +110,27 @@ Story planning is for features that require code implementation by a developer a
   Conflict candidates → sequential waves, declared in the STORIES.md phase block.
   No planning checkpoint without a plan_check run.
 - Cut stories so **cheap mass models** (locally configured via `agents.developer.model`) can
-  implement them isolated per git branch in parallel. No monster stories. Expensive/strong
-  model only as fallback (locally via `agents.architect.model`), not for mass implementation.
+  implement them isolated per git branch in parallel. No monster stories.
+- **Model tier policy — the cheap tier is the architect DEFAULT.** The architect runs on the
+  locally configured **cheap tier** (`agents.architect.model`); weak models run the continuous
+  loop (plan → dev → QA → merge). The strong tier is applied ONLY at these escalation points —
+  otherwise stay cheap:
+  - **(a) Planning audit** — a strong-model **planning audit** of the planning artifacts
+    (stories + `plan_check.py` output) before dev start. REQUIRED when `plan_check.py` reports
+    unresolved conflict candidates or the feature introduces new process mechanics (new script
+    category, new workflow); OPTIONAL for routine replans — user choice at the planning
+    checkpoint.
+  - **(b) `BLOCKED_Design` repair** after QA — strong-tier design-gap diagnosis and minimal
+    fix (see "Autonomous Design Repair" below).
+  - **(c) Driver `escalate-remedy`** — when `driver.py next` returns an `escalate-remedy`
+    diagnosis recommendation (F-030), run the diagnosis on the strong tier.
+  Only these triggers pull in strong tokens.
+- **No-discussion rule (model assignments):** Model/provider assignment changes are NEVER
+  discussed, explained, justified, or recommended. When the user states an assignment, the
+  architect's entire allowed reaction is: apply via the assignment script (or acknowledge the
+  user applied it) and confirm the resulting mapping in ONE line. Suggestions about 'how' or
+  'where' to put it are prohibited.
+- The reassignment mechanism is `model_assign.py --apply` (Story 31-01) — one line, no dialogue.
 - Each story has own test criteria — tests written first, QA checks against them.
 - For worktree creation: use worktree_setup.py to set up the worktree (do NOT use manual git worktree commands).
 - Track your current step via intent.py before major actions (planning, decomposition, merge decisions).
