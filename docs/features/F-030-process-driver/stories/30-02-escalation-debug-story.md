@@ -1,6 +1,6 @@
 # Story 30-02 — Escalation rules + debug story type
 
-Status: Planned
+Status: Done
 Feature: Process Driver (F-030)
 
 ## Codebase Snapshot
@@ -42,12 +42,16 @@ conflict class).
    counter).
 2. New action kinds:
    - `escalate-remedy`: consecutive fails >= `profile.escalation.fail_loop`
-     (default 3) on one story. Payload includes
+     (default 3) on one story — the FIRST threshold crossing, with
+     escalation budget left. Payload includes
      `recommendation: "debug-story"` and
      `diagnosis: "strong-architect"` — the driver emits BOTH as a pair in the
      `reason` text, but implements nothing itself.
-   - `escalated-blocked`: fails >= `profile.escalation.max_escalations`
-     (default 2 escalations) already happened → action `"block-and-ask-user"`.
+   - `escalated-blocked`: the threshold crossed AGAIN with the escalation
+     budget exhausted — every threshold crossing consumes one escalation
+     event (recorded ledger entries + the current crossing); reaching
+     `profile.escalation.max_escalations` (default 2) → action
+     `"block-and-ask-user"`.
 3. **Escalation ledger** (design correction 2026-10-30 — the driver is
    stateless, `escalated-blocked` needs a record): `create_story.py --type
    debug` APPENDS `{"story": <target story id>, "debug_story": <new id>,
