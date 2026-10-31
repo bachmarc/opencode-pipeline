@@ -102,7 +102,7 @@ Index and status per story. Template: `docs/features/_story_template.md`.
 | 25-03-history-dialog | /migrate Phase 5: granular retro / baseline / clean-start dialog | Done (QA PASS) | F-025 project-profile |
 | 26-01-codebase-snapshot-in-story-template | Story template + Architect + Developer: ## Codebase Snapshot section | Done (QA PASS) | F-026 codebase-snapshot |
 | 30-01-driver-core | `scripts/driver.py`: process profiles + pure core compute_next_actions + CLI | Done (QA PASS) | F-030 process-driver |
-| 30-02-escalation-debug-story | Driver escalation rules + create_story --type debug | Planned | F-030 process-driver |
+| 30-02-escalation-debug-story | Driver escalation rules + create_story --type debug | Done (QA PASS) | F-030 process-driver |
 | 30-03-tier-d-checkers | qa_compress: worktree_discipline + metadata_affects checkers | Done (QA PASS) | F-030 process-driver |
 | 30-04-tier-k-scoping-prompts | qa-manager two-tier verdict + provenance; architect driver-first; templates process profile | Planned | F-030 process-driver |
 | 30-05-plan-checker | `scripts/plan_check.py`: deterministic planning QA (ghost refs, same-file conflicts, clarification markers) | Done (QA PASS) | F-030 process-driver |
