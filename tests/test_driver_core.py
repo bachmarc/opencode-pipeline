@@ -11,7 +11,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -413,3 +413,131 @@ def test_action_order_includes_stale_planned() -> None:
         "99-05",
         "99-06",
     ]
+
+
+# ---------------------------------------------------------------------------
+# Story 33-03: status_class() vocabulary + terminal states
+# ---------------------------------------------------------------------------
+
+
+def test_status_class_done_variants() -> None:
+    """Test that all case/annotation variants of Done -> "done"."""
+    assert driver.status_class("Done") == "done"
+    assert driver.status_class("DONE") == "done"
+    assert driver.status_class("done") == "done"
+    assert driver.status_class("DONE (merged)") == "done"
+    assert driver.status_class("Done (QA PASS, abc)") == "done"
+    assert driver.status_class("done (qa pass, abc)") == "done"
+
+
+def test_status_class_planned_variants() -> None:
+    """Test that Planned with annotations -> "planned", not "in_progress"."""
+    assert driver.status_class("Planned") == "planned"
+    assert driver.status_class("planned") == "planned"
+    assert driver.status_class("PLANNED") == "planned"
+    assert driver.status_class("Planned (waiting for go)") == "planned"
+    assert driver.status_class("planned (blocked)") == "planned"
+
+
+def test_status_class_parked_variants() -> None:
+    """Test that each parked prefix -> "parked"."""
+    assert driver.status_class("Parked") == "parked"
+    assert driver.status_class("parked") == "parked"
+    assert driver.status_class("PARKED") == "parked"
+    assert driver.status_class("Dormant") == "parked"
+    assert driver.status_class("DORMANT") == "parked"
+    assert driver.status_class("Eingestellt") == "parked"
+    assert driver.status_class("EINGESTELLT") == "parked"
+    assert driver.status_class("On Hold") == "parked"
+    assert driver.status_class("ON HOLD") == "parked"
+    # With annotations
+    assert driver.status_class("Parked (waiting for feedback)") == "parked"
+    assert driver.status_class("On Hold (resource unavailable)") == "parked"
+
+
+def test_status_class_closed_variants() -> None:
+    """Test that closed/reverted/dropped/superseded/cancelled -> "closed"."""
+    assert driver.status_class("Closed") == "closed"
+    assert driver.status_class("closed") == "closed"
+    assert driver.status_class("CLOSED") == "closed"
+    assert driver.status_class("Reverted") == "closed"
+    assert driver.status_class("reverted") == "closed"
+    assert driver.status_class("Dropped") == "closed"
+    assert driver.status_class("dropped") == "closed"
+    assert driver.status_class("Superseded") == "closed"
+    assert driver.status_class("superseded") == "closed"
+    assert driver.status_class("Cancelled") == "closed"
+    assert driver.status_class("cancelled") == "closed"
+    # With annotations (covers the 29-01 real case)
+    assert driver.status_class("Superseded by 32-03 (merged)") == "closed"
+    assert driver.status_class("Reverted (conflicts)") == "closed"
+
+
+def test_status_class_in_progress_variants() -> None:
+    """Test that other non-empty statuses -> "in_progress"."""
+    assert driver.status_class("In Progress") == "in_progress"
+    assert driver.status_class("Blocked") == "in_progress"
+    assert driver.status_class("Review") == "in_progress"
+    assert driver.status_class("In-Review") == "in_progress"
+
+
+def test_status_class_unknown_variants() -> None:
+    """Test that empty string -> "unknown"."""
+    assert driver.status_class("") == "unknown"
+
+
+def test_parked_story_no_driver_action() -> None:
+    """Story with Status: Parked produces no action."""
+    state: dict = {
+        "now": NOW,
+        "intents": [],
+        "stories": [{"id": "29-01", "status": "Parked"}],
+        "qa_state": {},
+        "worktrees": [],
+    }
+
+    actions = driver.compute_next_actions(DEFAULT_PROFILE, state)
+
+    assert actions == [{"kind": "no-action"}]
+
+
+def test_closed_story_no_driver_action() -> None:
+    """Story with Status: Superseded by 32-03 … produces no action (covers real case from 29-01)."""
+    state: dict = {
+        "now": NOW,
+        "intents": [],
+        "stories": [{"id": "29-01", "status": "Superseded by 32-03 (merged)"}],
+        "qa_state": {},
+        "worktrees": [],
+    }
+
+    actions = driver.compute_next_actions(DEFAULT_PROFILE, state)
+
+    assert actions == [{"kind": "no-action"}]
+
+
+def test_intent_closure_suggested_when_story_done() -> None:
+    """When an open intent exists for a story whose status_class is "done",
+    emit intent-closure-suggested action with story_id and intent_id."""
+    state: dict = {
+        "now": NOW,
+        "intents": [
+            {
+                "story_id": "27-02",
+                "intent_id": "intent-123",
+                "started_at": _iso_from_now(-timedelta(hours=1)),
+                "done": False,
+            }
+        ],
+        "stories": [{"id": "27-02", "status": "Done (merged)"}],
+        "qa_state": {},
+        "worktrees": [],
+    }
+
+    actions = driver.compute_next_actions(DEFAULT_PROFILE, state)
+
+    # Should emit intent-closure-suggested, not spawn-qa or merge-candidate
+    assert [a["kind"] for a in actions] == ["intent-closure-suggested"]
+    assert actions[0]["story_id"] == "27-02"
+    assert actions[0]["intent_id"] == "intent-123"
+    assert "story appears done" in actions[0]["reason"]
