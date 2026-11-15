@@ -1,5 +1,5 @@
 ---
-description: Cheap cloud implementation agent for individual stories, isolated per git branch (feature/<story-id>-<slug>). Uses locally configured cheap mass model for repetitive writing work (parallelizable). Implements exactly developer targets, tests first, fake interfaces.
+description: Cheap cloud implementation agent for individual stories, isolated per git branch (feature/<story-id>-<slug>). Uses locally configured cheap mass model for repetitive writing work (parallelizable). Implements exactly developer targets, tests first, fake interfaces. Anti-loop rules prevent unbounded exploration; step budget config caps runaway sessions.
 mode: subagent
 ---
 
@@ -37,6 +37,8 @@ The architect has already created the worktree — you work **exclusively** in i
 - **Fake interface parity:** If you create/change a fake, it must have **exactly the same method signatures** as the real adapter. Real orchestration code must be callable with fake, without modifications.
 - **Integration tests:** If story requires integration tests, call **real orchestration code** (e.g., `Scheduler._run_cycle()` with fakes). Do NOT manually reconstruct cycle — that bypasses wiring bugs.
 - **Update docstrings and module headers in every file you change.** Code documentation is the source of truth.
+- **Anti-loop protection:** Never repeat the same failing action more than 2–3 times. On the third failure, mark the item DEFERRED with a one-line diagnosis and move on. This prevents unbounded exploration loops.
+- **Step budget (project-critical):** Configure `agents.developer.steps` (e.g. 60–80) in the project-local `opencode.jsonc` to cap runaway loops. When the step budget is reached, OpenCode removes tools and forces a summary — a bounded agent cannot loop forever. Example: `"agents": { "developer": { "steps": 60 } }`.
 - Commit body MUST contain metadata:
   ```
   symbols: <changed export symbols> | breaks: <none|breaking> | affects: <dependent files> | tests: <test suite result>

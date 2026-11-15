@@ -72,3 +72,75 @@ def test_developer_prompt_reads_codebase_snapshot() -> None:
     assert "Codebase Snapshot" in content, (
         "agent/developer.md: missing guidance about reading Codebase Snapshot"
     )
+
+
+def test_developer_prompt_has_anti_loop_rule() -> None:
+    """
+    agent/developer.md must contain an anti-loop rule with the DEFERRED concept.
+    
+    Acceptance: The file must contain "DEFERRED" (or "deferred") AND a phrase
+    matching "same failing action" or equivalent.
+    """
+    dev_path = REPO_ROOT / "agents" / "developer.md"
+    assert dev_path.exists(), f"{dev_path} not found"
+    
+    content = dev_path.read_text(encoding="utf-8")
+    
+    # Check for DEFERRED keyword
+    assert "DEFERRED" in content or "deferred" in content, (
+        "agent/developer.md must contain 'DEFERRED' or 'deferred' keyword in anti-loop rule"
+    )
+    
+    # Check for "same failing action" or equivalent phrase
+    content_lower = content.lower()
+    has_failing_action_phrase = (
+        "same failing action" in content_lower or
+        "repeat the same failing action" in content_lower or
+        "repeating the same failing action" in content_lower
+    )
+    
+    assert has_failing_action_phrase, (
+        "agent/developer.md must contain phrase about 'same failing action' in anti-loop rule"
+    )
+
+
+def test_developer_prompt_has_step_budget_recommendation() -> None:
+    """
+    agent/developer.md must contain a step-budget recommendation.
+    
+    Acceptance: The file must contain "agents.developer.steps".
+    """
+    dev_path = REPO_ROOT / "agents" / "developer.md"
+    assert dev_path.exists(), f"{dev_path} not found"
+    
+    content = dev_path.read_text(encoding="utf-8")
+    
+    assert "agents.developer.steps" in content, (
+        "agent/developer.md must contain 'agents.developer.steps' in step-budget recommendation"
+    )
+
+
+def test_architect_prompt_has_item_wise_spawn_guidance() -> None:
+    """
+    agent/architect.md must contain item-wise spawn guidance in Phase 3 orchestration.
+    
+    Acceptance: The file must contain "item-level" or "item-wise" in the Phase 3 section.
+    """
+    arch_path = REPO_ROOT / "agents" / "architect.md"
+    assert arch_path.exists(), f"{arch_path} not found"
+    
+    content = arch_path.read_text(encoding="utf-8")
+    
+    # Find Phase 3 Orchestration section
+    phase3_match = re.search(r"## Phase 3 Orchestration.*?(?=\n## |\Z)", content, re.DOTALL)
+    assert phase3_match, (
+        "agent/architect.md must contain '## Phase 3 Orchestration' section"
+    )
+    
+    phase3_content = phase3_match.group(0)
+    
+    has_item_wise = "item-level" in phase3_content or "item-wise" in phase3_content
+    
+    assert has_item_wise, (
+        "agent/architect.md Phase 3 Orchestration section must contain 'item-level' or 'item-wise' spawn guidance"
+    )

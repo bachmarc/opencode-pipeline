@@ -92,6 +92,10 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
    - BLOCKED_Requirements → escalation to user.
    **No branch is merged without QA-PASS. No exception.**
 
+## Environment & Tooling
+
+- **Step-budget configuration:** Configure `agents.developer.steps` (e.g. 60–80) in the project-local `opencode.jsonc` to prevent developer agent loops. When the step budget is reached, OpenCode removes tools and forces a summary.
+
 ## Languages
 
 - Dialogue with user: respond in the user's language
