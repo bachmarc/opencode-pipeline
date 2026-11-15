@@ -66,7 +66,7 @@ def run_plan_check(cwd: Path, *args: str) -> subprocess.CompletedProcess:
     """Run plan_check.py via subprocess and return the completed process."""
     return subprocess.run(
         [sys.executable, str(PLAN_CHECK), *args],
-        capture_output=True, text=True, cwd=str(cwd))
+        capture_output=True, text=True, cwd=str(cwd), check=False)
 
 
 def run_check_on(root: Path, *extra: str) -> subprocess.CompletedProcess:
@@ -458,7 +458,7 @@ New story purpose.
     assert all(p["story"] != "32-05" for p in missing_since), \
         f"32-05 should be skipped with --since 33-01, but found in: {missing_since}"
     assert any(p["story"] == "33-05" for p in missing_since), \
-        f"33-05 should still be checked with --since 33-01"
+        "33-05 should still be checked with --since 33-01"
 
 
 def test_since_flag_does_not_skip_ghost_refs(tmp_path):
