@@ -26,6 +26,8 @@ Design (Stories 30-01 + 30-02, F-030):
   and reported as warnings by validation — never fatal.
 - Action kinds, in STABLE order:
   - ``intent-reminder``: an open intent older than ``intent_max_age_hours``.
+  - ``intent-closure-suggested`` (Story 33-03, D-10): an open intent exists for a story
+    whose status_class is "done" (work complete, awaiting intent closure).
   - ``spawn-qa``: story is dev-done/committed (status not Planned/Done) but no
     QA verdict exists.
   - ``merge-candidate``: latest QA verdict is PASS but the story is not Done.
@@ -176,9 +178,9 @@ def compute_next_actions(profile: dict, state: dict) -> list[dict]:
                      defaults to the real current UTC time.
 
     Returns actions as {kind, story_id?, reason, ...} in the stable order
-    intent-reminder, spawn-qa, merge-candidate, spawn-dev, stale-planned,
-    escalate-remedy, escalated-blocked — or exactly one
-    {"kind": "no-action"} when the state is fully consistent.
+    intent-reminder, intent-closure-suggested, spawn-qa, merge-candidate,
+    spawn-dev, stale-planned, escalate-remedy, escalated-blocked — or exactly
+    one {"kind": "no-action"} when the state is fully consistent.
     """
     threshold = profile.get("intent_max_age_hours", DEFAULT_PROFILE["intent_max_age_hours"])
     fail_loop, max_escalations = _escalation_settings(profile)
@@ -316,7 +318,8 @@ def compute_next_actions(profile: dict, state: dict) -> list[dict]:
         intent_story_id = intent.get("story_id")
         # Find the corresponding story to check if it's done
         for story in state.get("stories") or []:
-            if story.get("id") == intent_story_id and status_class(str(story.get("status") or "")) == "done":
+            story_status = str(story.get("status") or "")
+            if story.get("id") == intent_story_id and status_class(story_status) == "done":
                 intent_id = intent.get("intent_id") or intent.get("id")
                 actions.append(
                     {
