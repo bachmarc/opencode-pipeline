@@ -1,4 +1,4 @@
-"""Tests for scripts/plan_check.py — deterministic planning QA (Story 30-05).
+"""Tests for scripts/plan_check.py — deterministic planning QA (Stories 30-05, 33-04).
 
 Fixture story files are written into tmp_path and checked via subprocess
 invocation (same pattern as tests/test_check_scripts.py). Exit codes and the
