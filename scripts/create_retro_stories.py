@@ -3,7 +3,8 @@
 
 Creates retro feature and story files from a JSON definition.
 Used during project migration to document pre-pipeline development.
-Retro feature folder uses F-RETRO-retro naming convention.
+Retro stories are stored in docs/features/F-RETRO-retro/stories/; FEATURES.md is updated.
+Does NOT create STORIES.md — projects use story files instead.
 
 Story 25-03 extends this script with:
 1. scan_history() - analyzes git history and documentation (CHANGELOG.md, TODO.md, README.md)
@@ -315,15 +316,6 @@ def create_retro_stories(target_path: str, retro_def: dict) -> dict:
         _create_features_md(features_index, retro_def)
         result["created"].append(str(features_index))
     
-    # Update or create STORIES.md
-    stories_index = target / "STORIES.md"
-    if stories_index.exists():
-        _append_to_stories_md(stories_index, retro_def)
-        result["updated"].append(str(stories_index))
-    else:
-        _create_stories_md(stories_index, retro_def)
-        result["created"].append(str(stories_index))
-    
     return result
 
 
@@ -441,66 +433,6 @@ Top-level index of features and their stories.
 | {feature_id} | {feature_title} | done | — | {stories} |
 """
     features_md.write_text(content, encoding="utf-8")
-
-
-def _append_to_stories_md(stories_md: Path, retro_def: dict) -> None:
-    """Append retro story entries to existing STORIES.md."""
-    content = stories_md.read_text(encoding="utf-8")
-    
-    # Check if any RETRO story already exists
-    if any(s["id"] in content for s in retro_def.get("stories", [])):
-        return
-    
-    lines = content.splitlines(keepends=True)
-    
-    # Find the last table row and append after it
-    last_table_row_idx = -1
-    for i in range(len(lines) - 1, -1, -1):
-        if lines[i].strip().startswith("|") and "---" not in lines[i]:
-            last_table_row_idx = i
-            break
-    
-    # Build new rows
-    feature_id = retro_def["feature_id"]
-    new_rows = []
-    for story in retro_def.get("stories", []):
-        story_id = story["id"]
-        title = story["title"]
-        new_row = f"| {story_id} | {title} | Retro-Done | {feature_id} retro |\n"
-        new_rows.append(new_row)
-    
-    if last_table_row_idx >= 0:
-        for i, row in enumerate(new_rows):
-            lines.insert(last_table_row_idx + 1 + i, row)
-    else:
-        # Fallback: append at end
-        lines.extend(new_rows)
-    
-    stories_md.write_text("".join(lines), encoding="utf-8")
-
-
-def _create_stories_md(stories_md: Path, retro_def: dict) -> None:
-    """Create STORIES.md with retro entries."""
-    feature_id = retro_def["feature_id"]
-    
-    # Build story rows
-    story_rows = []
-    for story in retro_def.get("stories", []):
-        story_id = story["id"]
-        title = story["title"]
-        story_rows.append(f"| {story_id} | {title} | Retro-Done | {feature_id} retro |")
-    
-    stories_section = "\n".join(story_rows)
-    
-    content = f"""# STORIES.md
-
-Index and status per story.
-
-| Story | Title | Status | Traceability |
-|---|---|---|---|
-{stories_section}
-"""
-    stories_md.write_text(content, encoding="utf-8")
 
 
 def main() -> int:

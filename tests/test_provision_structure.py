@@ -189,14 +189,14 @@ def test_creates_qa_config_ruby(tmp_path):
 
 
 def test_never_overwrites_existing(tmp_path):
-    """Temp dir with existing STORIES.md → content unchanged after provisioning."""
+    """Temp dir with existing FEATURES.md → content unchanged after provisioning."""
     target = tmp_path / "test_project"
     target.mkdir()
     
-    # Create existing STORIES.md with custom content
-    stories_path = target / "STORIES.md"
-    original_content = "# My Custom Stories\n\nThis is my content.\n"
-    stories_path.write_text(original_content)
+    # Create existing FEATURES.md with custom content
+    features_path = target / "FEATURES.md"
+    original_content = "# My Custom Features\n\nThis is my content.\n"
+    features_path.write_text(original_content)
     
     analysis = {
         "project_name": "test-project",
@@ -218,7 +218,7 @@ def test_never_overwrites_existing(tmp_path):
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     
     # Check content is unchanged
-    assert stories_path.read_text() == original_content, "STORIES.md was overwritten"
+    assert features_path.read_text() == original_content, "FEATURES.md was overwritten"
 
 
 def test_gitignore_merge_appends(tmp_path):
@@ -417,8 +417,8 @@ def test_creates_intent_json(tmp_path):
     assert intent["created"] is True, "created flag not set"
 
 
-def test_creates_features_and_stories_md(tmp_path):
-    """After provisioning → FEATURES.md and STORIES.md exist with starter content."""
+def test_creates_features_md(tmp_path):
+    """After provisioning → FEATURES.md exists with starter content."""
     target = tmp_path / "test_project"
     target.mkdir()
     
@@ -446,10 +446,42 @@ def test_creates_features_and_stories_md(tmp_path):
     assert features_path.exists(), "FEATURES.md not created"
     assert "# Features" in features_path.read_text(), "FEATURES.md missing header"
     
-    # Check STORIES.md
+    # Verify STORIES.md is NOT created
     stories_path = target / "STORIES.md"
-    assert stories_path.exists(), "STORIES.md not created"
-    assert "# Stories" in stories_path.read_text(), "STORIES.md missing header"
+    assert not stories_path.exists(), "STORIES.md should not be created by provision_structure.py"
+
+
+def test_provision_does_not_create_stories_md(tmp_path):
+    """Provisioned project has no STORIES.md; projects use story files instead."""
+    target = tmp_path / "test_project"
+    target.mkdir()
+    
+    analysis = {
+        "project_name": "test-project",
+        "stack": "python",
+        "structure": {"present": [], "missing": []}
+    }
+    
+    analysis_file = tmp_path / "analysis.json"
+    analysis_file.write_text(json.dumps(analysis))
+    
+    script_path = Path(__file__).parent.parent / "scripts" / "provision_structure.py"
+    result = subprocess.run(
+        [sys.executable, str(script_path), str(target), str(analysis_file)],
+        capture_output=True,
+        text=True,
+        check=False
+    )
+    
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    
+    # Verify STORIES.md is NOT created
+    stories_path = target / "STORIES.md"
+    assert not stories_path.exists(), "STORIES.md should not be created; projects use story files in docs/features/*/stories/"
+    
+    # Verify story files directory structure exists for future use
+    stories_dir = target / "docs" / "features"
+    assert stories_dir.exists(), "docs/features directory should exist for story files"
 
 
 def test_output_json_structure(tmp_path):

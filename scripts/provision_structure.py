@@ -5,6 +5,8 @@ provision_structure.py — Deterministic structure provisioning for opencode pro
 Creates missing directories and files based on analysis JSON. Never overwrites existing files.
 Uses analysis from Story 12-02 to know what's already present.
 
+Does NOT create STORIES.md; projects use story files in docs/features/*/stories/ instead.
+
 Accepts optional qa_checkers list and deploy_methods to write qa_config.json and append
 ## Deployment section to AGENTS.md.
 
@@ -166,14 +168,6 @@ def provision_structure(target_path: str, analysis: dict, qa_checkers: list = []
         report["created"].append("FEATURES.md")
     else:
         report["already_existed"].append("FEATURES.md")
-    
-    # Create STORIES.md if it doesn't exist
-    stories_path = target / "STORIES.md"
-    if not stories_path.exists():
-        stories_path.write_text("# Stories\n\n")
-        report["created"].append("STORIES.md")
-    else:
-        report["already_existed"].append("STORIES.md")
     
     # Handle .gitignore merge
     gitignore_path = target / ".gitignore"

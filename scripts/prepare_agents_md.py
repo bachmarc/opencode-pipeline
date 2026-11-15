@@ -137,7 +137,7 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
     
     # Build references section
     references_lines = ["## References", ""]
-    references_lines.append("- `STORIES.md` — story index (status per story)")
+    references_lines.append("- `FEATURES.md` — feature index (feature status and story list)")
     
     # Add detected doc files
     if "docs/features" in present_dirs:

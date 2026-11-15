@@ -104,8 +104,8 @@ def test_creates_single_retro_story(tmp_path: Path, retro_def_single: dict) -> N
     assert "RETRO-01" in content, "Story should contain story ID"
     assert "Initial Development" in content, "Story should contain story title"
     
-    # Should have created feature.md, story file, FEATURES.md, and STORIES.md
-    assert len(result["created"]) >= 3, "Should have created at least 3 files"
+    # Should have created feature.md and story file (not STORIES.md anymore)
+    assert len(result["created"]) >= 2, "Should have created at least 2 files"
 
 
 def test_creates_multiple_retro_stories(tmp_path: Path, retro_def_multiple: dict) -> None:
@@ -147,29 +147,25 @@ def test_updates_features_md(tmp_path: Path, retro_def_single: dict) -> None:
     assert "updated" in result, "Should report updated files"
 
 
-def test_updates_stories_md(tmp_path: Path, retro_def_multiple: dict) -> None:
-    """Temp dir with existing STORIES.md → retro entries appended."""
-    # Create existing STORIES.md with table header
-    stories_md = tmp_path / "STORIES.md"
-    stories_md.write_text(
-        "# STORIES\n\n"
-        "| Story | Title | Status |\n"
-        "|-------|-------|--------|\n"
-        "| 01-03 | Test | Done |\n",
-        encoding="utf-8"
-    )
-    
+def test_retro_stories_no_stories_md_update(tmp_path: Path, retro_def_multiple: dict) -> None:
+    """create_retro_stories produces feature.md + story files; does NOT create/update STORIES.md."""
     result = create_retro_stories(str(tmp_path), retro_def_multiple)
     
-    content = stories_md.read_text(encoding="utf-8")
-    assert "RETRO-01" in content, "STORIES.md should contain RETRO-01"
-    assert "RETRO-02" in content, "STORIES.md should contain RETRO-02"
-    assert "RETRO-03" in content, "STORIES.md should contain RETRO-03"
-    assert "Retro-Done" in content, "STORIES.md should contain Retro-Done status"
+    # STORIES.md should NOT be created
+    stories_md = tmp_path / "STORIES.md"
+    assert not stories_md.exists(), "STORIES.md should not be created by create_retro_stories"
+    
+    # But FEATURES.md and story files should exist
+    features_md = tmp_path / "FEATURES.md"
+    assert features_md.is_file(), "FEATURES.md should be created"
+    
+    stories_dir = tmp_path / "docs" / "features" / "F-RETRO-retro" / "stories"
+    story_files = list(stories_dir.glob("RETRO-*.md"))
+    assert len(story_files) == 3, f"Should have created 3 story files, got {len(story_files)}"
 
 
 def test_creates_indexes_if_missing(tmp_path: Path, retro_def_single: dict) -> None:
-    """Temp dir without FEATURES.md → FEATURES.md created with retro entry."""
+    """Temp dir without FEATURES.md → FEATURES.md created with retro entry; no STORIES.md."""
     result = create_retro_stories(str(tmp_path), retro_def_single)
     
     features_md = tmp_path / "FEATURES.md"
@@ -179,11 +175,9 @@ def test_creates_indexes_if_missing(tmp_path: Path, retro_def_single: dict) -> N
     assert "F-RETRO" in content, "Created FEATURES.md should contain F-RETRO"
     assert "| Feature" in content, "Created FEATURES.md should have table header"
     
+    # STORIES.md should NOT be created
     stories_md = tmp_path / "STORIES.md"
-    assert stories_md.is_file(), "STORIES.md should be created if missing"
-    
-    content = stories_md.read_text(encoding="utf-8")
-    assert "RETRO-01" in content, "Created STORIES.md should contain RETRO-01"
+    assert not stories_md.exists(), "STORIES.md should not be created"
 
 
 def test_never_overwrites_existing_retro(tmp_path: Path, retro_def_single: dict) -> None:

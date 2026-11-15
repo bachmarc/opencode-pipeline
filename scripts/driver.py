@@ -73,8 +73,7 @@ Design (Stories 30-01 + 30-02, F-030):
   the escalation ledger is written exclusively by ``create_story.py``.
 
 Story statuses are parsed from the ``Status:`` lines of
-``docs/features/*/stories/*.md`` (same pattern as ``scripts/story_status.py``)
-— NOT from the STORIES.md markdown table.
+``docs/features/*/stories/*.md`` (same pattern as ``scripts/story_status.py``).
 
 Status vocabulary (Story 33-03): story statuses are classified via ``status_class(status)``
 into one of six terminal/transient states:
@@ -599,8 +598,8 @@ def load_profile(path: str) -> tuple[dict, bool]:
 
 
 def read_stories(repo_root: str) -> list[dict]:
-    """Story statuses from the `Status:` lines of docs/features/*/stories/*.md
-    (NOT from the STORIES.md table). Files without a Status: line are skipped.
+    """Story statuses from the `Status:` lines of docs/features/*/stories/*.md.
+    Files without a Status: line are skipped.
     Each entry also carries ``age_days`` — the story file's mtime age in days
     (Story 32-02 input for the stale-planned check); omitted when the mtime
     cannot be read."""

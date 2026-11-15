@@ -96,7 +96,7 @@ def detect_deploy_hints(target: Path) -> list[str]:
             content = makefile_path.read_text()
             if "deploy:" in content or "deploy :" in content:
                 hints.append("makefile-deploy-target")
-        except (IOError, UnicodeDecodeError):
+        except (OSError, UnicodeDecodeError):
             pass
     
     # Check for Procfile (Heroku)
@@ -246,7 +246,6 @@ def analyze_project(target_path: str) -> dict:
     
     # Check existing pipeline files
     pipeline_files = [
-        "STORIES.md",
         "FEATURES.md",
         "qa_config.json",
         ".pipeline/intent.json",

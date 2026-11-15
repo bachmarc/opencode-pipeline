@@ -60,10 +60,6 @@ def valid_project(tmp_path, template_agents_md):
     features_md = project_root / "FEATURES.md"
     features_md.write_text("# Features\n", encoding='utf-8')
     
-    # Create STORIES.md
-    stories_md = project_root / "STORIES.md"
-    stories_md.write_text("# Stories\n", encoding='utf-8')
-    
     # Initialize git
     subprocess.run(
         ["git", "init"],
@@ -213,9 +209,23 @@ class TestValidateMigration:
         assert features_check is not None
         assert features_check["status"] == "fail"
     
-    def test_missing_stories_md(self, valid_project):
-        """Missing STORIES.md -> overall FAIL."""
-        (valid_project / "STORIES.md").unlink()
+    def test_validate_migration_checks_features_md(self, valid_project):
+        """Projects use FEATURES.md instead of STORIES.md; validation checks for FEATURES.md."""
+        # The fixture creates FEATURES.md, so it should pass
+        returncode, stdout, stderr = run_validate_migration(str(valid_project))
+        
+        assert returncode == 0
+        
+        output = json.loads(stdout)
+        assert output["status"] == "PASS"
+        
+        features_check = next((c for c in output["checks"] if c["check"] == "features_md"), None)
+        assert features_check is not None
+        assert features_check["status"] == "pass"
+    
+    def test_validate_migration_fails_without_features_md(self, valid_project):
+        """Missing FEATURES.md -> overall FAIL."""
+        (valid_project / "FEATURES.md").unlink()
         
         returncode, stdout, stderr = run_validate_migration(str(valid_project))
         
@@ -224,9 +234,9 @@ class TestValidateMigration:
         output = json.loads(stdout)
         assert output["status"] == "FAIL"
         
-        stories_check = next((c for c in output["checks"] if c["check"] == "stories_md"), None)
-        assert stories_check is not None
-        assert stories_check["status"] == "fail"
+        features_check = next((c for c in output["checks"] if c["check"] == "features_md"), None)
+        assert features_check is not None
+        assert features_check["status"] == "fail"
     
     def test_template_constancy_pass(self, valid_project, template_agents_md):
         """AGENTS.md matching template sections -> template_constancy check passes."""
@@ -322,7 +332,7 @@ class TestValidateMigration:
             assert check["status"] in ["pass", "fail"]
     
     def test_all_checks_present(self, valid_project):
-        """All expected checks are present in output."""
+        """All expected checks are present in output (no stories_md check after 37-02)."""
         returncode, stdout, stderr = run_validate_migration(str(valid_project))
         
         output = json.loads(stdout)
@@ -333,7 +343,6 @@ class TestValidateMigration:
             "required_dirs",
             "qa_config",
             "features_md",
-            "stories_md",
             "pipeline_intent",
             "git_initialized",
             "deploy_documented",
@@ -343,6 +352,9 @@ class TestValidateMigration:
         
         for expected in expected_checks:
             assert expected in check_names, f"Expected check '{expected}' not found in output"
+        
+        # Verify that stories_md check is NOT present (removed in story 37-02)
+        assert "stories_md" not in check_names, "stories_md check should not be present"
     
     def test_check_deploy_documented_pass(self, valid_project):
         """AGENTS.md with ## Deployment + real content → check_deploy_documented passes."""
