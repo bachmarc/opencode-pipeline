@@ -300,7 +300,7 @@ def collect_state(repo_path: Path) -> dict[str, Any]:
     if booking_check is not None:
         try:
             booking_divergence = booking_check.run(str(repo_path))
-        except Exception:
+        except Exception:  # noqa: BLE001,S110 — Catching all exceptions to ensure session_recovery continues even if booking_check fails
             # If booking_check fails, continue with empty violations
             pass
 
@@ -319,17 +319,14 @@ def has_recovery_items(state: dict[str, Any]) -> bool:
     # Open intents indicate recovery needed
     if state.get("open_intents"):
         return True
-    
+
     # Dirty worktrees indicate recovery needed
     for worktree in state.get("worktrees", []):
         if worktree.get("uncommitted_files") or worktree.get("staged_files"):
             return True
-    
+
     # Booking divergence indicates recovery needed (Story 33-02)
-    if state.get("booking_divergence"):
-        return True
-    
-    return False
+    return bool(state.get("booking_divergence"))
 
 
 def print_summary(state: dict[str, Any]) -> None:
