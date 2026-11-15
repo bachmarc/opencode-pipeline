@@ -1,6 +1,6 @@
 # Story 33-05 — Merge Status Update Before Post-Merge Suite
 
-Status: Planned
+Status: Done (housekeeping fix, commit 8f8869b)
 Feature: driver-trustworthiness (F-033)
 
 ## Codebase Snapshot
