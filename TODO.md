@@ -51,6 +51,10 @@ STORIES.md).
    (`git merge-base --is-ancestor`).
 3. **D-4/D-2:** no first-class terminal states (reverted/dropped/dormant/
    parked/superseded) + case-sensitive `_is_done` → semantic driver noise.
+   Plus **D-4a (asymmetry):** `Done` is matched by prefix (`startswith`) but
+   `Planned` by exact equality (`status != "Planned"`) — annotated
+   `Planned (...)` statuses keep triggering spawn-qa; VirtOffice had to
+   re-encode to bare `Planned` + `Note:` line (commit 106f63b).
 4. **D-5/D-7/D-8/D-9/D-10:** duplicate story-ID detection missing (49-01
    double row, two 48-26 files, two 52-01 stories), QA verdict state recording
    not enforced by the merge flow, stale worktree accumulation, plan_check

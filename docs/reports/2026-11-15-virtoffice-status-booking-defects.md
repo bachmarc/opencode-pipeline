@@ -84,12 +84,26 @@ manual true-up of 49 story files was needed to restore driver usefulness.
   accumulate: REVERTED (43-08), DROPPED (48-29), DORMANT (46-01),
   EINGESTELLT (48-02), investigation-closed (48-05/06), superseded
   (48-12 → via 50-02; 44-01-drain → already fixed since 32-04).
+- **D-4a — Asymmetric match semantics (observed during the 2026-11-15
+  true-up):** `_is_done` matches by PREFIX (`status.startswith("Done")` —
+  so `Done (merged as <sha>)` is recognized), but the Planned exclusion in
+  `_is_qa_candidate` compares by EXACT EQUALITY (`status != "Planned"` —
+  and not `_is_done(status)`). Annotated forms therefore behave
+  inconsistently: `Done (reverted a587629)` is driver-silent, but
+  `Planned (waiting for go)` does NOT match and keeps producing `spawn-qa`
+  noise. Four VirtOffice files (44-01, 46-01, 48-07, 56-01) had to be
+  re-encoded as bare `Status: Planned` with the context moved to a separate
+  `Note: …` line (commit `106f63b`) — a workaround the status template does
+  not prescribe, so the next agent will naively write annotated statuses
+  again.
 - **Suggested fix:** introduce and document a status vocabulary with
   driver-known classes, e.g. `Done*`, `Planned*`, `Parked*` (dormant /
   eingestellt — driver-neutral), `Closed*` (reverted / dropped / superseded /
   already-fixed — driver-neutral, distinct from Done), `In Progress*`
-  (QA candidate). Enforce the vocabulary in `plan_check.py`; make
-  `_is_qa_candidate`/`_is_done` operate on classes, not string prefixes.
+  (QA candidate). Use CONSISTENT class semantics for every class
+  (single `status_class()` parser — prefix match or explicit enum — applied
+  by both `_is_done` and `_is_qa_candidate`; no mixed startswith/exact-
+  equality logic). Enforce the vocabulary in `plan_check.py`.
 
 ### D-5 — No duplicate story-ID detection (STORIES.md rows AND story files)
 
