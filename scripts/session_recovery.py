@@ -11,6 +11,10 @@ flag (branch fully merged into main/master), and the worktree summary block
 prints ONE staleness line with the count of merged-but-present worktrees and
 a cleanup hint, whenever that count is > 0.
 
+Booking divergence (Story 33-02): checks all story files for Status: Done*
+lines with commit SHAs and verifies each SHA is an ancestor of HEAD. Violations
+are surfaced in the summary under "Booking divergence" when present.
+
 Uses only stdlib + git subprocess. No external dependencies.
 
 Exit code: 0 on success, 1 if recovery items exist (with --check flag).
@@ -22,6 +26,13 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+
+# Import booking_check for Story 33-02
+sys.path.insert(0, str(Path(__file__).parent))
+try:
+    import booking_check
+except ImportError:
+    booking_check = None  # type: ignore
 
 
 def run_git_command(
@@ -266,6 +277,10 @@ def collect_state(repo_path: Path) -> dict[str, Any]:
 
     Each worktree entry gains a "merged" flag (Story 32-03): True when its
     branch is fully merged into the base branch (main/master).
+    
+    Booking divergence (Story 33-02): checks story files for claimed-done SHAs
+    and verifies they are ancestors of HEAD. Violations are stored in
+    booking_divergence key.
     """
     pipeline_dir = repo_path / ".pipeline"
 
@@ -280,27 +295,38 @@ def collect_state(repo_path: Path) -> dict[str, Any]:
             and is_branch_merged(branch, base, repo_path)
         )
 
+    # Run booking check (Story 33-02)
+    booking_divergence = []
+    if booking_check is not None:
+        try:
+            booking_divergence = booking_check.run(str(repo_path))
+        except Exception:  # noqa: BLE001,S110 — Catching all exceptions to ensure session_recovery continues even if booking_check fails
+            # If booking_check fails, continue with empty violations
+            pass
+
     return {
         "open_intents": get_open_intents(pipeline_dir),
         "worktrees": worktrees,
         "main_state": get_main_state(repo_path),
         "qa_state": get_qa_state(pipeline_dir),
         "feature_claims": get_feature_claims(repo_path),
+        "booking_divergence": booking_divergence,
     }
 
 
 def has_recovery_items(state: dict[str, Any]) -> bool:
-    """Check if there are any recovery items (open intents or dirty worktrees)."""
+    """Check if there are any recovery items (open intents, dirty worktrees, or booking divergence)."""
     # Open intents indicate recovery needed
     if state.get("open_intents"):
         return True
-    
+
     # Dirty worktrees indicate recovery needed
     for worktree in state.get("worktrees", []):
         if worktree.get("uncommitted_files") or worktree.get("staged_files"):
             return True
-    
-    return False
+
+    # Booking divergence indicates recovery needed (Story 33-02)
+    return bool(state.get("booking_divergence"))
 
 
 def print_summary(state: dict[str, Any]) -> None:
@@ -389,6 +415,15 @@ def print_summary(state: dict[str, Any]) -> None:
                 f"  - {claim.get('feature', '?')}: {claim.get('owner', '?')} "
                 f"({claim.get('status', '?')})"
             )
+    
+    # Booking divergence (Story 33-02)
+    booking_divergence = state.get("booking_divergence", [])
+    if booking_divergence:
+        summary_lines.append(f"\nBooking divergence ({len(booking_divergence)}):")
+        for violation in booking_divergence:
+            story_file = violation.get("story_file", "?")
+            sha = violation.get("sha", "?")
+            summary_lines.append(f"  - {story_file}: SHA {sha} not an ancestor")
     
     print("\n".join(summary_lines), file=sys.stderr)
 
