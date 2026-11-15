@@ -60,4 +60,39 @@ STORIES.md).
    not enforced by the merge flow, stale worktree accumulation, plan_check
    legacy noise without baseline, intents decoupled from story completion.
 
-**Status:** idea (unscheduled) — promote to feature when scheduling.
+**Status:** idea (unscheduled) - promote to feature when scheduling.
+
+---
+
+## T-003 — Documenter subagent hits model usage limit mid-session with no graceful fallback
+
+**Source:** VirtOffice session 2026-11-15 (story 51-01 reconcile, ses_e1ff80cecffe6TIB4tgfrLRHdA).
+
+**What happened:** The `documenter` subagent failed with the Ollama error
+`"you have reached your session usage limit"` (ref: 8267aa2b-9e4e-4e12-958f-8d3eb2fc82c3).
+The merge of story 51-01 was blocked because `merge_if_passed.py` requires a
+`docs: reconcile` commit on the branch, and the documenter could not run. The
+architect had to fall back to doing the reconcile manually in the worktree.
+
+**Issues:**
+1. **No fallback / retry path:** when a subagent hits a usage limit, the
+   pipeline has no documented fallback. The architect is left to either wait,
+   add credits, or do the reconcile manually — none of which is documented.
+2. **Manual reconcile by the architect is undocumented:** the architect CAN
+   do docs-only reconcile work (story files, docstrings in the worktree),
+   but this is nowhere documented as a valid fallback when the documenter
+   is unavailable. The constraint "Architect writes NO code" applies; the
+   reconcile scope (docs, story files, module headers) is within bounds.
+3. **worktree_setup.py SyntaxWarning:** `'\s'` invalid escape sequence
+   (line 2) — cosmetic but noisy. Should be `r'\s'` or `'\\s'`.
+
+**Suggested fix:**
+- Document the "architect manual reconcile" fallback in the merge process
+  (AGENTS.md or the merge flow doc): when documenter is unavailable, the
+  architect may commit `docs: reconcile` directly in the worktree, scoped
+  to story files and module docstrings only (no logic changes).
+- Fix the `worktree_setup.py` SyntaxWarning.
+- Consider documenter-skip flag in `merge_if_passed.py` for investigation/
+  analysis stories that have no production code changes (docs-only branches).
+
+**Status:** idea (unscheduled) - promote to feature when scheduling.
