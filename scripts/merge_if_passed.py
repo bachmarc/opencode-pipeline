@@ -25,6 +25,12 @@ Behavior:
     suite script itself is absent) -> ``"post_merge": {"suite": "SKIPPED",
     "reason": ...}`` exit 0 (fail-open — missing tooling must not block merges
     nor fake a red main).
+- Story file status update (Story 33-01): after a successful merge,
+  ``merge_if_passed.py`` updates the story file's ``Status:`` line to
+  ``Status: Done (merged as <short-sha>)`` where ``<short-sha>`` is the
+  7-char merge commit SHA. If the story file cannot be found or the
+  ``Status:`` line is missing, the merge still succeeds but a warning is
+  printed. The cleanup hint for worktree removal is also printed.
 - If no PASS: exit code 1 + error JSON
 - If no documenter commit: exit code 1 + error JSON
 - On merge conflict: exit code 2
@@ -174,6 +180,72 @@ def get_commit_hash(branch: str) -> str | None:
     )
     if result.returncode == 0:
         return result.stdout.strip()
+    return None
+
+
+def _update_story_status(story_file: Path, sha: str) -> bool:
+    """Update the Status: line in a story file to Done (merged as <sha>).
+    
+    Rewrites the Status: line (or warns if not found). The short SHA is typically
+    7 characters (git abbreviation).
+    
+    Args:
+        story_file: Path to the story file (e.g., docs/features/F-033/stories/33-01-*.md)
+        sha: Merge commit SHA (typically 7-char abbreviated)
+    
+    Returns:
+        True if update succeeded, False if story file not found or Status line not found.
+    """
+    if not story_file.exists():
+        print(f"WARNING: could not update status in {story_file}: file not found", file=sys.stderr)
+        return False
+    
+    try:
+        content = story_file.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        print(f"WARNING: could not update status in {story_file}: read error", file=sys.stderr)
+        return False
+    
+    # Find and replace the Status: line
+    lines = content.split("\n")
+    updated = False
+    for i, line in enumerate(lines):
+        if line.startswith("Status:"):
+            lines[i] = f"Status: Done (merged as {sha})"
+            updated = True
+            break
+    
+    if not updated:
+        print(f"WARNING: could not update status in {story_file}: Status line not found", file=sys.stderr)
+        return False
+    
+    try:
+        story_file.write_text("\n".join(lines), encoding="utf-8")
+        return True
+    except (OSError, UnicodeEncodeError):
+        print(f"WARNING: could not update status in {story_file}: write error", file=sys.stderr)
+        return False
+
+
+def _find_story_file(story_id: str, repo_root: Path | None = None) -> Path | None:
+    """Find story file using glob pattern.
+    
+    Looks for docs/features/*/stories/<story-id>-*.md in the repo root.
+    
+    Args:
+        story_id: Story ID (e.g., "33-01")
+        repo_root: Repo root path (if None, uses get_repo_root())
+    
+    Returns:
+        Path to story file if found, None otherwise.
+    """
+    root = repo_root if repo_root is not None else get_repo_root()
+    
+    # Use glob to find matching files
+    matches = list(root.glob(f"docs/features/*/stories/{story_id}-*.md"))
+    
+    if matches:
+        return matches[0]  # Return first match
     return None
 
 
@@ -348,6 +420,17 @@ def main() -> int:
         # the merged main. NO rollback on FAIL — the merge commit stays; the
         # follow-up is a fix story (30-06 pattern), surfaced via exit code 3.
         post_merge = run_post_merge_suite()
+        
+        # Story 33-01: Update story file Status line
+        short_sha = result[:7] if result and len(result) >= 7 else result
+        story_id = extract_story_id(branch)
+        if story_id:
+            story_file = _find_story_file(story_id)
+            if story_file:
+                _update_story_status(story_file, short_sha)
+            else:
+                print(f"WARNING: could not find story file for {story_id}", file=sys.stderr)
+        
         output = {
             "merged": True,
             "branch": branch,
@@ -355,6 +438,8 @@ def main() -> int:
             "post_merge": post_merge,
         }
         print(json.dumps(output))
+        print("Hint: run 'python scripts/worktree_cleanup.py --apply' to remove the merged worktree.", file=sys.stderr)
+        
         return 3 if post_merge.get("suite") == "FAIL" else 0
     
     # Merge failed
