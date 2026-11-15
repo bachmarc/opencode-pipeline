@@ -76,7 +76,7 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
       user go** ("passt"/"go"). Feedback flows back into planning (loop).
    3. **Only then:** dev + QA per approved plan.
    - Applies to "small" changes and bugfix loops too — no implicit starts.
-2. **Stories**: `STORIES.md` (index) + `docs/features/*/stories/*.md`.
+2. **Stories**: `FEATURES.md` (feature index) + `docs/features/*/stories/*.md`.
    Every story is self-contained (context, requirements, acceptance criteria, targets, tests) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
    Tooling gates (lint, typecheck, format-check, audit) are mandatory QA gates — same
@@ -117,5 +117,6 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
 
 ## References
 
-- `STORIES.md` — story index (status per story)
-- <Project-specific: `intesis_modbus/CLAUDE.md`, `vokabel/STORIES.md`, …>
+- `FEATURES.md` — feature index (status per feature)
+- `docs/features/*/stories/*.md` — story files
+- <Project-specific: `intesis_modbus/CLAUDE.md`, `vokabel/FEATURES.md`, …>

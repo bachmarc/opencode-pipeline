@@ -10,6 +10,7 @@ import * as path from "path"
  * If explicit marker is found, only that story is checked.
  * If no marker is found, falls back to regex pattern matching (backward compatible) with a warning.
  * 
+ * Validates story IDs by scanning story file names under docs/features/*/stories/*.md.
  * Returns array of warning messages (empty if all OK).
  * This guard is ADVISORY (returns warnings), not blocking (does not throw).
  */
@@ -70,48 +71,43 @@ export function devStartGuard(
     return warnings
   }
 
-  // Read STORIES.md and parse story statuses
-  const storiesPath = path.join(directory, "STORIES.md")
-  let storiesContent: string
+  // Scan story files under docs/features/*/stories/*.md for known story IDs
+  // Story file names have format: XX-YY-<slug>.md (e.g., 37-03-plugin-prompt-stories-md-deletion.md)
+  const docsDir = path.join(directory, "docs", "features")
+  const knownStoryIds = new Set<string>()
+  
   try {
-    storiesContent = fs.readFileSync(storiesPath, "utf-8")
-  } catch (error) {
-    warnings.push(`Could not read STORIES.md at ${storiesPath}`)
-    return warnings
-  }
-
-  // Parse STORIES.md table: extract story ID and status
-  // Format: | story-id | title | status | traceability |
-  const storyStatusMap = new Map<string, string>()
-  const lines = storiesContent.split("\n")
-  for (const line of lines) {
-    // Skip header and separator lines
-    if (line.startsWith("|") && !line.includes("---")) {
-      const parts = line.split("|").map((p) => p.trim())
-      if (parts.length >= 4) {
-        const rawId = parts[1]
-        // Row IDs carry slugs (e.g. 12-01-qa-config-contract); normalize to bare
-        // XX-YY / RETRO-XX by keeping the first two dash-separated segments.
-        const storyId = rawId.split("-").slice(0, 2).join("-")
-        const status = parts[3]
-        // Only store if storyId matches pattern XX-YY or RETRO-XX
-        if (storyId && /^(\d{2}-\d{2}|RETRO-\d{2})$/.test(storyId)) {
-          storyStatusMap.set(storyId, status)
+    // Read all feature directories
+    const featureDirs = fs.readdirSync(docsDir)
+    for (const featureDir of featureDirs) {
+      const storiesDir = path.join(docsDir, featureDir, "stories")
+      if (!fs.existsSync(storiesDir)) {
+        continue
+      }
+      
+      // Read story files from this feature's stories directory
+      const storyFiles = fs.readdirSync(storiesDir)
+      for (const file of storyFiles) {
+        // Extract story ID from filename (XX-YY-<slug>.md)
+        // Only process .md files that match the pattern
+        if (file.endsWith(".md") && !file.startsWith("_")) {
+          const storyIdMatch = file.match(/^(\d{2}-\d{2})/)
+          if (storyIdMatch) {
+            knownStoryIds.add(storyIdMatch[1])
+          }
         }
       }
     }
+  } catch (error) {
+    // docs/features dir may not exist yet in some contexts
+    warnings.push(`Could not scan story files at ${docsDir}: ${error instanceof Error ? error.message : String(error)}`)
+    return warnings
   }
 
-  // Check each found story ID
+  // Check each found story ID against known story IDs
   for (const storyId of foundStoryIds) {
-    if (!storyStatusMap.has(storyId)) {
-      warnings.push(`Unknown story ID: ${storyId} (not found in STORIES.md)`)
-    } else {
-      const status = storyStatusMap.get(storyId) || ""
-      // Warn if story is already "Done"
-      if (status.includes("Done")) {
-        warnings.push(`Story ${storyId} is already Done (status: ${status})`)
-      }
+    if (!knownStoryIds.has(storyId)) {
+      warnings.push(`Unknown story ID: ${storyId} (no story file found in docs/features/*/stories/)`)
     }
   }
 

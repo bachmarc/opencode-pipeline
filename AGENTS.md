@@ -1,5 +1,5 @@
 # AGENTS.md — opencode-pipeline (Dev Repo)
-<!-- synced_through: 37-01 | updated: 2026-11-15 -->
+<!-- synced_through: 37-03 | updated: 2026-11-15 -->
 
 > Skeleton filled from `~/.config/opencode/templates/AGENTS.md`. Constant sections (workflow, git
 > conventions, languages, prohibitions) kept unchanged; project-specifics filled in dialogue.
@@ -10,7 +10,7 @@
   skill, commands, qa_compress.py). Developed dogfooded: this pipeline repo is itself developed
   through the pipeline (stories → branches → QA gate).
 - **Stack:** Markdown (agents, skills, commands, docs), Python 3 + pytest (framework self-checks in `tests/`), Git. No runtime app. `qa_compress.py` is the sole test entry point (replaces bash).
-- **Versioning:** `APP_VERSION = "0.1.0"` — bump on notable merges (document in STORIES.md).
+- **Versioning:** `APP_VERSION = "0.1.0"` — bump on notable merges (document in `FEATURES.md` and story files).
 
 ## Core rules (source of truth: feature files + story files)
 
@@ -41,8 +41,7 @@ This repo's "product" is configuration and deterministic tooling, not a service:
   Changes here need story + QA like everything else.
 - **`plugins/pipeline-enforcement.ts`** — opencode plugin for deterministic process enforcement.
   Guards: merge (QA-PASS required), dev-start (story verification), architect-code (no silent
-  code edits), story-status (STORIES.md update reminder), session-recovery (mandatory state
-  scan), documenter (docs: reconcile commit required before merge). Deploys via release branch
+  code edits), session-recovery (mandatory state scan), documenter (docs: reconcile commit required before merge). Deploys via release branch
   to `~/.config/opencode/plugins/`.
 
 ## Git conventions
@@ -68,7 +67,7 @@ This repo's "product" is configuration and deterministic tooling, not a service:
       start without explicit user-go** ("passt"/"go").
    3. **Then:** dev + QA per approved plan.
    - Applies to small changes and bugfix loops too — no implicit starts.
-1. **Stories:** `STORIES.md` (index) + `docs/features/*/stories/*.md`. Every story is self-contained
+1. **Stories:** `docs/features/*/stories/*.md` — self-contained story files (context, requirements, acceptance criteria, targets, tests). Each story is independent
    (context, requirements, acceptance criteria, targets, tests) and contains **test criteria that exist BEFORE
    implementation**.
 2. **Developer:** implements EXACTLY the developer targets — nothing more, nothing less.
@@ -99,6 +98,7 @@ This repo's "product" is configuration and deterministic tooling, not a service:
 
 ## References
 
-- `STORIES.md` — story index (status per story)
+- `FEATURES.md` — feature index (status per feature)
+- `docs/features/*/stories/*.md` — story files
 - `templates/AGENTS.md` — the skeleton every project fills in
 - `netclip/AGENTS.md`, `intesis_modbus/CLAUDE.md` — reference projects

@@ -2,7 +2,6 @@ import { Plugin } from "@opencode/plugin"
 import { mergeGuard } from "./guards/merge-guard"
 import { devStartGuard } from "./guards/dev-start-guard"
 import { architectCodeGuard } from "./guards/architect-code-guard"
-import { storyStatusGuard } from "./guards/story-status-guard"
 import { SessionState } from "./helpers/session-state"
 import { sessionRecoveryGuard } from "./guards/session-recovery-guard"
 import { documenterGuard } from "./guards/documenter-guard"
@@ -16,7 +15,6 @@ import { documenterGuard } from "./guards/documenter-guard"
  * - Dev-start guard: prevents spawning developer/qa-manager without story context
  * - Architect-code guard: architect can only edit design/planning files, not implementation
  * - Session-recovery guard: runs on first tool call to recover session state
- * - Story-status guard: on bash tool completion, checks STORIES.md alignment
  * 
  * Hooks are registered via ctx.tool.hook() calls inside setup(), not returned as object.
  * Directory context is accessed via ctx.location.directory (replaces old directory parameter).
@@ -92,20 +90,6 @@ export default Plugin.define({
       // Run all registered guards
       for (const guard of guards) {
         await guard(event.input, event.input)
-      }
-    })
-
-    // V2: Register execute.after hook via ctx.tool.hook()
-    await ctx.tool.hook("execute.after", async (event: any) => {
-      const directory = ctx.location.directory
-      
-      // Check if this was a bash tool execution
-      if (event.tool === "bash") {
-        const command = event.input?.command || ""
-        const warning = storyStatusGuard(command, directory)
-        if (warning) {
-          console.warn(warning)
-        }
       }
     })
   },

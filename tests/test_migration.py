@@ -174,59 +174,10 @@ def test_no_stories_have_old_sections():
             f"{story_file.relative_to(story_file.parent.parent.parent.parent)}: Still has old development goal section"
 
 
-# === Index file migration tests (Story 09-03) ===
+# === Index file migration tests (Story 09-03, deleted by 37-03) ===
 
-
-def test_stories_index_no_req_ids():
-    """STORIES.md Traceability column should not contain REQ- references."""
-    stories_file = Path(__file__).parent.parent / "STORIES.md"
-    assert stories_file.exists(), "STORIES.md not found"
-
-    content = read_file_content(stories_file)
-
-    # Extract table rows (lines starting with |)
-    lines = content.split("\n")
-    table_started = False
-    for line in lines:
-        if line.startswith("|") and "Traceability" in line:
-            table_started = True
-            continue
-        if table_started and line.startswith("|"):
-            # Skip header separator line
-            if "---" in line:
-                continue
-            # Extract the Traceability column (last column)
-            cells = [cell.strip() for cell in line.split("|")]
-            if len(cells) >= 5:  # Story | Title | Status | Traceability | (empty)
-                traceability = cells[4]
-                assert "REQ-" not in traceability, \
-                    f"STORIES.md: Found REQ- in Traceability column: {line}"
-
-
-def test_stories_index_no_design_refs():
-    """STORIES.md Traceability column should not contain 'Design §' references."""
-    stories_file = Path(__file__).parent.parent / "STORIES.md"
-    assert stories_file.exists(), "STORIES.md not found"
-
-    content = read_file_content(stories_file)
-
-    # Extract table rows (lines starting with |)
-    lines = content.split("\n")
-    table_started = False
-    for line in lines:
-        if line.startswith("|") and "Traceability" in line:
-            table_started = True
-            continue
-        if table_started and line.startswith("|"):
-            # Skip header separator line
-            if "---" in line:
-                continue
-            # Extract the Traceability column (last column)
-            cells = [cell.strip() for cell in line.split("|")]
-            if len(cells) >= 5:  # Story | Title | Status | Traceability | (empty)
-                traceability = cells[4]
-                assert "Design §" not in traceability, \
-                    f"STORIES.md: Found 'Design §' in Traceability column: {line}"
+# STORIES.md tests removed: 37-03 deletes STORIES.md entirely.
+# FEATURES.md tests remain in test_features_index_* functions below.
 
 
 def test_features_index_no_traceability_column():

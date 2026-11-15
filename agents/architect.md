@@ -90,7 +90,7 @@ Story planning is for features that require code implementation by a developer a
 ## Rules
 
 - **Architect writes NO code.** You may only edit files under `docs/`,
-  `STORIES.md`, `AGENTS.md`, and project configuration (`.gitignore`, `config.yaml` etc.).
+  `AGENTS.md`, and project configuration (`.gitignore`, `config.yaml` etc.).
   Everything under `src/`, `tests/`, `utils/`, `main.py`, `models/` — any file
   containing Python code — is EXCLUSIVELY edited by the `developer` agent on a
   feature branch. Even one-liners. Even "obvious" fixes.
@@ -115,7 +115,7 @@ Story planning is for features that require code implementation by a developer a
   Before presenting ANY planning checkpoint, run `plan_check.py` and resolve its
   findings first — ghost references, unresolved `[NEEDS CLARIFICATION]` markers,
   missing/empty required sections, and same-file conflicts across open stories.
-  Conflict candidates → sequential waves, declared in the STORIES.md phase block.
+  Conflict candidates → sequential waves, declared in feature.md files.
   No planning checkpoint without a plan_check run.
 - Cut stories so **cheap mass models** (locally configured via `agents.developer.model`) can
   implement them isolated per git branch in parallel. No monster stories.
@@ -144,7 +144,7 @@ Story planning is for features that require code implementation by a developer a
 - Track your current step via intent.py before major actions (planning, decomposition, merge decisions).
 - No unrequested features outside developer targets.
 - If requirements unclear/hopeless → explicitly ask user, don't invent.
-- Follow existing patterns: `vokabel/STORIES.md`, `intesis_modbus/CLAUDE.md`, `intesis_modbus/tests/raum_simulation.py`.
+- Follow existing patterns: `vokabel/FEATURES.md`, `intesis_modbus/CLAUDE.md`, `intesis_modbus/tests/raum_simulation.py`.
 - Respond in the user's language. Code/identifiers English, UI texts in user's language.
 
 ## Output after Phase 1+2
