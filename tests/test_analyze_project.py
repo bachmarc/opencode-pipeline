@@ -369,13 +369,18 @@ def test_git_state_extraction(tmp_path):
 
 
 def test_existing_pipeline_files(tmp_path):
-    """Existing pipeline files are detected."""
+    """Existing pipeline files are detected (FEATURES.md, qa_config.json, .pipeline/intent.json)."""
     target = tmp_path / "pipeline_project"
     target.mkdir()
     
     # Create some pipeline files
-    (target / "STORIES.md").write_text("# Stories\n")
     (target / "FEATURES.md").write_text("# Features\n")
+    (target / "qa_config.json").write_text('{"checkers": ["pytest"]}\n')
+    
+    # Create .pipeline/intent.json
+    pipeline_dir = target / ".pipeline"
+    pipeline_dir.mkdir()
+    (pipeline_dir / "intent.json").write_text('{"project": "test"}\n')
     
     script_path = Path(__file__).parent.parent / "scripts" / "analyze_project.py"
     result = subprocess.run(
@@ -389,8 +394,9 @@ def test_existing_pipeline_files(tmp_path):
     output = json.loads(result.stdout)
     
     # Check that existing files are detected
-    assert "STORIES.md" in output["existing_pipeline_files"]
     assert "FEATURES.md" in output["existing_pipeline_files"]
+    # STORIES.md should NOT be in the pipeline files list (removed in story 37-02)
+    assert "STORIES.md" not in output["existing_pipeline_files"]
 
 
 # Tests for test_command, qa_checker, and deploy_hints detection

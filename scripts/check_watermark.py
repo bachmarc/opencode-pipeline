@@ -2,7 +2,11 @@
 """Check watermark in documentation files and report pending stories.
 
 Reads the watermark from a given file (HTML comment format), compares it against
-STORIES.md to find all done stories, and returns JSON with pending stories.
+story files to find all done stories, and returns JSON with pending stories.
+
+Done stories are identified by scanning docs/features/*/stories/*.md files for
+lines matching "Status: Done*" (case-insensitive prefix). Story IDs are extracted
+from filenames (e.g., 06-14 from 06-14-orchestration-rules.md).
 
 Exit code: 0 if up to date, 1 if stories are pending.
 Accepts --file <path> argument. If no argument, checks both README.md and AGENTS.md.
@@ -26,7 +30,7 @@ def parse_watermark(file_path: Path) -> dict:
     try:
         with open(file_path, "r") as f:
             lines = f.readlines()
-    except (IOError, OSError) as e:
+    except OSError as e:
         raise RuntimeError(f"Failed to read {file_path}: {e}")
     
     if len(lines) < 2:
@@ -44,32 +48,40 @@ def parse_watermark(file_path: Path) -> dict:
     }
 
 
-def get_done_stories(stories_path: Path) -> list:
-    """Extract all done story IDs from STORIES.md.
+def get_done_stories(repo_root: Path) -> list:
+    """Extract all done story IDs from story files.
+    
+    Scans docs/features/*/stories/*.md for lines matching "Status: Done*"
+    (case-insensitive). Story IDs are extracted from filenames.
     
     Returns: list of story IDs (e.g., ["14-01", "15-01", ...])
     """
-    try:
-        with open(stories_path, "r") as f:
-            content = f.read()
-    except (IOError, OSError) as e:
-        raise RuntimeError(f"Failed to read {stories_path}: {e}")
-    
     done_stories = []
+    stories_dir = repo_root / "docs" / "features"
     
-    for line in content.split("\n"):
-        # Look for lines with "Done" status
-        if "| Done" in line or "| Done (" in line:
-            # Extract story ID from the first column after |
-            parts = line.split("|")
-            if len(parts) >= 2:
-                story_id = parts[1].strip()
-                # Clean up story ID (remove markdown formatting like **)
-                story_id = story_id.replace("**", "").strip()
-                
-                # Only add if it looks like a story ID (contains a dash)
-                if story_id and "-" in story_id and story_id != "Story":
-                    done_stories.append(story_id)
+    if not stories_dir.exists():
+        return done_stories
+    
+    # Scan all story files
+    for story_file in stories_dir.glob("*/stories/*.md"):
+        # Extract story ID from filename (e.g., 06-14 from 06-14-orchestration-rules.md)
+        filename = story_file.stem
+        match = re.match(r'(\d{2}-\d{2})', filename)
+        
+        if not match:
+            continue
+        
+        story_id = match.group(1)
+        
+        try:
+            content = story_file.read_text()
+        except OSError:
+            continue
+        
+        # Check if file contains "Status: Done*" (case-insensitive prefix match)
+        # This matches "Status: Done", "Status: Done (QA-PASS)", etc.
+        if re.search(r'^\s*Status:\s*Done', content, re.MULTILINE | re.IGNORECASE):
+            done_stories.append(story_id)
     
     return done_stories
 
@@ -111,7 +123,7 @@ def get_pending_stories(synced_through: str, done_stories: list) -> list:
     return sorted(pending)
 
 
-def check_file(file_path: Path, stories_path: Path) -> dict:
+def check_file(file_path: Path, repo_root: Path) -> dict:
     """Check a single file and return results.
     
     Returns: {"file": "...", "synced_through": "14-01", "pending_stories": [...]}
@@ -125,7 +137,7 @@ def check_file(file_path: Path, stories_path: Path) -> dict:
             "pending_stories": []
         }
     
-    done_stories = get_done_stories(stories_path)
+    done_stories = get_done_stories(repo_root)
     pending = get_pending_stories(watermark["synced_through"], done_stories)
     
     return {
@@ -148,19 +160,14 @@ def main():
     
     args = parser.parse_args()
     
-    # Determine repo root (where STORIES.md is)
+    # Determine repo root
     repo_root = Path(__file__).parent.parent
-    stories_path = repo_root / "STORIES.md"
-    
-    if not stories_path.exists():
-        print(json.dumps({"error": f"STORIES.md not found at {stories_path}"}))
-        sys.exit(1)
     
     try:
         if args.file:
             # Check single file
             file_path = repo_root / args.file
-            result = check_file(file_path, stories_path)
+            result = check_file(file_path, repo_root)
             print(json.dumps(result))
             
             # Exit with 1 if there are pending stories
@@ -172,7 +179,7 @@ def main():
             
             for filename in ["README.md", "AGENTS.md"]:
                 file_path = repo_root / filename
-                result = check_file(file_path, stories_path)
+                result = check_file(file_path, repo_root)
                 results.append(result)
                 
                 if result["pending_stories"]:

@@ -79,7 +79,7 @@ Strict separation (pattern: `intesis_modbus/CLAUDE.md`):
       user go** ("passt"/"go"). Feedback flows back into planning (loop).
    3. **Only then:** dev + QA per approved plan.
    - Applies to "small" changes and bugfix loops too — no implicit starts.
-2. **Stories**: `STORIES.md` (index) + `docs/features/*/stories/*.md`.
+2. **Stories**: `FEATURES.md` (index) + `docs/features/*/stories/*.md`.
    Every story is self-contained (context, requirements, acceptance criteria, targets, tests) and contains
    **test criteria that exist BEFORE implementation (fake-based)**.
 3. **Developer**: implements EXACTLY the developer targets — nothing more, nothing less.

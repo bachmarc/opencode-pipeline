@@ -6,8 +6,7 @@ properly migrated to the opencode pipeline. It validates:
 - AGENTS.md exists and constant sections match template
 - Required directories exist (.pipeline/, docs/features/, tests/)
 - qa_config.json exists and contains valid checker names (or is explicitly opted-out)
-- FEATURES.md exists
-- STORIES.md exists
+- FEATURES.md exists (projects use story files instead of STORIES.md)
 - .pipeline/intent.json exists
 - Git is initialized
 - AGENTS.md contains a ## Deployment section with real content
@@ -302,24 +301,6 @@ def check_features_md(target_path: Path) -> Dict:
         }
 
 
-def check_stories_md(target_path: Path) -> Dict:
-    """Check if STORIES.md exists."""
-    stories_path = target_path / "STORIES.md"
-    
-    if stories_path.exists():
-        return {
-            "check": "stories_md",
-            "status": "pass",
-            "detail": "STORIES.md exists"
-        }
-    else:
-        return {
-            "check": "stories_md",
-            "status": "fail",
-            "detail": "STORIES.md not found"
-        }
-
-
 def check_pipeline_intent(target_path: Path) -> Dict:
     """Check if .pipeline/intent.json exists."""
     intent_path = target_path / ".pipeline" / "intent.json"
@@ -451,7 +432,6 @@ def validate_migration(target_path: str) -> Dict:
         check_required_dirs(target),
         check_qa_config(target),
         check_features_md(target),
-        check_stories_md(target),
         check_pipeline_intent(target),
         check_git_initialized(target),
         check_deploy_documented(target),
