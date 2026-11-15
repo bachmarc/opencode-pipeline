@@ -228,6 +228,296 @@ def test_f030_self_check_each_story_exit_zero():
                 "clarification-marker", "missing-section"}
 
 
+def test_missing_status_line_flagged(tmp_path):
+    """A non-Done story file without a Status: line -> missing-status-line problem."""
+    # Write a story template without the Status: line
+    stories_dir = tmp_path / "docs" / "features" / "F-999-fixture" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    story_path = stories_dir / "08-01-no-status.md"
+    story_text = """# Story 08-01 — fixture story
+
+Feature: Fixture (F-999)
+
+## Codebase Snapshot
+
+- `docs/features/_story_template.md` — the story skeleton used by create_story.py.
+
+## Context / Purpose
+
+Fixture purpose text for the plan_check test suite.
+
+## Requirements
+
+1. Do the fixture thing.
+
+## Developer Targets (exactly, no more / no less)
+
+- Create `scripts/fixture_new.py`.
+
+## Acceptance criteria (checked by qa-manager)
+
+- No `[NEEDS CLARIFICATION]` markers remain in this story.
+- Fixture criterion verified.
+
+## Test criteria (must exist BEFORE implementation)
+
+- `tests/test_fixture.py::test_fixture_case`
+
+"""
+    story_path.write_text(story_text, encoding="utf-8")
+    result = run_check_on(tmp_path)
+    assert result.returncode == 1, result.stdout + result.stderr
+    output = json.loads(result.stdout)
+    assert output["result"] == "FAIL"
+    missing_status = [p for p in output["problems"] if p["kind"] == "missing-status-line"]
+    assert missing_status, output
+    assert missing_status[0]["story"] == "08-01"
+    for problem in output["problems"]:
+        assert set(problem) == {"story", "kind", "detail"}
+
+
+def test_done_story_missing_status_not_flagged(tmp_path):
+    """A Done story without Status: line is silently skipped (no problem)."""
+    stories_dir = tmp_path / "docs" / "features" / "F-999-fixture" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    story_path = stories_dir / "09-01-done-no-status.md"
+    story_text = """# Story 09-01 — fixture story
+
+Status: Done
+Feature: Fixture (F-999)
+
+## Codebase Snapshot
+
+- `docs/features/_story_template.md` — the story skeleton used by create_story.py.
+
+## Context / Purpose
+
+Fixture purpose text for the plan_check test suite.
+
+## Requirements
+
+1. Do the fixture thing.
+
+## Developer Targets (exactly, no more / no less)
+
+- Create `scripts/fixture_new.py`.
+
+## Acceptance criteria (checked by qa-manager)
+
+- No `[NEEDS CLARIFICATION]` markers remain in this story.
+- Fixture criterion verified.
+
+## Test criteria (must exist BEFORE implementation)
+
+- `tests/test_fixture.py::test_fixture_case`
+
+"""
+    story_path.write_text(story_text, encoding="utf-8")
+    result = run_check_on(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    output = json.loads(result.stdout)
+    assert output["result"] == "PASS"
+    assert output["problems"] == []
+
+
+def test_duplicate_story_id_flagged(tmp_path):
+    """Two files with the same numeric ID prefix (33-01-*.md) -> duplicate-story-id problem."""
+    stories_dir = tmp_path / "docs" / "features" / "F-999-fixture" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Write two stories with the same ID prefix
+    story1_path = stories_dir / "10-01-foo.md"
+    story2_path = stories_dir / "10-01-bar.md"
+    
+    story_template = """# Story {sid} — fixture story
+
+Status: Planned
+Feature: Fixture (F-999)
+
+## Codebase Snapshot
+
+- `docs/features/_story_template.md` — the story skeleton.
+
+## Context / Purpose
+
+Fixture purpose text for the plan_check test suite.
+
+## Requirements
+
+1. Do the fixture thing.
+
+## Developer Targets (exactly, no more / no less)
+
+- Create `scripts/fixture_new.py`.
+
+## Acceptance criteria (checked by qa-manager)
+
+- Fixture criterion verified.
+
+## Test criteria (must exist BEFORE implementation)
+
+- `tests/test_fixture.py::test_fixture_case`
+
+"""
+    
+    story1_path.write_text(story_template.format(sid="10-01"), encoding="utf-8")
+    story2_path.write_text(story_template.format(sid="10-01"), encoding="utf-8")
+    
+    result = run_check_on(tmp_path)
+    assert result.returncode == 1, result.stdout + result.stderr
+    output = json.loads(result.stdout)
+    assert output["result"] == "FAIL"
+    duplicates = [p for p in output["problems"] if p["kind"] == "duplicate-story-id"]
+    assert duplicates, output
+    # The duplicate-story-id problem should list both paths
+    dup_detail = duplicates[0]["detail"]
+    assert "10-01-foo.md" in dup_detail
+    assert "10-01-bar.md" in dup_detail
+
+
+def test_since_flag_skips_older_stories(tmp_path):
+    """With --since 33-01, stories with ID < 33-01 skip missing-section checks but are still parsed."""
+    stories_dir = tmp_path / "docs" / "features" / "F-999-fixture" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create an old story (32-05) with missing requirements section
+    old_story = stories_dir / "32-05-old-story.md"
+    old_text = """# Story 32-05 — old fixture story
+
+Status: Planned
+Feature: Fixture (F-999)
+
+## Codebase Snapshot
+
+- `docs/features/_story_template.md`.
+
+## Context / Purpose
+
+Old story purpose.
+
+## Developer Targets (exactly, no more / no less)
+
+- Create `scripts/old_fixture.py`.
+
+## Acceptance criteria (checked by qa-manager)
+
+- Fixture criterion verified.
+
+## Test criteria (must exist BEFORE implementation)
+
+- `tests/test_fixture.py::test_fixture_case`
+
+"""
+    old_story.write_text(old_text, encoding="utf-8")
+    
+    # Create a new story (33-05) with missing requirements section
+    new_story = stories_dir / "33-05-new-story.md"
+    new_text = """# Story 33-05 — new fixture story
+
+Status: Planned
+Feature: Fixture (F-999)
+
+## Codebase Snapshot
+
+- `docs/features/_story_template.md`.
+
+## Context / Purpose
+
+New story purpose.
+
+## Developer Targets (exactly, no more / no less)
+
+- Create `scripts/new_fixture.py`.
+
+## Acceptance criteria (checked by qa-manager)
+
+- Fixture criterion verified.
+
+## Test criteria (must exist BEFORE implementation)
+
+- `tests/test_fixture.py::test_fixture_case`
+
+"""
+    new_story.write_text(new_text, encoding="utf-8")
+    
+    # Full scan: both stories should fail (missing Requirements)
+    full_result = run_check_on(tmp_path)
+    assert full_result.returncode == 1, full_result.stdout + full_result.stderr
+    full_output = json.loads(full_result.stdout)
+    missing_full = [p for p in full_output["problems"] if p["kind"] == "missing-section"]
+    assert len(missing_full) == 2, f"Expected 2 missing-section problems, got {len(missing_full)}: {missing_full}"
+    assert any(p["story"] == "32-05" for p in missing_full), "32-05 should have missing-section"
+    assert any(p["story"] == "33-05" for p in missing_full), "33-05 should have missing-section"
+    
+    # With --since 33-01, only 33-05 should be checked for missing-section (32-05 is older)
+    since_result = run_plan_check(tmp_path, "--root", str(tmp_path), "--since", "33-01")
+    assert since_result.returncode == 1, since_result.stdout + since_result.stderr
+    since_output = json.loads(since_result.stdout)
+    missing_since = [p for p in since_output["problems"] if p["kind"] == "missing-section"]
+    # Only 33-05 should be checked; 32-05 should be skipped
+    assert all(p["story"] != "32-05" for p in missing_since), \
+        f"32-05 should be skipped with --since 33-01, but found in: {missing_since}"
+    assert any(p["story"] == "33-05" for p in missing_since), \
+        f"33-05 should still be checked with --since 33-01"
+
+
+def test_since_flag_does_not_skip_ghost_refs(tmp_path):
+    """With --since, ghost-ref and conflict-candidate checks still scan all stories."""
+    stories_dir = tmp_path / "docs" / "features" / "F-999-fixture" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create an old story (32-05) with a ghost reference
+    old_ghost = stories_dir / "32-05-old-ghost.md"
+    old_text = """# Story 32-05 — old with ghost
+
+Status: Planned
+Feature: Fixture (F-999)
+
+## Codebase Snapshot
+
+- `docs/features/_story_template.md`.
+
+## Context / Purpose
+
+Old story purpose.
+
+## Requirements
+
+1. Do the thing.
+
+## Developer Targets (exactly, no more / no less)
+
+- Extend `tests/test_ghost_really_old.py` with coverage.
+
+## Acceptance criteria (checked by qa-manager)
+
+- Fixture criterion verified.
+
+## Test criteria (must exist BEFORE implementation)
+
+- `tests/test_fixture.py::test_fixture_case`
+
+"""
+    old_ghost.write_text(old_text, encoding="utf-8")
+    
+    # Full scan should detect the ghost-ref
+    full_result = run_check_on(tmp_path)
+    assert full_result.returncode == 1, full_result.stdout + full_result.stderr
+    full_output = json.loads(full_result.stdout)
+    ghosts_full = [p for p in full_output["problems"] if p["kind"] == "ghost-reference"]
+    assert ghosts_full, f"Expected ghost-reference in full scan, got: {full_output['problems']}"
+    
+    # With --since 33-01, the ghost-ref should STILL be reported (ghost-refs are NOT skipped by --since)
+    since_result = run_plan_check(tmp_path, "--root", str(tmp_path), "--since", "33-01")
+    assert since_result.returncode == 1, since_result.stdout + since_result.stderr
+    since_output = json.loads(since_result.stdout)
+    ghosts_since = [p for p in since_output["problems"] if p["kind"] == "ghost-reference"]
+    assert ghosts_since, \
+        f"Expected ghost-reference to be reported even with --since 33-01, got: {since_output['problems']}"
+    assert any(p["story"] == "32-05" for p in ghosts_since), \
+        "32-05 ghost-ref should be reported even though 32-05 < 33-01"
+
+
 def test_full_scan_json_contract():
     """Full scan of the real repo story tree: valid JSON contract regardless of
     findings (problems may legitimately exist in other features' open stories)."""
