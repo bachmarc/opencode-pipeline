@@ -26,6 +26,8 @@ Design (Stories 30-01 + 30-02, F-030):
   and reported as warnings by validation — never fatal.
 - Action kinds, in STABLE order:
   - ``intent-reminder``: an open intent older than ``intent_max_age_hours``.
+  - ``intent-closure-suggested`` (Story 33-03, D-10): an open intent exists for a story
+    whose status_class is "done" (work complete, awaiting intent closure).
   - ``spawn-qa``: story is dev-done/committed (status not Planned/Done) but no
     QA verdict exists.
   - ``merge-candidate``: latest QA verdict is PASS but the story is not Done.
@@ -74,6 +76,16 @@ Story statuses are parsed from the ``Status:`` lines of
 ``docs/features/*/stories/*.md`` (same pattern as ``scripts/story_status.py``)
 — NOT from the STORIES.md markdown table.
 
+Status vocabulary (Story 33-03): story statuses are classified via ``status_class(status)``
+into one of six terminal/transient states:
+- ``"done"`` — case-insensitive prefix match on "done"
+- ``"planned"`` — case-insensitive prefix match on "planned"
+- ``"parked"`` — case-insensitive prefix match on "parked", "dormant", "eingestellt", "on hold"
+- ``"closed"`` — case-insensitive prefix match on "closed", "reverted", "dropped", "superseded", "cancelled"
+- ``"in_progress"`` — everything else non-empty
+- ``"unknown"`` — empty string
+Driver-silent states: ``"parked"`` and ``"closed"`` suppress ``spawn-qa`` and ``merge-candidate``.
+
 Usage:
     driver.py next [--profile PATH]      compute next actions, print JSON
     driver.py validate [--profile PATH]  validate profile only, exit 0/1
@@ -88,7 +100,7 @@ import json
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # Built-in default profile when the profile file is missing.
@@ -125,6 +137,7 @@ KNOWN_TEST_STRATEGIES = ("unit-fake", "e2e-docker", "hybrid")
 # stale-planned between spawn-dev and the escalation kinds).
 _ACTION_ORDER = (
     "intent-reminder",
+    "intent-closure-suggested",
     "spawn-qa",
     "merge-candidate",
     "spawn-dev",
@@ -165,9 +178,9 @@ def compute_next_actions(profile: dict, state: dict) -> list[dict]:
                      defaults to the real current UTC time.
 
     Returns actions as {kind, story_id?, reason, ...} in the stable order
-    intent-reminder, spawn-qa, merge-candidate, spawn-dev, stale-planned,
-    escalate-remedy, escalated-blocked — or exactly one
-    {"kind": "no-action"} when the state is fully consistent.
+    intent-reminder, intent-closure-suggested, spawn-qa, merge-candidate,
+    spawn-dev, stale-planned, escalate-remedy, escalated-blocked — or exactly
+    one {"kind": "no-action"} when the state is fully consistent.
     """
     threshold = profile.get("intent_max_age_hours", DEFAULT_PROFILE["intent_max_age_hours"])
     fail_loop, max_escalations = _escalation_settings(profile)
@@ -179,7 +192,7 @@ def compute_next_actions(profile: dict, state: dict) -> list[dict]:
         for intent in state.get("intents") or []
         if isinstance(intent, dict) and not intent.get("done")
     }
-    now = _parse_iso(state.get("now")) or datetime.now(timezone.utc)
+    now = _parse_iso(state.get("now")) or datetime.now(UTC)
 
     actions: list[dict] = []
 
@@ -297,6 +310,26 @@ def compute_next_actions(profile: dict, state: dict) -> list[dict]:
                     "reason": "planned story untouched — re-plan, implement, or drop",
                 }
             )
+
+    # intent-closure-suggested (D-10): when an open intent exists for a Done story.
+    for intent in state.get("intents") or []:
+        if intent.get("done"):
+            continue
+        intent_story_id = intent.get("story_id")
+        # Find the corresponding story to check if it's done
+        for story in state.get("stories") or []:
+            story_status = str(story.get("status") or "")
+            if story.get("id") == intent_story_id and status_class(story_status) == "done":
+                intent_id = intent.get("intent_id") or intent.get("id")
+                actions.append(
+                    {
+                        "kind": "intent-closure-suggested",
+                        "story_id": intent_story_id,
+                        "intent_id": intent_id,
+                        "reason": f"story appears done — run intent.py done {intent_id}",
+                    }
+                )
+                break
 
     actions.sort(key=_stable_sort_key)
 
@@ -459,14 +492,68 @@ def _has_story_worktree(worktrees: list, story_id: object) -> bool:
     )
 
 
+def status_class(status: str) -> str:
+    """Classify a story status into one of six terminal/transient classes.
+
+    Returns one of: "done", "planned", "parked", "closed", "in_progress", "unknown".
+
+    Classification:
+    - "done" — case-insensitive prefix match on "done"
+      Examples: "Done", "DONE", "Done (merged)", "Done (QA PASS, abc)"
+    - "planned" — case-insensitive prefix match on "planned"
+      Examples: "Planned", "planned", "Planned (waiting for go)"
+    - "parked" — case-insensitive prefix match on "parked", "dormant", "eingestellt", "on hold"
+      Examples: "Parked", "Dormant", "On Hold", "Parked (waiting for feedback)"
+    - "closed" — case-insensitive prefix match on "closed", "reverted", "dropped", "superseded", "cancelled"
+      Examples: "Closed", "Reverted", "Dropped", "Superseded by 32-03", "Cancelled"
+    - "in_progress" — all other non-empty statuses
+      Examples: "In Progress", "Blocked", "Review", "Custom Status"
+    - "unknown" — empty string
+
+    Driver-silent states: "parked" and "closed" suppress spawn-qa and merge-candidate actions.
+    Intent cross-reference (D-10): when story's status_class is "done" and an open intent
+    exists, emit intent-closure-suggested action.
+    """
+    if not status:
+        return "unknown"
+
+    lower_status = status.lower()
+
+    # done: case-insensitive prefix match
+    if lower_status.startswith("done"):
+        return "done"
+
+    # planned: case-insensitive prefix match
+    if lower_status.startswith("planned"):
+        return "planned"
+
+    # parked: case-insensitive prefix match on multiple keywords
+    parked_keywords = ["parked", "dormant", "eingestellt", "on hold"]
+    if any(lower_status.startswith(kw) for kw in parked_keywords):
+        return "parked"
+
+    # closed: case-insensitive prefix match on multiple keywords
+    closed_keywords = ["closed", "reverted", "dropped", "superseded", "cancelled"]
+    if any(lower_status.startswith(kw) for kw in closed_keywords):
+        return "closed"
+
+    # Everything else non-empty
+    return "in_progress"
+
+
 def _is_done(status: str) -> bool:
     """True for "Done*" statuses ("Done", "Done (QA PASS, abc)", "Done (abc)")."""
-    return status.startswith("Done")
+    return status_class(status) == "done"
 
 
 def _is_qa_candidate(status: str) -> bool:
-    """Dev-done/committed-ish: work happened but QA has not merged (not Done*)."""
-    return status != "" and status != "Planned" and not _is_done(status)
+    """Dev-done/committed-ish: work happened but QA has not merged.
+    
+    Returns True for status_class in ["in_progress"]. Returns False for
+    "done", "planned", "parked", "closed", "unknown" (driver-silent).
+    """
+    cls = status_class(status)
+    return cls == "in_progress"
 
 
 def _stable_sort_key(action: dict) -> tuple[int, str]:
@@ -679,7 +766,7 @@ def main(argv: list[str] | None = None) -> int:
         "intents": read_intents(repo_root),
         "escalations": read_escalations(repo_root),
         "worktrees": read_worktrees(repo_root),
-        "now": datetime.now(timezone.utc).isoformat(),
+        "now": datetime.now(UTC).isoformat(),
     }
     for warning in validate_profile(profile)["warnings"]:
         print(warning, file=sys.stderr)
