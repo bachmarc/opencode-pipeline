@@ -26,7 +26,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = REPO_ROOT / "scripts" / "merge_if_passed.py"
 
@@ -607,3 +606,181 @@ def test_post_merge_runner_missing_skipped(tmp_path: Path) -> None:
     assert "pytest" in post_merge.get("reason", "")
     # Fail-open means SKIPPED, not a silent pass: the suite never ran.
     assert not marker.exists(), "suite stub executed despite missing runner"
+
+
+# ---------------------------------------------------------------------------
+# Story 33-01: merge writes Status: Done to story file + cleanup hint
+# ---------------------------------------------------------------------------
+
+
+def test_merge_writes_done_status(tmp_path: Path) -> None:
+    """After successful merge, story file Status line reads Done (merged as <sha>)."""
+    # Setup: prepare mergeable repo with matching branch/story ID and create story file
+    (tmp_path / ".pipeline" / "qa-state").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".pipeline" / "qa-state" / "33-01.json").write_text(
+        json.dumps({"verdicts": [{"verdict": "PASS", "timestamp": "2026-09-25T10:00:00Z"}]}),
+        encoding="utf-8",
+    )
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", *args], cwd=str(tmp_path), capture_output=True, check=True)
+
+    git("init")
+    git("config", "user.email", "test@example.com")
+    git("config", "user.name", "Test User")
+    (tmp_path / "README.md").write_text("# Test Repo\n", encoding="utf-8")
+    git("add", "README.md")
+    git("commit", "-m", "Initial commit")
+    git("branch", "-m", "master", "main")
+    git("checkout", "-b", "feature/33-01-merge-status-update")
+    (tmp_path / "test.txt").write_text("test content\n", encoding="utf-8")
+    git("add", "test.txt")
+    git("commit", "-m", "docs: reconcile")
+    git("checkout", "main")
+    
+    # Setup: qa config and suite stub
+    (tmp_path / "qa_config.json").write_text('{"checkers": ["pytest"]}', encoding="utf-8")
+    _write_suite_stub(tmp_path, exit_code=0)
+    
+    # Create story file with Status: Planned
+    story_dir = tmp_path / "docs" / "features" / "F-033" / "stories"
+    story_dir.mkdir(parents=True, exist_ok=True)
+    story_file = story_dir / "33-01-merge-status-update.md"
+    story_file.write_text(
+        "# Story 33-01\n\nStatus: Planned\n\nSome content\n",
+        encoding="utf-8"
+    )
+    
+    # Make pytest fake binary available
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    _create_fake_git_script(bin_dir, "pytest", "")
+    
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "feature/33-01-merge-status-update"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ.get("PATH", "")},
+    )
+    
+    assert result.returncode == 0, f"stdout: {result.stdout}, stderr: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output.get("merged") is True
+    
+    # Verify story file Status was updated
+    story_content = story_file.read_text(encoding="utf-8")
+    assert "Status: Done (merged as" in story_content
+
+
+def test_merge_status_update_missing_story_file_warns(tmp_path: Path) -> None:
+    """When story file not found, merge succeeds and a warning is printed."""
+    # Setup: prepare mergeable repo but NO story file
+    (tmp_path / ".pipeline" / "qa-state").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".pipeline" / "qa-state" / "33-01.json").write_text(
+        json.dumps({"verdicts": [{"verdict": "PASS", "timestamp": "2026-09-25T10:00:00Z"}]}),
+        encoding="utf-8",
+    )
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", *args], cwd=str(tmp_path), capture_output=True, check=True)
+
+    git("init")
+    git("config", "user.email", "test@example.com")
+    git("config", "user.name", "Test User")
+    (tmp_path / "README.md").write_text("# Test Repo\n", encoding="utf-8")
+    git("add", "README.md")
+    git("commit", "-m", "Initial commit")
+    git("branch", "-m", "master", "main")
+    git("checkout", "-b", "feature/33-01-merge-status-update")
+    (tmp_path / "test.txt").write_text("test content\n", encoding="utf-8")
+    git("add", "test.txt")
+    git("commit", "-m", "docs: reconcile")
+    git("checkout", "main")
+    
+    # Setup: qa config and suite stub
+    (tmp_path / "qa_config.json").write_text('{"checkers": ["pytest"]}', encoding="utf-8")
+    _write_suite_stub(tmp_path, exit_code=0)
+    
+    # Make pytest fake binary available
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    _create_fake_git_script(bin_dir, "pytest", "")
+    
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "feature/33-01-merge-status-update"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ.get("PATH", "")},
+    )
+    
+    # Merge still succeeds (exit 0)
+    assert result.returncode == 0, f"stdout: {result.stdout}, stderr: {result.stderr}"
+    output = json.loads(result.stdout)
+    assert output.get("merged") is True
+    
+    # But output contains a warning
+    full_output = result.stdout + result.stderr
+    assert "WARNING" in full_output
+
+
+def test_merge_prints_cleanup_hint(tmp_path: Path) -> None:
+    """After successful merge, output contains worktree_cleanup.py --apply hint."""
+    # Setup: prepare mergeable repo and create story file
+    (tmp_path / ".pipeline" / "qa-state").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".pipeline" / "qa-state" / "33-01.json").write_text(
+        json.dumps({"verdicts": [{"verdict": "PASS", "timestamp": "2026-09-25T10:00:00Z"}]}),
+        encoding="utf-8",
+    )
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", *args], cwd=str(tmp_path), capture_output=True, check=True)
+
+    git("init")
+    git("config", "user.email", "test@example.com")
+    git("config", "user.name", "Test User")
+    (tmp_path / "README.md").write_text("# Test Repo\n", encoding="utf-8")
+    git("add", "README.md")
+    git("commit", "-m", "Initial commit")
+    git("branch", "-m", "master", "main")
+    git("checkout", "-b", "feature/33-01-merge-status-update")
+    (tmp_path / "test.txt").write_text("test content\n", encoding="utf-8")
+    git("add", "test.txt")
+    git("commit", "-m", "docs: reconcile")
+    git("checkout", "main")
+    
+    # Setup: qa config and suite stub
+    (tmp_path / "qa_config.json").write_text('{"checkers": ["pytest"]}', encoding="utf-8")
+    _write_suite_stub(tmp_path, exit_code=0)
+    
+    # Create story file with Status: Planned
+    story_dir = tmp_path / "docs" / "features" / "F-033" / "stories"
+    story_dir.mkdir(parents=True, exist_ok=True)
+    story_file = story_dir / "33-01-merge-status-update.md"
+    story_file.write_text(
+        "# Story 33-01\n\nStatus: Planned\n\nSome content\n",
+        encoding="utf-8"
+    )
+    
+    # Make pytest fake binary available
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    _create_fake_git_script(bin_dir, "pytest", "")
+    
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "feature/33-01-merge-status-update"],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ.get("PATH", "")},
+    )
+    
+    assert result.returncode == 0, f"stdout: {result.stdout}, stderr: {result.stderr}"
+    
+    # Output contains cleanup hint
+    full_output = result.stdout + result.stderr
+    assert "worktree_cleanup.py --apply" in full_output
