@@ -10,7 +10,7 @@ Uses only stdlib (pathlib, subprocess, json, argparse).
 
 UNC path compatibility (Story 20-02):
   Worktree-local git commands use 'git -C <path>' pattern instead of cwd=<path>
-  to support Windows UNC network paths (e.g., \\server\share\...).
+  to support Windows UNC network paths (e.g., \\\\server\\\\share\\\\...).
   Repo-root commands continue to use cwd=<repo_root> (always local paths).
 
 Exit codes:

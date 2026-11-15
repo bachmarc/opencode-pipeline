@@ -1,10 +1,11 @@
-"""Worktree setup script tests (Story 06-04, Story 20-02).
+"""Worktree setup script tests (Story 06-04, Story 20-02, Story 35-01).
 
 Tests for scripts/worktree_setup.py — deterministic worktree/branch creation.
 Tests use tmp_path fixtures with git init to create isolated test repos.
 No external systems required.
 
 Story 20-02: Tests verify UNC path compatibility via git -C pattern.
+Story 35-01: Tests verify no SyntaxWarning on import/compilation.
 """
 
 import json
@@ -299,3 +300,24 @@ def test_worktree_git_commands_use_dash_c() -> None:
                                 f"Line {i+1}: worktree-local git command should not use "
                                 f"cwd=path when using git -C"
                             )
+
+
+def test_no_syntax_warnings() -> None:
+    """Worktree setup script compiles without SyntaxWarning (Story 35-01).
+    
+    Tests that scripts/worktree_setup.py contains no invalid escape sequences
+    in docstrings. Uses -W error::SyntaxWarning to ensure SyntaxWarning is treated
+    as an error during compilation.
+    """
+    script_path = SCRIPTS_DIR / "worktree_setup.py"
+    
+    # Compile with -W error::SyntaxWarning to catch SyntaxWarning
+    result = subprocess.run(
+        [sys.executable, "-W", "error::SyntaxWarning", "-m", "py_compile", str(script_path)],
+        capture_output=True,
+        text=True,
+    )
+    
+    assert result.returncode == 0, (
+        f"Script has SyntaxWarning that becomes error: {result.stderr}"
+    )
