@@ -32,6 +32,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-033 | Driver Trustworthiness (Status Booking Fixes) | planned | — | 33-01, 33-02, 33-03, 33-04 |
 | F-034 | Developer Loop Protection | planned | — | 34-01 |
 | F-035 | Pipeline Ergonomics | planned | — | 35-01 |
+| F-036 | QA as Test Oracle | planned | — | 36-01 |
 
 ## Feature status derivation
 

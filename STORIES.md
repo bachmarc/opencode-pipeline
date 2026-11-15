@@ -360,3 +360,11 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   the architect manual-reconcile fallback when the documenter subagent hits a usage limit
   is undocumented. AGENTS.md updated by architect directly (planning commit). 1 story:
   - 35-01: `scripts/worktree_setup.py` SyntaxWarning fix (`\\share`)
+- **Phase 36 (QA as Test Oracle):** QA today re-runs developer tests — a developer who
+  encodes a wrong assumption in both implementation and tests gets a rubber-stamp PASS.
+  Fix: QA gains a test-review + augmentation phase (new checklist step 2a). QA reads the
+  story spec, evaluates the developer's tests for gaps and wrong assumptions, and writes
+  additional tests in the project's own conventions (pytest, Playwright, Jest, RSpec —
+  derived from qa_config.json, process.json, existing patterns). Scope: test files only,
+  never src/. Verdict extended with `qa_tests_added` + `qa_review_notes`. 1 story:
+  - 36-01: `agents/qa-manager.md` + `_story_template.md` + `test_qa_manager_prompt.py`
