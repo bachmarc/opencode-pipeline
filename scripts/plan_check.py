@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""plan_check.py — deterministic planning QA for story files (Story 30-05).
+"""plan_check.py — deterministic planning QA for story files (Story 30-05, 33-04).
 
 Scans ``docs/features/*/stories/*.md`` and reports planning defects that weak
 planner models introduce mechanically. No LLM, no guessing: purely textual
@@ -12,6 +12,10 @@ Scope:
     and the conflict candidates are still computed from ALL open stories under
     the root, because sequenced references and same-file conflicts are
     cross-story findings by definition.
+  - ``--since <story-id>`` (e.g. ``--since 30-01``) filters checks: only stories
+    with numeric ID >= the given ID are checked for missing-section and
+    missing-status-line. Ghost-reference and conflict-candidate checks still
+    scan ALL stories regardless of ``--since``.
 
 Checks (problem kinds):
   1. ghost-reference (FAIL): a backticked repo path (contains "/" or ends with
@@ -31,8 +35,12 @@ Checks (problem kinds):
      Context / Purpose, Requirements, Developer Targets, Acceptance criteria,
      Test criteria. (Heading prefixes match, e.g. "Acceptance criteria
      (checked by qa-manager)" satisfies "Acceptance criteria".)
-
-Conflict candidates (WARN, separate JSON list, exit code unaffected): files
+  5. missing-status-line (FAIL, new in 33-04): a non-Done open story file
+     that lacks a ``Status:`` line. Done stories (status starts with "done",
+     case-insensitive) are skipped entirely regardless of Status line presence.
+  6. duplicate-story-id (FAIL, new in 33-04): two or more story files with
+     the same numeric ID prefix (e.g., ``33-01-foo.md`` and ``33-01-bar.md``).
+     The problem detail lists all conflicting paths. (WARN, separate JSON list, exit code unaffected): files
 mentioned in Developer Targets target lines ("-" lines) by more than one OPEN
 story. The architect resolves them by declaring sequential waves in the
 STORIES.md phase block; the script does not guess ordering.
@@ -59,7 +67,7 @@ JSON contract (stdout):
 Exit codes:
   0 - PASS (no FAIL-kind problems; WARN entries and conflict candidates allowed)
   1 - FAIL (at least one ghost-reference / clarification-marker /
-      missing-section problem)
+      missing-section / missing-status-line / duplicate-story-id problem)
   2 - usage error (--root/--story path not found)
 """
 
@@ -90,7 +98,8 @@ REQUIRED_SECTIONS = [
 # conflict/touched sets).
 SCAN_SECTIONS = ["codebase snapshot", "developer targets"]
 
-FAIL_KINDS = {"ghost-reference", "clarification-marker", "missing-section"}
+FAIL_KINDS = {"ghost-reference", "clarification-marker", "missing-section",
+              "missing-status-line", "duplicate-story-id"}
 
 BACKTICK_RE = re.compile(r"`([^`\n]+)`")
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
@@ -105,6 +114,24 @@ def _repo_root() -> Path:
         if (candidate / ".git").exists():
             return candidate
     return cwd
+
+
+def _parse_story_id_parts(story_id: str) -> tuple[int, int] | None:
+    """Parse XX-YY numeric ID into (XX, YY) tuple, or None if invalid format."""
+    parts = story_id.split("-")
+    if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+        return (int(parts[0]), int(parts[1]))
+    return None
+
+
+def _story_id_gte(story_id: str, threshold_id: str) -> bool:
+    """True if story_id numeric components are >= threshold_id components."""
+    story_parts = _parse_story_id_parts(story_id)
+    threshold_parts = _parse_story_id_parts(threshold_id)
+    if story_parts is None or threshold_parts is None:
+        # Fallback: lexicographic comparison if parsing fails
+        return story_id >= threshold_id
+    return story_parts >= threshold_parts
 
 
 def _is_path_token(token: str) -> bool:
@@ -187,10 +214,12 @@ def _parse_story(path: Path) -> dict:
     lines = text.splitlines()
     fenced = _fence_flags(lines)
     status = None
+    status_line_present = False
     for line in lines:
         match = STATUS_RE.match(line.strip())
         if match:
             status = match.group(1).strip()
+            status_line_present = True
             break
     markers = []
     for idx, line in enumerate(lines):
@@ -203,6 +232,7 @@ def _parse_story(path: Path) -> dict:
         "id": _story_id(path),
         "path": path,
         "open": status is None or not status.lower().startswith("done"),
+        "status_line_present": status_line_present,
         "markers": markers,
         "ranges": _section_ranges(lines, fenced),
         "lines": lines,
@@ -254,6 +284,11 @@ def main() -> None:
     parser.add_argument(
         "--story", default=None,
         help="Check a single story file instead of the whole tree")
+    parser.add_argument(
+        "--since", default=None,
+        help="Skip missing-section and missing-status-line checks for stories "
+             "with numeric ID < the given ID (e.g. --since 30-01). Ghost-ref and "
+             "conflict-candidate checks still scan all stories.")
     args = parser.parse_args()
 
     root = Path(args.root)
@@ -303,9 +338,22 @@ def main() -> None:
         if len(story_ids) > 1
     ]
 
+    # Detect duplicate story IDs (same XX-YY prefix on different files)
+    id_to_paths: dict[str, list[Path]] = {}
+    for path, data in open_stories.items():
+        id_to_paths.setdefault(data["id"], []).append(path)
+
     problems: list[dict] = []
     seen: set[tuple[str, str, str]] = set()
     repo_root = _repo_root()
+
+    # Add duplicate-story-id problems for any ID that appears more than once
+    for sid, paths in id_to_paths.items():
+        if len(paths) > 1:
+            path_list = ", ".join(str(p.relative_to(root)) for p in sorted(paths))
+            problems.append({
+                "story": sid, "kind": "duplicate-story-id",
+                "detail": f"duplicate story ID in files: {path_list}"})
 
     for path in sorted(stories):
         data = stories[path]
@@ -317,13 +365,27 @@ def main() -> None:
             problems.append({
                 "story": sid, "kind": "clarification-marker",
                 "detail": f"unresolved [NEEDS CLARIFICATION marker: {marker}"})
-        for key, label in REQUIRED_SECTIONS:
-            rng = _find_section(data["ranges"], key)
-            if rng is None or not any(
-                    line.strip() for line in data["lines"][rng[0]:rng[1]]):
-                problems.append({
-                    "story": sid, "kind": "missing-section",
-                    "detail": f"required section missing or empty: {label}"})
+        
+        # Check if story should be skipped due to --since filter
+        skip_legacy_checks = False
+        if args.since:
+            skip_legacy_checks = not _story_id_gte(sid, args.since)
+        
+        # Missing status line check (unless it's a Done story, which is already filtered)
+        if not skip_legacy_checks and not data["status_line_present"]:
+            problems.append({
+                "story": sid, "kind": "missing-status-line",
+                "detail": "non-Done story missing Status: line"})
+        
+        # Missing section checks (apply --since filter)
+        if not skip_legacy_checks:
+            for key, label in REQUIRED_SECTIONS:
+                rng = _find_section(data["ranges"], key)
+                if rng is None or not any(
+                        line.strip() for line in data["lines"][rng[0]:rng[1]]):
+                    problems.append({
+                        "story": sid, "kind": "missing-section",
+                        "detail": f"required section missing or empty: {label}"})
 
         for section_prefix in SCAN_SECTIONS:
             for token, before, after in _section_tokens(data, section_prefix):
