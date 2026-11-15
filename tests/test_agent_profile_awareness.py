@@ -113,11 +113,11 @@ def test_architect_has_plan_check_step() -> None:
     assert "plan_check" in content, (
         "architect.md: missing 'plan_check' — before EVERY planning checkpoint "
         "run plan_check.py and resolve its findings (conflict candidates → "
-        "sequential waves in the STORIES.md phase block)"
+        "sequential waves in the FEATURES.md wave declaration)"
     )
-    assert "STORIES.md" in content, (
-        "architect.md: missing 'STORIES.md' — conflict candidates are declared "
-        "as sequential waves in the STORIES.md phase block"
+    assert "FEATURES.md" in content, (
+        "architect.md: missing 'FEATURES.md' — conflict candidates are declared "
+        "as sequential waves in feature.md files"
     )
 
 

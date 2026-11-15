@@ -99,6 +99,7 @@ This repo's "product" is configuration and deterministic tooling, not a service:
 
 ## References
 
-- `STORIES.md` — story index (status per story)
+- `FEATURES.md` — feature index (status per feature)
+- `docs/features/*/stories/*.md` — story files
 - `templates/AGENTS.md` — the skeleton every project fills in
 - `netclip/AGENTS.md`, `intesis_modbus/CLAUDE.md` — reference projects

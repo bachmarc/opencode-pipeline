@@ -1,52 +1,27 @@
-"""Tests for Story Status Guard plugin."""
+"""Tests for Story Status Guard plugin — story 37-03 deletes this guard.
 
-import os
-import re
+Tests assert that:
+1. story-status-guard.ts does NOT exist (deleted)
+2. pipeline-enforcement.ts does NOT reference story-status-guard (import removed)
+"""
+
 from pathlib import Path
 
 
-def test_story_status_guard_file_exists():
-    """Test that plugins/guards/story-status-guard.ts exists."""
+def test_story_status_guard_file_removed():
+    """Test that plugins/guards/story-status-guard.ts has been deleted."""
     guard_file = Path(__file__).parent.parent / "plugins" / "guards" / "story-status-guard.ts"
-    assert guard_file.exists(), f"Guard file not found at {guard_file}"
+    assert not guard_file.exists(), (
+        f"Guard file should be deleted (story 37-03) but found at {guard_file}"
+    )
 
 
-def test_guard_extracts_story_id():
-    """Test that story-status-guard.ts contains branch-to-story-id extraction pattern."""
-    guard_file = Path(__file__).parent.parent / "plugins" / "guards" / "story-status-guard.ts"
-    content = guard_file.read_text()
-    
-    # Check for feature/ branch pattern extraction
-    assert "feature/" in content, "Guard should extract feature/ branch pattern"
-    
-    # Check for story ID extraction regex (should match feature/<story-id>-<slug>)
-    assert re.search(r"feature/\([^)]*\)", content) or "feature/" in content, \
-        "Guard should contain regex for extracting story ID from branch name"
-
-
-def test_guard_reads_stories_md():
-    """Test that story-status-guard.ts reads STORIES.md."""
-    guard_file = Path(__file__).parent.parent / "plugins" / "guards" / "story-status-guard.ts"
-    content = guard_file.read_text()
-    
-    assert "STORIES.md" in content, "Guard should read STORIES.md"
-
-
-def test_plugin_imports_story_status_guard():
-    """Test that pipeline-enforcement.ts imports story-status-guard."""
+def test_plugin_does_not_import_story_status_guard():
+    """Test that pipeline-enforcement.ts no longer imports story-status-guard."""
     plugin_file = Path(__file__).parent.parent / "plugins" / "pipeline-enforcement.ts"
     content = plugin_file.read_text()
     
-    assert "story-status-guard" in content, \
-        "pipeline-enforcement.ts should import story-status-guard"
-
-
-def test_plugin_has_after_hook():
-    """Test that pipeline-enforcement.ts contains execute.after hook (V2 format)."""
-    plugin_file = Path(__file__).parent.parent / "plugins" / "pipeline-enforcement.ts"
-    content = plugin_file.read_text()
-    
-    # V2: looks for "execute.after" (the hook name in ctx.tool.hook() calls)
-    # not the old V1 hook object string "tool.execute.after"
-    assert "execute.after" in content, \
-        "pipeline-enforcement.ts should contain execute.after hook (V2 format)"
+    assert "story-status-guard" not in content, (
+        "pipeline-enforcement.ts should not reference story-status-guard "
+        "(guard deleted in story 37-03)"
+    )
