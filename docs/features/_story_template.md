@@ -34,6 +34,8 @@ Feature: <feature-name> (<feature-id>)
 
 ## Test criteria (must exist BEFORE implementation)
 
+QA may augment or correct these criteria during the QA phase.
+
 - <Tests written first — file, test name, expected behavior>
 
 <!-- For lifecycle stories (multi-step lifecycles: start/stop, publish/subscribe,
