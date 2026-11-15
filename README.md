@@ -1,5 +1,5 @@
 # opencode Pipeline
-<!-- synced_through: 37-01 | updated: 2026-11-15 -->
+<!-- synced_through: 37-03 | updated: 2026-11-15 -->
 
 **A multi-agent development pipeline as config-as-code** — for teams building software through structured dialogue, deterministic automation, and cheap-model mass work.
 
@@ -147,7 +147,8 @@ You start by talking to the **Architect** — either via `/new-project` (new rep
 **How to stay in the dialogue:** The Architect runs in `mode: all` (direct conversation partner). You talk to it like a colleague. It will ask clarifying questions — answer them. If it tries to spawn a Developer or QA-Manager prematurely, the **`permission.task` system** pops up an approval dialog (Tab key to confirm/deny). This is your hard technical gate — the Architect cannot silently start the machine.
 
 **What the Architect produces:**
-- `STORIES.md` + `docs/features/<feature>/stories/<phase>-<id>-<slug>.md` — decomposed, implementable stories with developer targets and test criteria
+- `docs/features/<feature>/feature.md` — feature vision and context
+- `docs/features/<feature>/stories/<phase>-<id>-<slug>.md` — decomposed, implementable stories with developer targets and test criteria
 
 **Key principle:** Stories are cut small enough that a **cheap mass model** can implement each one in isolation on its own Git branch. No monster stories. The expensive/strong model (Architect) only reasons about design — it never writes code.
 
@@ -410,7 +411,7 @@ Then **restart opencode** — the config is loaded once at startup, there is no 
 
 **What a pull does not touch:** `opencode.jsonc` and `cron.db` are gitignored, so a pull never overwrites them. New agent-/command-/skill-/template files appear automatically after pull + restart.
 
-**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in STORIES.md.
+**Versioning:** `APP_VERSION` (in `APP_VERSION.py` at the repo root) — bump on notable merges, documented in `FEATURES.md` and story files.
 
 **New config options:** if a release introduces new `opencode.jsonc` options (e.g. the `agent.architect.permission.task` block), **every machine** must add them to its local file once — see § "Model Assignment" above for the per-machine procedure.
 
@@ -433,11 +434,10 @@ The pipeline's process rules are enforced **deterministically at the tool-call l
 | **Merge Guard** | `git merge` on main | Checks `.pipeline/qa-state/` for a PASS verdict matching the branch. No PASS → block. |
 | **Dev-Start Guard** | `task` spawning developer/QA | Verifies a story file exists and is in an appropriate state. Reinforces `permission.task`. |
 | **Architect Code Guard** | `edit`/`write` on code files | Detects architect editing `src/`, `tests/`, `*.py`, `*.ts`. Asks interactively: housekeeping or pipeline? Never silently allowed. |
-| **Story Status Guard** | `git merge` on main | After successful merge, checks whether STORIES.md was updated. If not → warning. |
 | **Session Recovery Guard** | First tool call of session | Runs `session_recovery.py --check`. Open intents or dirty worktrees → hard block until addressed. Fires once per session. |
 | **Documenter Guard** | `git merge` on main | Checks the feature branch for a `docs: reconcile` commit (Documenter output). No documenter commit → block. |
 
-**Architecture:** Single entry point, guard registry pattern. Guards read `.pipeline/` and `STORIES.md` for state. Agent detection via `context.agent`. Deployment follows the standard release branch workflow.
+**Architecture:** Single entry point, guard registry pattern. Guards read `.pipeline/` and feature/story files for state. Agent detection via `context.agent`. Deployment follows the standard release branch workflow.
 
 **Relationship to prompt rules:** Prompts stay as behavioral training (the LLM "wants" to follow the rules). The plugin adds hard technical gates (the LLM "cannot" violate them even if it tries). Both layers complement each other.
 
@@ -513,9 +513,9 @@ Existing projects that were not started with the pipeline can be onboarded inter
 
 4. **Provision structure** — `scripts/provision_structure.py` creates only what's missing: `.pipeline/`, `docs/features/`, **complete `qa_config.json` with full checker list per stack** (never single checker), `.gitignore` merge. For unknown stacks (when `qa_bootstrap_needed: true`), writes placeholder config with `_bootstrap_needed` flag and `_reason` field. Never overwrites existing files.
 
-5. **Retro stories (optional)** — `scripts/create_retro_stories.py` documents pre-pipeline work as retro stories. Creates feature directory, feature.md, story files with "Retro-Done" status. Appends to FEATURES.md and STORIES.md.
+5. **Retro stories (optional)** — `scripts/create_retro_stories.py` documents pre-pipeline work as retro stories. Creates feature directory, feature.md, story files with "Retro-Done" status. Appends to `FEATURES.md`.
 
-6. **Validate** — `scripts/validate_migration.py` runs 8 checks: AGENTS.md exists, template constancy, required dirs, qa_config, FEATURES.md, STORIES.md, pipeline intent, git initialized. JSON output with per-check results.
+6. **Validate** — `scripts/validate_migration.py` runs 8 checks: AGENTS.md exists, template constancy, required dirs, qa_config, FEATURES.md, feature/story files, pipeline intent, git initialized. JSON output with per-check results.
 
 After migration, the project works with all pipeline features (worktrees, QA gate, session recovery, documenter) without manual setup.
 
