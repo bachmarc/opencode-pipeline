@@ -30,4 +30,5 @@ analysis in `docs/reports/2026-11-15-virtoffice-status-booking-defects.md`
 - 33-01-merge-status-update (Planned)
 - 33-02-booking-check (Planned)
 - 33-03-driver-status-vocabulary (Planned)
-- 33-04-plan-check-status-guards (Planned)
+- 33-04-plan-check-status-guards (Done (merged as c139d25))
+- 33-05-merge-status-update-ordering (Planned)
