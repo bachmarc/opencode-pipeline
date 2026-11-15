@@ -334,3 +334,29 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   - 32-02: merge_if_passed post-merge suite check (exit 3) + driver stale-planned action
   - 32-03: `scripts/worktree_cleanup.py` (implements/supersedes 29-01 contract) +
     session_recovery staleness line
+- **Phase 33 (Driver Trustworthiness):** VirtOffice session 2026-11-15 revealed ~36 driver
+  actions of which only 2 were genuine — the rest were false positives from story files
+  never updated after merge. Full defect analysis in
+  `docs/reports/2026-11-15-virtoffice-status-booking-defects.md` (D-1…D-10). Fix closes the
+  central noise classes: merge writes `Status: Done (merged as <sha>)` atomically (D-1),
+  a booking-vs-git consistency check catches commits claimed done but not on main (D-6),
+  the driver status vocabulary becomes case-insensitive with first-class terminal states
+  `Parked` / `Closed` / `Superseded` etc. plus intent cross-reference (D-2, D-4, D-10),
+  and `plan_check.py` enforces missing Status lines, duplicate IDs, and adds `--since`
+  legacy baseline (D-3, D-5, D-9). 4 stories in 2 parallel waves:
+  W1 (parallel, file-disjoint): 33-01, 33-02
+  W2 (parallel, after W1 merged): 33-03, 33-04
+  - 33-01: `merge_if_passed.py` → write `Status: Done (merged as <sha>)` + cleanup hint
+  - 33-02: new `scripts/booking_check.py` + `session_recovery.py` booking-vs-git check
+  - 33-03: `scripts/driver.py` → `status_class()` vocabulary + terminal states + intent cross-ref
+  - 33-04: `scripts/plan_check.py` → missing-status-line, duplicate-story-id, `--since`
+- **Phase 34 (Developer Loop Protection):** VirtOffice 2026-10-25 (story 26-09): developer
+  agent looped unboundedly, requiring 4 restart attempts. Fix: anti-loop hard rule in
+  developer prompt (DEFERRED on third failure), step-budget recommendation
+  (`agents.developer.steps`), item-wise spawn guidance in architect prompt. 1 story:
+  - 34-01: `agents/developer.md` + `agents/architect.md` + `templates/AGENTS.md`
+- **Phase 35 (Pipeline Ergonomics):** Two small friction items from VirtOffice 2026-11-15:
+  `worktree_setup.py` emits a Python SyntaxWarning (`\s` invalid escape in docstring);
+  the architect manual-reconcile fallback when the documenter subagent hits a usage limit
+  is undocumented. AGENTS.md updated by architect directly (planning commit). 1 story:
+  - 35-01: `scripts/worktree_setup.py` SyntaxWarning fix (`\\share`)

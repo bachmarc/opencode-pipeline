@@ -29,6 +29,9 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-026 | Codebase Snapshot in Stories | **done** | — | 26-01 |
 | F-027 | Tooling-Gate Bootstrap | **done** | — | 27-01, 27-02, 27-03, 27-04, 27-05 |
 | F-028 | Pure-JS Dependency Preference | **done** | — | 28-01 |
+| F-033 | Driver Trustworthiness (Status Booking Fixes) | planned | — | 33-01, 33-02, 33-03, 33-04 |
+| F-034 | Developer Loop Protection | planned | — | 34-01 |
+| F-035 | Pipeline Ergonomics | planned | — | 35-01 |
 
 ## Feature status derivation
 

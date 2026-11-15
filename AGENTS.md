@@ -75,6 +75,12 @@ This repo's "product" is configuration and deterministic tooling, not a service:
    Tests first, `pytest` green.
 3. **QA gate:** checks requirements, tests, role abstraction, template constancy.
    PASS → merge. FAIL → fix loop (max 3), then BLOCKED → back to architect/user.
+4. **Documenter fallback (when subagent hits usage limit):** `merge_if_passed.py`
+   requires a `docs: reconcile` commit on the branch. If the `documenter` subagent is
+   unavailable (usage limit, quota, error), the architect may commit `docs: reconcile`
+   directly in the worktree — scoped to story files and module docstrings ONLY, no logic
+   changes. This is the only documented exception to the architect-writes-no-code rule
+   (docs-only, no `src/` or `tests/` changes).
 
 ## Languages
 
