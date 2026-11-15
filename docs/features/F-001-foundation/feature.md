@@ -20,8 +20,6 @@ infrastructure that the pipeline itself uses.
 
 ## Stories
 
-- 01-01-foundation (planned)
-- 01-02-retro-trace (done)
 - 01-03-framework-checks (done)
 - 01-04-deploy-procedure (done)
 - 01-05-version (done)

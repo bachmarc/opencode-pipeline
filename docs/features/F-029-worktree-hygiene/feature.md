@@ -85,3 +85,8 @@ flow (`merge_if_passed.py`) performs worktree teardown or staleness checks.
   `git worktree list` before/after, `opencode.log` startup sequence.
 - Related scripts: `worktree_setup.py` (creator), `session_recovery.py`
   (session-start scan), `merge_if_passed.py` (merge discipline pattern).
+
+
+## Stories
+
+- 29-01-worktree-cleanup-script (done)

@@ -55,3 +55,5 @@ Design decisions:
 - 12-08-template-scaffold-config (done)
 - 12-09-template-migration-tool (done)
 - 12-10-check-architecture-polyglot (done)
+- 12-11-test-suite-green (done)
+- 12-12-dev-start-guard-slug (done)

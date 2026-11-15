@@ -68,8 +68,8 @@ None of this was caught because:
 
 ## Stories
 
-- 27-01 story-template-tooling-gates (planned) — template + architect prompt + QA prompt
-- 27-02 js-ts-lint-checkers (planned) — eslint, tsc, prettier, npm-audit checkers
-- 27-03 python-lint-checkers (planned) — mypy, ruff, black checkers
-- 27-04 ruby-java-lint-checkers (planned) — rubocop, checkstyle checkers
-- 27-05 qa-gap-detection (planned) — analyze_project.py + provision_structure.py complete qa_config.json
+- 27-01-story-template-tooling-gates (done)
+- 27-02-js-ts-lint-checkers (done)
+- 27-03-python-lint-checkers (done)
+- 27-04-ruby-java-lint-checkers (done)
+- 27-05-qa-gap-detection (done)

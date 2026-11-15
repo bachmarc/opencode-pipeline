@@ -20,5 +20,5 @@ loop for focused changes.
 
 ## Stories
 
-- 22-01: qa_compress.py --fast: changed files → affected test modules
-- 22-02: Developer prompt: forbid post-commit qa_compress.py verification run
+- 22-01-qa-compress-fast-mode (done)
+- 22-02-developer-no-postcommit-run (done)

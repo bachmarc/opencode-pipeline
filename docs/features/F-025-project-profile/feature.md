@@ -22,6 +22,6 @@ Three scripts need extension (`analyze_project.py`, `provision_structure.py`, `c
 
 ## Stories
 
-- 25-01 analyze-project-profile (planned)
-- 25-02 migrate-dialog-and-qa-config (planned)
-- 25-03 history-dialog (planned)
+- 25-01-analyze-project-profile (done)
+- 25-02-migrate-dialog-and-qa-config (done)
+- 25-03-history-dialog (done)
