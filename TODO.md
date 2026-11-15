@@ -64,7 +64,28 @@ STORIES.md).
 
 ---
 
-## T-003 — Documenter subagent hits model usage limit mid-session with no graceful fallback
+## T-004 — host.docker.internal:host-gateway unreliable on Linux Docker (44-01-v2 production finding)
+
+**Source:** VirtOffice event deployment 2026-11-15. LiveKit Prometheus showed "unreachable" in
+production despite correct `extra_hosts: host-gateway` in docker-compose.prod.yml.
+
+**What happened:** The backend container used `extra_hosts: ["host.docker.internal:host-gateway"]`
+to reach LiveKit Prometheus (port 6789, `network_mode: host`). This looked correct in review
+but `host.docker.internal` did not resolve in production on the Linux Docker host — every poll
+returned null, showing "LiveKit unreachable" and 0/300 UDP slots in the admin dashboard.
+
+**Workaround (immediate):** Set `LIVEKIT_PROMETHEUS_URL=http://<gateway-ip>:6789/metrics` in
+`.env`, where `<gateway-ip>` is the Docker bridge gateway IP discovered via:
+`ip route | grep docker0` or `docker network inspect <network> | grep Gateway`.
+The env var is already implemented in `metrics-scraper.ts` and overrides the default URL.
+
+**Suggested fix for the story/docs:**
+- README-DEPLOY.md §12: document the `host.docker.internal` Linux caveat and the
+  `LIVEKIT_PROMETHEUS_URL` fallback with the `ip route` discovery command.
+- Consider using the bridge gateway IP as the primary default on Linux.
+- Story 44-03-v2 (docs-only): update README-DEPLOY + .env.example with explicit guidance.
+
+**Status:** idea (unscheduled) — workaround available via env var.
 
 **Source:** VirtOffice session 2026-11-15 (story 51-01 reconcile, ses_e1ff80cecffe6TIB4tgfrLRHdA).
 
