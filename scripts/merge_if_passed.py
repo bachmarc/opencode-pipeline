@@ -416,12 +416,9 @@ def main() -> int:
     success, result = merge_branch(branch)
 
     if success:
-        # Post-merge main health (Story 32-02): run the configured suite on
-        # the merged main. NO rollback on FAIL — the merge commit stays; the
-        # follow-up is a fix story (30-06 pattern), surfaced via exit code 3.
-        post_merge = run_post_merge_suite()
-        
-        # Story 33-01: Update story file Status line
+        # Story 33-01: Update story file Status line BEFORE post-merge suite
+        # (must happen immediately after merge — post-merge suite can take ~180s
+        # and a SIGTERM would prevent the status update from running if placed after)
         short_sha = result[:7] if result and len(result) >= 7 else result
         story_id = extract_story_id(branch)
         if story_id:
@@ -430,6 +427,11 @@ def main() -> int:
                 _update_story_status(story_file, short_sha)
             else:
                 print(f"WARNING: could not find story file for {story_id}", file=sys.stderr)
+
+        # Post-merge main health (Story 32-02): run the configured suite on
+        # the merged main. NO rollback on FAIL — the merge commit stays; the
+        # follow-up is a fix story (30-06 pattern), surfaced via exit code 3.
+        post_merge = run_post_merge_suite()
         
         output = {
             "merged": True,
