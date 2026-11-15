@@ -344,6 +344,13 @@
       "step": "implementing story (F-032 wave 1, audit-fixed planning)",
       "started_at": "2026-10-31T19:49:10.160418+00:00",
       "done": true
+    },
+    {
+      "story_id": "W1-wave",
+      "agent": "architect",
+      "step": "spawning W1 developers: 33-01 33-02 34-01 35-01 36-01 37-01",
+      "started_at": "2026-11-15T17:05:54.555465+00:00",
+      "done": false
     }
   ]
 }
