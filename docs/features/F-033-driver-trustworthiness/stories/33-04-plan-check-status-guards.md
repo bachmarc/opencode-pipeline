@@ -1,6 +1,6 @@
 # Story 33-04 — Plan Check Status Guards
 
-Status: Planned
+Status: Done (merged as c139d25)
 Feature: driver-trustworthiness (F-033)
 
 ## Codebase Snapshot

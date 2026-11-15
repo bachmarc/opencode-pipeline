@@ -1,6 +1,6 @@
 # Story 36-01 — QA Test Review and Augmentation
 
-Status: Planned
+Status: Done (merged as 4369c37)
 Feature: qa-test-oracle (F-036)
 
 ## Codebase Snapshot

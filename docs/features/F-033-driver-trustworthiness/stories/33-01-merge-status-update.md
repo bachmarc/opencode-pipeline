@@ -1,6 +1,6 @@
 # Story 33-01 — Merge Status Update
 
-Status: Planned
+Status: Done (merged as 701a96f)
 Feature: driver-trustworthiness (F-033)
 
 ## Codebase Snapshot

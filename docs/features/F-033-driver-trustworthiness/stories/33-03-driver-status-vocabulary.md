@@ -1,6 +1,6 @@
 # Story 33-03 — Driver Status Vocabulary
 
-Status: Planned
+Status: Done (merged as 8b5b19f)
 Feature: driver-trustworthiness (F-033)
 
 ## Codebase Snapshot

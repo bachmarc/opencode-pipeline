@@ -1,6 +1,6 @@
 # Story 33-02 — Booking Check
 
-Status: Planned
+Status: Done (merged as 56ac4b2)
 Feature: driver-trustworthiness (F-033)
 
 ## Codebase Snapshot

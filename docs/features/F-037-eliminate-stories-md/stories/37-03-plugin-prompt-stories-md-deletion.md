@@ -1,6 +1,6 @@
 # Story 37-03 — Plugin Prompt Stories-md Deletion
 
-Status: Planned
+Status: Done (merged as 54bbddb)
 Feature: eliminate-stories-md (F-037)
 
 ## Codebase Snapshot

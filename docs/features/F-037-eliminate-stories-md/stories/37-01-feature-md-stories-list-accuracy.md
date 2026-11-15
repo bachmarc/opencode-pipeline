@@ -1,6 +1,6 @@
 # Story 37-01 — Feature-md Stories List Accuracy
 
-Status: Planned
+Status: Done (merged as a7cc561)
 Feature: eliminate-stories-md (F-037)
 
 ## Codebase Snapshot

@@ -1,6 +1,6 @@
 # Story 37-02 — Script Stories-md Removal
 
-Status: Planned
+Status: Done (merged as 7765969)
 Feature: eliminate-stories-md (F-037)
 
 ## Codebase Snapshot

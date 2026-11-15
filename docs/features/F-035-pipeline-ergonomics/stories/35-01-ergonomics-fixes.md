@@ -1,6 +1,6 @@
 # Story 35-01 — Ergonomics Fixes
 
-Status: Planned
+Status: Done (merged as 601d65a)
 Feature: pipeline-ergonomics (F-035)
 
 ## Codebase Snapshot

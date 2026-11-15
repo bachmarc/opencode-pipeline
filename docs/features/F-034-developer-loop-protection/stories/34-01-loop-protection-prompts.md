@@ -1,6 +1,6 @@
 # Story 34-01 — Loop Protection Prompts
 
-Status: Planned
+Status: Done (merged as 6a07cfe)
 Feature: developer-loop-protection (F-034)
 
 ## Codebase Snapshot
