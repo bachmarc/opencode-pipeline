@@ -25,5 +25,4 @@ See also TODO.md → T-003.
 
 ## Stories
 
-- 01-01-ergonomics-fixes (planned)
-- 35-01-ergonomics-fixes (Planned)
+- 35-01-ergonomics-fixes (done)

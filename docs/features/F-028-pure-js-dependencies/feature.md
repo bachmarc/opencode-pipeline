@@ -34,4 +34,4 @@ native addons with their build requirements.
 
 ## Stories
 
-- 28-01 architect-pure-js-preference (planned) — architect.md gets dependency guidance
+- 28-01-architect-pure-js-preference (done)

@@ -23,5 +23,4 @@ entire parallel wave. See also TODO.md → T-001.
 
 ## Stories
 
-- 01-01-loop-protection-prompts (planned)
-- 34-01-loop-protection-prompts (Planned)
+- 34-01-loop-protection-prompts (done)

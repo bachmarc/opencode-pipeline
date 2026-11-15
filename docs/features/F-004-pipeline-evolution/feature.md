@@ -33,3 +33,5 @@ resilience, and automated documentation generation to scale beyond single-user w
 - 06-11-qa-scripts (done)
 - 06-12-prompt-updates (done)
 - 06-13-check-scripts (done)
+- 06-14-orchestration-rules (done)
+- 10-01-remove-legacy-stories-dir (done)

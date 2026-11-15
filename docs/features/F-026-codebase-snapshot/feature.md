@@ -20,4 +20,4 @@ The fix is simple: the Architect writes down what they found as part of the stor
 
 ## Stories
 
-- 26-01 codebase-snapshot-in-story-template (planned)
+- 26-01-codebase-snapshot-in-story-template (done)

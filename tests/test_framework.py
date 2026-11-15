@@ -268,3 +268,117 @@ def test_qa_prompt_has_clarification_check() -> None:
     assert "NEEDS CLARIFICATION" in content, (
         "qa-manager.md must contain 'NEEDS CLARIFICATION' check in Requirements checklist"
     )
+
+
+# --- Check 7: feature.md stories match actual files --------------------------------
+
+def _extract_story_ids_from_feature_md(feature_md_content: str) -> set[str]:
+    """Extract story IDs from feature.md '## Stories' section.
+    
+    Returns a set of story ID prefixes (e.g. '01-01', '02-03').
+    Expects lines of the form: '- XX-YY-slug (status)' or '- XX-YY-slug'.
+    """
+    story_ids = set()
+    lines = feature_md_content.splitlines()
+    
+    # Find the Stories section
+    in_stories_section = False
+    for line in lines:
+        if line.strip() == "## Stories":
+            in_stories_section = True
+            continue
+        
+        # Exit stories section when we hit another section
+        if in_stories_section and line.startswith("##"):
+            break
+        
+        if in_stories_section:
+            # Look for lines like "- 01-01-slug (status)" or "- XX-YY-slug"
+            stripped = line.strip()
+            if stripped.startswith("- "):
+                # Extract the part after "- "
+                rest = stripped[2:].strip()
+                # Find the story ID (XX-YY part)
+                parts = rest.split("-", 2)  # Split on first two hyphens
+                if len(parts) >= 2:
+                    # parts[0] = XX, parts[1] = YY, parts[2] = rest (slug and status)
+                    story_id = f"{parts[0]}-{parts[1]}"
+                    # Verify it looks like a story ID (two digit groups)
+                    if parts[0].isdigit() and parts[1].isdigit():
+                        story_ids.add(story_id)
+    
+    return story_ids
+
+
+def _extract_story_ids_from_filenames(stories_dir: Path) -> set[str]:
+    """Extract story IDs from .md filenames in a stories/ directory.
+    
+    Returns a set of story ID prefixes (e.g. '01-01', '02-03').
+    Expects filenames like 'XX-YY-slug.md'.
+    """
+    story_ids = set()
+    if not stories_dir.is_dir():
+        return story_ids
+    
+    for md_file in stories_dir.glob("*.md"):
+        filename = md_file.name
+        # Extract XX-YY from 'XX-YY-slug.md'
+        parts = filename.rstrip(".md").split("-", 2)  # Split on first two hyphens
+        if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+            story_id = f"{parts[0]}-{parts[1]}"
+            story_ids.add(story_id)
+    
+    return story_ids
+
+
+def test_feature_md_stories_match_files() -> None:
+    """Each feature.md '## Stories' section lists exactly the .md files in stories/.
+    
+    Fails with a clear diff if there are:
+    - Stories listed in feature.md but missing as files (extras in feature.md)
+    - Stories existing as files but not listed in feature.md (missing in feature.md)
+    """
+    features_dir = REPO_ROOT / "docs" / "features"
+    assert features_dir.is_dir(), f"missing {features_dir.relative_to(REPO_ROOT)}"
+    
+    mismatches = []
+    
+    # Iterate over all feature directories
+    for feature_dir in sorted(features_dir.iterdir()):
+        if not feature_dir.is_dir() or feature_dir.name.startswith("_"):
+            continue
+        
+        feature_md_path = feature_dir / "feature.md"
+        stories_dir = feature_dir / "stories"
+        
+        if not feature_md_path.is_file():
+            continue
+        
+        # Read feature.md and extract story IDs from the Stories section
+        feature_md_content = feature_md_path.read_text(encoding="utf-8")
+        listed_ids = _extract_story_ids_from_feature_md(feature_md_content)
+        
+        # Extract story IDs from actual .md files in stories/ directory
+        file_ids = _extract_story_ids_from_filenames(stories_dir)
+        
+        # Compare
+        extras_in_md = listed_ids - file_ids  # In feature.md but not as files
+        missing_in_md = file_ids - listed_ids  # In files but not in feature.md
+        
+        if extras_in_md or missing_in_md:
+            rel = feature_dir.relative_to(REPO_ROOT).as_posix()
+            msg_parts = [f"{rel}:"]
+            if extras_in_md:
+                msg_parts.append(
+                    f"  Listed in feature.md but missing as files: {sorted(extras_in_md)}"
+                )
+            if missing_in_md:
+                msg_parts.append(
+                    f"  Exist as files but not listed in feature.md: {sorted(missing_in_md)}"
+                )
+            mismatches.append("\n".join(msg_parts))
+    
+    assert not mismatches, (
+        "Feature.md stories sections do not match actual .md files:\n\n"
+        + "\n\n".join(mismatches)
+    )

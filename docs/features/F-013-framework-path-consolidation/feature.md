@@ -85,7 +85,6 @@ framework's test runner. Direct `pytest` is only mentioned as a checker name in
 
 ## Stories
 
-- 01-01-plugin-relative-paths (planned)
 - 17-01-plugin-relative-paths (done) — Guards resolve scripts via import.meta.dirname, fail-closed
 - 17-02-verdict-schema-fix (done) — merge-guard.ts reads verdicts[] not last_verdict
 - 17-03-enforcement-bypass-fix (done) — merge_if_passed.py carries guard logic itself

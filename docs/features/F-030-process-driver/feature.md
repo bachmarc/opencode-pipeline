@@ -144,6 +144,7 @@ diagnosis recommendation — instead of endless cheap retries.
 - 30-03-tier-d-checkers (planned)
 - 30-04-tier-k-scoping-prompts (planned)
 - 30-05-plan-checker (planned)
+- 30-06-fix-preexisting-fails (done)
 
 ## Open questions / follow-ups
 

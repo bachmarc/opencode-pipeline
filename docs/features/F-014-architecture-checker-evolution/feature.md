@@ -40,4 +40,4 @@ Design constraints (from the F-008 polyglot checker discipline):
 
 ## Stories
 
-- 18-01-check-architecture-file-mode (planned)
+- 16-01-check-architecture-file-mode (done)
