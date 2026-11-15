@@ -368,3 +368,20 @@ Index and status per story. Template: `docs/features/_story_template.md`.
   derived from qa_config.json, process.json, existing patterns). Scope: test files only,
   never src/. Verdict extended with `qa_tests_added` + `qa_review_notes`. 1 story:
   - 36-01: `agents/qa-manager.md` + `_story_template.md` + `test_qa_manager_prompt.py`
+- **Phase 37 (Eliminate STORIES.md):** STORIES.md is a manually maintained aggregate of
+  what already lives in story files (status) and feature.md files (narrative). The driver
+  reads story files, not STORIES.md. Same principle as F-010 (requirements.md/design.md
+  eliminated). Three change areas: scripts that read STORIES.md switch to story files;
+  plugins that check STORIES.md updates become obsolete; STORIES.md itself is deleted.
+  Prerequisite: F-033/33-01 (story files reliably track Done status after merge).
+  3 stories: W1 (37-01, docs) parallel with F-033..F-036 W1; then W2 (37-03, plugins +
+  prompts + deletion) parallel with F-033 W2; then W3 (37-02, scripts) after F-033 W2:
+  - 37-01: feature.md `## Stories` accuracy + `test_feature_md_stories_match_files`
+  - 37-02: scripts (check_watermark, create_retro_stories, provision_structure,
+    validate_migration, prepare_agents_md, analyze_project, driver comment)
+  - 37-03: `story-status-guard.ts` removed; `dev-start-guard.ts` → story-file scan;
+    architect.md + templates/AGENTS.md + AGENTS.md updated; STORIES.md deleted
+  Conflict candidates declared as sequential waves:
+  - agents/architect.md: 34-01 (W1) before 37-03 (W2) — same file
+  - templates/AGENTS.md: 34-01 (W1) before 37-03 (W2) — same file
+  - scripts/driver.py: 33-03 (W2) before 37-02 (W3) — same file

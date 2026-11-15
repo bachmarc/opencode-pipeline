@@ -33,6 +33,7 @@ Top-level index of features and their stories. Each feature has a directory unde
 | F-034 | Developer Loop Protection | planned | — | 34-01 |
 | F-035 | Pipeline Ergonomics | planned | — | 35-01 |
 | F-036 | QA as Test Oracle | planned | — | 36-01 |
+| F-037 | Eliminate STORIES.md | planned | — | 37-01, 37-02, 37-03 |
 
 ## Feature status derivation
 
