@@ -126,7 +126,6 @@ This script:
 
 When an existing project is onboarded, it arrives with development history — git commits, CHANGELOG.md, TODO.md, or accumulated knowledge. The pipeline offers three strategies, and the architect presents a history summary before the user chooses:
 
-<<<<<<< HEAD
 ### Step 1: Scan the project's existing history
 
 Run the history scanner to collect information about existing work using `create_retro_stories.py`:
