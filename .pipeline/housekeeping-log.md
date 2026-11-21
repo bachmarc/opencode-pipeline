@@ -14,7 +14,15 @@ Architect-direct code fixes. Each entry: date, story context, file, change, user
 
 ---
 
-## 2026-11-21 — Stray conflict marker in skills/migrate-project.md
+## 2026-11-21 — Stray conflict marker in README.md
+
+**File:** `README.md` line 477
+**Symptom:** Conflict block between HEAD and `feature/27-02-js-ts-lint-checkers` left unresolved
+in the file — pre-existing artifact on origin/main, undetected because README.md is free-edit
+(no QA checker scans it for markers).
+**Fix:** Kept HEAD version ("one inline function in `scripts/qa_compress.py` + one entry in the
+`CHECKERS` dict"). Remote version was an earlier, less specific draft.
+**Risk:** None — prose-only change in README, no logic.
 
 **File:** `skills/migrate-project.md` line 129
 **Symptom:** Literal `<<<<<<< HEAD` line in Phase 5 of the migrate-project skill, deployed

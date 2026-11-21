@@ -474,11 +474,7 @@ The QA gate works with **any language** — not just Python/pytest. Projects dec
 - **Commit metadata** (`prepare_commit_metadata.py`) derives the test command from `qa_config.json` and extracts symbols/affects in a language-aware way (Python, JS/TS, Bash, Ruby, Java).
 - **Architecture checking** (`check_architecture.py`) validates import boundaries across languages — Python, JS/TS, Ruby, Java — with per-language allowlists.
 
-<<<<<<< HEAD
 New checkers = one inline function in `scripts/qa_compress.py` + one entry in the `CHECKERS` dict. Flat, deterministic, no plugin discovery overhead.
-=======
-New checkers = one inline function + one CHECKERS dict entry. No shared-file edits, no merge conflicts.
->>>>>>> feature/27-02-js-ts-lint-checkers
 
 ### Documentation Model
 
