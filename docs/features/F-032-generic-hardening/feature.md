@@ -88,6 +88,7 @@ implemented, nothing noticed for weeks).
 
 ## Stories
 
+- 32-04-post-merge-sibling-runner (planned)
 - 32-01-boundary-invariants-prompts (planned) — template + architect +
   qa-manager prompt rules (req 1–3)
 - 32-02-main-health-driver (planned) — merge_if_passed post-merge suite
